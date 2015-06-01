@@ -19,7 +19,7 @@ from ocpcaerror import OCPCAError
 import logging
 logger=logging.getLogger("ocp")
 
-def mcfcPNG ( cutout, colors ):
+def mcfcPNG (cutout, colors, enhancement=4.0):
   """False color a multichannel cutout.  Takes a 3-d array and returns a 2-d array 
      that combined all channels based on colors.  
     The inbound channels should be 8-bit, i.e. window them if need be.
@@ -28,47 +28,41 @@ def mcfcPNG ( cutout, colors ):
       to the amount of data in the channel cutout
   """
 
-  combined_cutout = np.zeros((cutout.shape[1],cutout.shape[2]), dtype=np.uint32)
+  combined_cutout = np.zeros(cutout.shape[1:], dtype=np.uint32)
 
   for i in range(cutout.shape[0]):
     
-    # First channel is cyan
+    data32 = np.array (cutout[i,:], dtype=np.uint32)
+
+    # First is Cyan
     if colors[i] == 'C':
-      data32 = np.array ( cutout[i,:,:], dtype=np.uint32 )
       combined_cutout += np.left_shift(data32,8) + np.left_shift(data32,16)
     # Second is Magenta
     elif colors[i] == 'M':
-      data32 = np.array ( cutout[i,:,:], dtype=np.uint32 )
       combined_cutout +=  np.left_shift(data32,16) + data32 
-    # THird is yellow
+    # Third is Yellow
     elif colors[i] == 'Y':  
-      data32 = np.array ( cutout[i,:,:], dtype=np.uint32 )
       combined_cutout +=  np.left_shift(data32,8) + data32 
     # Fourth is Red
     elif colors[i] == 'R':
-      data32 = np.array ( cutout[i,:,:], dtype=np.uint32 )
       combined_cutout +=  data32 
     # Fifth is Green
     elif colors[i] == 'G':
-      data32 = np.array ( cutout[i,:,:], dtype=np.uint32 )
       combined_cutout += np.left_shift(data32,8)
     # Sixth is Blue
     elif colors[i] == 'B':
-      data32 = np.array ( cutout[i,:,:], dtype=np.uint32 )
       combined_cutout +=  np.left_shift(data32,16) 
     else:
-      logger.warning ( "Unsupported color requested:" % (color[i]))
-      raise OCPCAError ( "Unsupported color requested:" % (color[i]))
+      logger.warning ("Unsupported color requested: {}".format(color[i]))
+      raise OCPCAError ("Unsupported color requested: {}".format(color[i]))
 
   # Set the alpha channel only for nonzero pixels
-  combined_cutout = np.where ( combined_cutout > 0, combined_cutout + 0xFF000000, 0 )
-  
-  outimage =Image.frombuffer ( 'RGBA', (cutout.shape[2],cutout.shape[1]), combined_cutout.flatten(), 'raw', 'RGBA', 0, 1 ) 
+  combined_cutout = np.where (combined_cutout > 0, combined_cutout + 0xFF000000, 0)
+  outimage = Image.frombuffer ( 'RGBA', cutout.shape[1:], combined_cutout.flatten(), 'raw', 'RGBA', 0, 1 ) 
   
   # Enhance the image
   from PIL import ImageEnhance
   enhancer = ImageEnhance.Brightness(outimage)
-  outimage = enhancer.enhance(4.0)
+  outimage = enhancer.enhance(enhancement)
   
   return outimage
-

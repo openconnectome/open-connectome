@@ -6,11 +6,13 @@
 
 
 {% block content %}
+{% if messages %}
 <ul>
         {% for message in messages %}
         <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
         {% endfor %}
       </ul>
+{% endif %}
 
 <form class="form-inline" method="post" action="">
   <div class="container-fluid">
@@ -23,27 +25,27 @@
     </div>
   </div>
 
+<!---
   <div class="container-fluid">
     <div class = "row-fluid">
       <div class ="span3"></div>
       <div class ="span6">
-	<div id="content" style="background-color:#F5F6CE;height:50px;float:left;">
-	  Filter By:
+	<div id="content" class="search" style="background-color:#F5F6CE;height:50px;float:left;">
+	  Search by:
 	  <select name="filteroption">
-	    <option value="token">Token</option>
-	    <option value="project">Project</option>
-	    <option value="datatype">Datatype</option>
 	    <option value="dataset">Dataset</option>
 	  </select>
 	  
-	  <input type="text"  name="filtervalue" placeholder="Enter Filter Value">
-	  <button type="submit" class= "btn" name ="filter">Filter Projects </button>
+	  <input type="text"  name="filtervalue" placeholder="Enter dataset name">
+	  <button type="submit" class= "btn" name ="filter">Search Datasets </button>
 	  
 	</div>
 	<div class ="span3"></div>
       </div>
     </div>
   </div>
+
+--->
 
 </form>
 <body>
@@ -54,10 +56,10 @@
       <div class ="span1"></div>
       <div class ="span10">
 	<table class ="table">
-	  {% for dataset in dts %}
+	  {% for ds in dts %}
 	  
 	  <thead>
-	    <tr class="success"><th>Dataset</th> <th>{{dataset.0}}</th></tr>
+	    <tr class="success"><th>Dataset</th> <th>{{ds.dataset_name}} ( {{ds.dataset_description}} ) </th></tr>
 	  </thead>
 	  <tr>
 	    <td></td>
@@ -66,34 +68,51 @@
 		<tr class ="error">
 		  <th>X Image Size</th>
 		  <th>Y Image Size</th>
-		  <th>Start Slice</th>
-		  <th>End Slice</th>
-		  <th>Zoom Levels</th>
-		  <th>Z Scale</th>
-		  <th>Start Window</th>
-                  <th>End Window</th>
+		  <th>Z Image Size</th>
+		  <th>X Offset</th>
+		  <th>Y Offset</th>
+		  <th>Z Offset</th>
+		  <th>X Res (nm)</th>
+		  <th>Y Res (nm)</th>
+		  <th>Z Res (nm)</th>
+		  <th>Public or Private </th>
+		  <th>Scaling Levels</th>
+		  <th>Scaling Option</th>
 		  <th>Start Time</th>
 		  <th>End Time</th>
-
 		</tr>	   
 		<form method="post" action = "">
 		  <tr>
-	            <input type="hidden" name="dataset" value={{dataset.0}}>
-                    <td style="width: 15%;">{{ dataset.1 }}</td>
-                    <td>{{ dataset.2 }}</td>
-		    <td>{{ dataset.3 }}</td>
-		    <td>{{ dataset.4 }}</td>
-		    <td>{{ dataset.5 }}</td>
-		    <td>{{ dataset.6 }}</td>
-		    <td>{{ dataset.7 }}</td>
-                    <td>{{ dataset.8 }}</td>
-		    <td>{{ dataset.9 }}</td>
-		    <td>{{ dataset.10 }}</td>
+	      <input type="hidden" name="dataset_name" value={{ds.dataset_name}}>
+        <td>{{ ds.ximagesize }}</td>
+        <td>{{ ds.yimagesize }}</td>
+        <td>{{ ds.zimagesize }}</td>
+        <td>{{ ds.xoffset }}</td>
+        <td>{{ ds.yoffset }}</td>
+        <td>{{ ds.zoffset }}</td>
+        <td>{{ ds.xvoxelres }}</td>
+        <td>{{ ds.yvoxelres }}</td>
+        <td>{{ ds.zvoxelres }}</td>
+		    {{ ds.public.ashidden }}
+        {% if ds.public == 0%}
+          <td>Private</td>
+        {% else %}
+          <td>Public</td>
+        {% endif %}
+		    <td>{{ ds.scalinglevels }}</td>
+		    {{ ds.scalingoption.ashidden }}
+        {% if ds.scalingoption == 0%}
+          <td>Z Slices</td>
+        {% else %}
+          <td>Isotropic</td>
+        {% endif %}
+		    <td>{{ ds.starttime }}</td>
+		    <td>{{ ds.endtime }}</td>
 
-                    <td><button class="btn" id="delete" type="submit" name="delete"> <i class ="icon-trash icon-black"></i>Delete Dataset</button></td>
+		    <td><button class="btn" id="delete" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete?')"> <i class ="icon-trash icon-black"></i>Delete Dataset</button></td>
 <!--		    <td><button class="btn" id="viewprojects" type="submit" name="viewprojects"> <i class ="icon-inbox icon-black"></i>View Projects</button></td>-->
-		    
-		    
+		    <td><button class="btn" id="update" type="submit" name="update"> <i class ="icon-inbox icon-black"></i>Update Dataset</button></td>
+
 		</form>
 		
 	    </table></td>
@@ -106,20 +125,10 @@
       <div class ="span1"></div>
     </div>
   </div>
-  
 
 </form>
 
-
-
-
-
-
-
-
 </body>
-
-
 
 {% endblock content %}
 

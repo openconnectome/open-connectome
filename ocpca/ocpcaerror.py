@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# OCPCA errors
-#
 class OCPCAError (Exception):
   """General annotation error"""
+  
   def __init__(self, value):
     self.value = value
+
   def __str__(self):
     return repr(self.value)
-

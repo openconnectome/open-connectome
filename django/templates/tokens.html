@@ -46,7 +46,7 @@
 	{% for token in tokens %}
 	
 	<thead>
-	  <tr class="success"><th>Dataset</th> <th>{{database}}</th></tr>
+	  <tr class="success"><th>Project</th> <th>{{project}}</th></tr>
 	</thead>
 	<tr>
 	  <td></td>
@@ -71,10 +71,7 @@
 		  <td>{{ token.11 }}</td>
                   <td><button class="btn" id="delete" type="submit" name="delete"> <i class ="icon-trash icon-black"></i>Delete Dataset</button></td>
 		  <td><button class="btn" id="viewprojects" type="submit" name="tokens"> <i class ="icon-inbox icon-black"></i>View Projects</button></td>
-		  
-		
 	      </form>
-	      
 	  </table></td>
 	</tr>
 	{% empty %}
@@ -83,21 +80,6 @@
       </table>
     </div>
   </div>
-  
-
 </form>
-
-
-
-
-
-
-
-
 </body>
-
-
-
 {% endblock content %}
-
-

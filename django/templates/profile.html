@@ -6,12 +6,13 @@
 
 
 {% block content %}
+{% if messages %}
 <ul>
   {% for message in messages %}
   <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
   {% endfor %}
 </ul>
-
+{% endif %}
 
 <form class="form-inline" method="post" action="">
 
@@ -25,30 +26,31 @@
       </div>
     </div>
   </div>
-  
 
+<!---
   <div class="container-fluid">
     <div class = "row-fluid">
       <div class ="span3"></div>
       <div class ="span6">
-	<div id="content" style="background-color:#F5F6CE;float:left;">
+	<div id="content" class="search" style="background-color:#F5F6CE;float:left;">
 	  
-	  Filter By:
+	  Search By:
 	  <select name="filteroption">
 	    <option value="project">Project</option>
-	    <option value="datatype">Datatype</option>
 	  </select>
 	  
-	  <input type="text"  name="filtervalue" placeholder="Enter Filter Value">
-	  <button type="submit" class= "btn" name ="filter">Filter Projects </button>
+	  <input type="text"  name="filtervalue" placeholder="Enter project name">
+	  <button type="submit" class= "btn" name ="filter">Search Projects </button>
 	  
 	</div>
 	<div class ="span3"></div>
       </div>
     </div>
   </div>
+--->
 
-</form>
+</form> 
+
 <body>
 
 <form method="post" action="">
@@ -58,73 +60,73 @@
       	<div class ="span1"></div>
 	<div class ="span10">
 	  <table class ="table">
-	    {% for key, value in databases %}
+	    {% for dataset, dts_projects in databases %}
 	    
 	    <thead>
-	      <tr class="success"><th>Dataset</th> <th>{{key.0}}</th></tr>
+	      <tr class="success"><th>Dataset</th> <th>{{dataset}}</th></tr>
 	    </thead>
-	    <tr>
+ 	    <tr>
 	      <td></td>
 	      <td>
-		<table class="table table-bordered">
-		  {% for proj in value %}
-		  <tr class ="error">
-		    <th>Project</th>
-		    <th>Type</th>
-		    <th>Description</th>
-		    <th>Propogate</th>
 
-		  </tr>	   
-		  
-		  {% for field in proj %}
+        {% for value in dts_projects %} 
+
+        <table class="table table-bordered">
+
+          {%if value %}
+                  <tr class ="error">
+                    <th>Project</th>
+                    <th>Description</th>
+                    <th>Public</th>
+                    <th>Host</th>
+                    <th>KVEngine</th>
+                    <th>KVServer</th> 
+                  </tr>
+          {% endif %}
+
+          {% for proj in value %}
+		  		  		  
 		  <form method="post" action = "">
 		    <tr>
-		      <input type="hidden" name="projname" value={{field.3}}>
-		      <td style="width: 15%;">{{ field.3 }}</td>
-		      {% if field.4 == 1 %}
-		      <td>IMAGE</td>
-		      {% elif field.4 == 2%}
-		      <td>ANNOTATION</td>
-		      {% elif field.4 == 3%}
-		      <td>CHANNEL 16bit</td>		      
-		      {% elif field.4 == 4%}
-		      <td>CHANNEL 8bit</td>		      
-		      {% elif field.4 == 5%}
-                      <td>PROBMAP 32bit</td>
-		      {% elif field.4 == 6%}
-                      <td>BITMASK</td>
-		      {% elif field.4 == 7%}
-                      <td>ANNOTATION 64bit</td>
-		      {% elif field.4 == 8%}
-                      <td>IMAGE 16bit</td>
-		      {% elif field.4 == 9%}
-                      <td>RGB 32bit</td>
-		      {% elif field.4 == 10%}
-                      <td>RGB 64bit</td>
-		      {% elif field.4 == 11%}
-                      <td>TIMESERIES_4d_8bit</td>
-		      {% elif field.4 == 12%}
-                      <td>TIMESERIES_4d_16bit</td>
-
-
+		      <td>{{ proj.project_name }}</td>
+		      <td>{{ proj.project_description }}</td>
+		      
+		      {% if proj.public == 0%}
+                      <td>NO</td>
+		      {% else %}
+		      <td>YES</td>
+		      {% endif %}
+		      <td>{{ proj.host }}</td>
+		      <td>{{ proj.kvengine }}</td>
+		      {% if proj.kvserver == 'localhost' %}
+		      <td>Localhost</td>
+		      {% elif proj.kvserver == '172.23.253.61'%}
+                      <td>dsp061</td>
+		      {% elif proj.kvserver == '172.23.253.62'%} 
+                      <td>dsp062</td>
+		      {% elif proj.kvserver == '172.23.253.63' %}
+		      <td>dsp063</td>
 		      {% else %}
 		      <td>OTHER</td>
 		      {% endif %}
-		      <td colspan=50>{{ field.11 }}</td>
-		      {% if field.13 == 0 %}
-                      <td>NOT PROPOGATED</td>
-		      {% elif field.13 == 1%}
-                      <td>UNDER PROPOGATION</td>
-                      {% else %}
-                      <td>PROPOGATED</td>
-		      {% endif %}
-<!--		      <td><button class="btn" id="delete" type="submit" name="delete"> <i class ="icon-trash icon-black"></i>Delete Project</button></td>
+     
+
+<!--		      <td>{{ proj.overlayproject }}</td>
+		      <td>{{ proj.osverlayserver }}</td>
 -->
-		      <td><button class="btn" id="backup" type="submit" name="backup"> <i class ="icon-inbox icon-black"></i>Backup Project</button></td>
-		      <td><button class="btn" id="tokens" type="submit" name="tokens"> <i class ="icon-inbox icon-black"></i>View Tokens</button></td>
-		  </form>	  
+
+	        <input type="hidden" name="project_name" value={{proj.project_name}}>
+		     
+		      <td><button class="btn" id="tokens" type="submit" name="tokens"> <i class ="icon-inbox icon-black"></i>Tokens</button></td>
+		      <td><button class="btn" id="channels" type="submit" name="channels"> <i class ="icon-trash icon-black"></i>Channels</button></td>
+		      <td><button class="btn" id="update" type="submit" name="update"> <i class ="icon-inbox icon-black"></i>Update/Details</button></td>
+		      <td><button class="btn" id="delete" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete? This unlinks the project, but does not Delete Data.  Use Delete Data to do both.')"> <i class ="icon-trash icon-black"></i>Unlink</button></td>
+		      <td><button class="btn" id="delete_data" type="submit" name="delete_data" onclick="return confirm('Are you sure you want to delete data and remove project?')"> <i class ="icon-trash icon-black"></i>Delete</button></td>
+		      <td><button class="btn" id="backup" type="submit" name="backup" onclick="return confirm('Are you sure you want to backup the database? This creates an entire new copy of the data and takes lots of time and server resources.')" <i class ="icon-inbox icon-black"></i>Backup</button></td>
+		  </form>
 		  {% endfor %}         
 		  
+
 		  {% empty %}
 		  <li>No Projects Available!</li>
 		  {% endfor %}         
@@ -132,27 +134,17 @@
 	    </tr>
 	    {% empty %}
 	    <li>No Projects Available!</li>
-	    {% endfor %}      
+	    {% endfor %}
+	
 	  </table>
 	</div>
 	<div class ="span1"></div>
     </div>
  </div>
-  
-
 
 </form>
 
-
-
-
-
-
-
-
 </body>
-
-
 
 {% endblock content %}
 

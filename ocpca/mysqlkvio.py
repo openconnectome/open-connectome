@@ -34,17 +34,17 @@ class MySQLKVIO:
 
     self.db = db
     self.conn = None
-
+    
     # Connection info 
     try:
-      self.conn = MySQLdb.connect (host = self.db.annoproj.getDBHost(),
-                            user = self.db.annoproj.getDBUser(),
-                            passwd = self.db.annoproj.getDBPasswd(),
-                            db = self.db.annoproj.getDBName())
+      self.conn = MySQLdb.connect (host = self.db.proj.getDBHost(),
+                            user = self.db.proj.getDBUser(),
+                            passwd = self.db.proj.getDBPasswd(),
+                            db = self.db.proj.getDBName())
 
     except MySQLdb.Error, e:
       self.conn = None
-      logger.error("Failed to connect to database: %s, %s" % (db.annoproj.getDBHost(), db.annoproj.getDBName()))
+      logger.error("Failed to connect to database: {}, {}".format(db.ocpchannel.getDBHost(), db.ocpchannel.getDBName()))
       raise
 
     # start with no cursor
@@ -77,111 +77,80 @@ class MySQLKVIO:
       self.txncursor.close()
       self.txncursor = None
 
-  def getCube ( self, zidx, resolution, update ):
+  def getCube(self, ch, zidx, resolution, update=False):
     """Retrieve a cube from the database by token, resolution, and zidx"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
-    sql = "SELECT cube FROM {} WHERE zindex ={}".format( self.db.annoproj.getTable(resolution) ,zidx ) 
-    if update==True:
+    sql = "SELECT cube FROM {} WHERE zindex ={}".format(ch.getTable(resolution), zidx) 
+    if update:
       sql += " FOR UPDATE"
 
     try:
       cursor.execute ( sql )
       row = cursor.fetchone()
     except MySQLdb.Error, e:
-      logger.error ( "Failed to retrieve data cube: %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+      logger.error ( "Failed to retrieve data cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
       raise
     finally:
       # close the local cursor if not in a transaction
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
 
     # If we can't find a cube, assume it hasn't been written yet
-    if ( row == None ):
+    if row is None:
       return None
     else: 
       return row[0]
 
   
-  def getChannelCube ( self, zidx, channel, resolution, update ):
-    """Retrieve a cube from the Channel database by token, resolution, channel and zidx"""
-
-    # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
-      cursor = self.conn.cursor()
-    else:
-      cursor = self.txncursor
-
-    sql = "SELECT cube FROM {} WHERE (channel,zindex) = ({},{})".format( self.db.annoproj.getTable(resolution), channel, zidx )
-    if update==True:
-          sql += " FOR UPDATE"
-
-    try:
-      cursor.execute ( sql )
-      row = cursor.fetchone()
-    except MySQLdb.Error, e:
-      logger.error ( "Failed to retrieve data cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql) )
-      raise
-    finally:
-      # close the local cursor if not in a transaction
-      if self.txncursor == None:
-        cursor.close()
-
-    # If we can't find a cube, assume it hasn't been written yet
-    if ( row == None ):
-      return None
-    else: 
-      return row[0]
-
-  
-  def getTimeSeriesCube ( self, zidx, timestamp, resolution, update ):
+  def getTimeCube(self, ch, zidx, timestamp, resolution, update=False):
     """Retrieve a cube from the TimeSeries database by token, resolution, timestamp and zidx"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
-    sql = "SELECT cube FROM {} WHERE (zindex,timestamp) = ({},{})".format( self.db.annoproj.getTable(resolution), zidx, timestamp )
-    if update==True:
+    sql = "SELECT cube FROM {} WHERE (zindex,timestamp) = ({},{})".format(ch.getTable(resolution), zidx, timestamp)
+    if update:
           sql += " FOR UPDATE"
 
     try:
-      cursor.execute ( sql )
+      cursor.execute(sql)
       row = cursor.fetchone()
     except MySQLdb.Error, e:
-      logger.error ( "Failed to retrieve data cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql) )
+      logger.error("Failed to retrieve data cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
       raise
     finally:
       # close the local cursor if not in a transaction
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
 
     # If we can't find a cube, assume it hasn't been written yet
-    if ( row == None ):
+    if row is None:
       return None
     else: 
       return row[0]
   
   
-  def getCubes ( self, listofidxs, resolution, neariso=False ):
+  def getCubes(self, ch, listofidxs, resolution, neariso=False):
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
     if neariso:
-      sql = "SELECT zindex, cube FROM {} WHERE zindex in (%s)".format( self.db.annoproj.getNearIsoTable(resolution) ) 
+      sql = "SELECT zindex, cube FROM {} WHERE zindex in (%s)".format( ch.getNearIsoTable(resolution) ) 
     else:
-      sql = "SELECT zindex, cube FROM {} WHERE zindex in (%s)".format( self.db.annoproj.getTable(resolution) ) 
+      sql = "SELECT zindex, cube FROM {} WHERE zindex in (%s)".format( ch.getTable(resolution) ) 
 
     # creats a %s for each list element
     in_p=', '.join(map(lambda x: '%s', listofidxs))
@@ -197,99 +166,61 @@ class MySQLKVIO:
           retval = cursor.fetchone() 
         except:
           break
-        if retval != None:
+        if retval is not None:
           yield ( retval )
         else:
           return
  
     finally:
       # close the local cursor if not in a transaction
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
 
 
-  def getChannelCubes ( self, listofidxs, channel, resolution ):
+  #def getTimeCubes(self, ch, listofidxs, timestamp, resolution):
 
-    # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
-      cursor = self.conn.cursor()
-    else:
-      cursor = self.txncursor
+    ## if in a TxN us the transaction cursor.  Otherwise create one.
+    #if self.txncursor == None:
+      #cursor = self.conn.cursor()
+    #else:
+      #cursor = self.txncursor
 
-    # RBTODO need to fix this for neariso interfaces
-    sql = "SELECT zindex, cube FROM {} WHERE channel={} and zindex in (%s)".format( self.db.annoproj.getTable(resolution), channel )
+    #sql = "SELECT zindex, cube FROM {} WHERE timestamp={} and zindex in (%s)".format( ch.getTable(resolution), timestamp )
 
-    # creats a %s for each list element
-    in_p=', '.join(map(lambda x: '%s', listofidxs))
-    # replace the single %s with the in_p string
-    sql = sql % in_p
+    ## creats a %s for each list element
+    #in_p=', '.join(map(lambda x: '%s', listofidxs))
+    ## replace the single %s with the in_p string
+    #sql = sql % in_p
 
-    try:
-      rc = cursor.execute(sql, listofidxs)
+    #try:
+      #rc = cursor.execute(sql, listofidxs)
     
-      # Get the objects and add to the cube
-      while ( True ):
-        try: 
-          retval = cursor.fetchone() 
-        except:
-          break
-        if retval != None:
-          yield ( retval )
-        else:
-          return
+      ## Get the objects and add to the cube
+      #while ( True ):
+        #try: 
+          #retval = cursor.fetchone() 
+        #except:
+          #break
+        #if retval != None:
+          #yield ( retval )
+        #else:
+          #return
  
-    finally:
-      # close the local cursor if not in a transaction
-      if self.txncursor == None:
-        cursor.close()
-
-
-  def getTimeSeriesCubes ( self, listofidxs, timestamp, resolution ):
-
-    # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
-      cursor = self.conn.cursor()
-    else:
-      cursor = self.txncursor
-
-    # RBTODO need to fix this for neariso interfaces
-    sql = "SELECT zindex, cube FROM {} WHERE timestamp={} and zindex in (%s)".format( self.db.annoproj.getTable(resolution), timestamp )
-
-    # creats a %s for each list element
-    in_p=', '.join(map(lambda x: '%s', listofidxs))
-    # replace the single %s with the in_p string
-    sql = sql % in_p
-
-    try:
-      rc = cursor.execute(sql, listofidxs)
-    
-      # Get the objects and add to the cube
-      while ( True ):
-        try: 
-          retval = cursor.fetchone() 
-        except:
-          break
-        if retval != None:
-          yield ( retval )
-        else:
-          return
- 
-    finally:
-      # close the local cursor if not in a transaction
-      if self.txncursor == None:
-        cursor.close()
+    #finally:
+      ## close the local cursor if not in a transaction
+      #if self.txncursor == None:
+        #cursor.close()
   
   
-  def getTimeSeriesColumn ( self, idx, listoftimestamps, resolution ):
+  def getTimeCubes(self, ch, idx, listoftimestamps, resolution):
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
-    # RBTODO need to fix this for neariso interfaces
-    sql = "SELECT zindex,timestamp,cube FROM {} WHERE zindex={} and timestamp in (%s)".format( self.db.annoproj.getTable(resolution), idx )
+    sql = "SELECT zindex,timestamp,cube FROM {} WHERE zindex={} and timestamp in (%s)".format(ch.getTable(resolution), idx)
 
     # creats a %s for each list element
     in_p=', '.join(map(lambda x: '%s', listoftimestamps))
@@ -305,144 +236,92 @@ class MySQLKVIO:
           retval = cursor.fetchone() 
         except:
           break
-        if retval != None:
+        if retval is not None:
           yield ( retval )
         else:
           return
  
     finally:
       # close the local cursor if not in a transaction
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
   
   
-  #
-  # putCube
-  #
-  def putCube ( self, zidx, resolution, cubestr, update=False ):
+  def putCube ( self, ch, zidx, resolution, cubestr, update=False ):
     """Store a cube from the annotation database"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
     # we created a cube from zeros
     if not update:
-
-      sql = "INSERT INTO {} (zindex, cube) VALUES (%s, %s)".format( self.db.annoproj.getTable(resolution) )
+      sql = "INSERT INTO {} (zindex, cube) VALUES (%s, %s)".format( ch.getTable(resolution) )
 
       # this uses a cursor defined in the caller (locking context): not beautiful, but needed for locking
       try:
         cursor.execute ( sql, (zidx,cubestr) )
       except MySQLdb.Error, e:
-        logger.error ( "Error inserting cube: %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-        raise
-      finally:
-        # close the local cursor if not in a transaction and commit right away
-        if self.txncursor == None:
-          cursor.close()
-
-    else:
-
-      sql = "UPDATE {} SET cube=(%s) WHERE zindex={}".format( self.db.annoproj.getTable(resolution), zidx)
-      try:
-        cursor.execute ( sql, (cubestr,) )
-      except MySQLdb.Error, e:
-        logger.error ( "Error updating data cube: %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-        raise
-      finally:
-        # close the local cursor if not in a transaction and commit right away
-        if self.txncursor == None:
-          cursor.close()
-
-    # commit if not in a txn
-    if self.txncursor == None:
-      self.conn.commit()
-
-
-  #
-  # putChannel
-  #
-  def putChannel ( self, channelstr, channelid ):
-    """ Store a channel in the channels database """
-
-    # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
-      cursor = self.conn.cursor()
-    else:
-      cursor = self.txncursor
-
-    sql = "INSERT INTO channels (chanstr,chanid) VALUES (%s,%s)"
-
-    # this uses a cursor defined in the caller (locking context): not beautiful, but needed for locking
-    try:
-      cursor.execute ( sql, (channelstr, str(channelid)) )
-    except MySQLdb.Error, e:
-      logger.error ( "Error inserting cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
-      raise
-    finally:
-      # close the local cursor if not in a transaction
-      # and commit right away
-      if self.txncursor == None:
-        cursor.close()
-  
-    # commit if not in a txn
-    if self.txncursor == None:
-      self.conn.commit()
-
-  
-  def putChannelCube ( self, zidx, channel, resolution, cubestr, update=False ):
-    """ Store a cube from the channel database """
-
-    # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
-      cursor = self.conn.cursor()
-    else:
-      cursor = self.txncursor
-
-    # we created a cube from zeros
-    if not update:
-
-      sql = "INSERT INTO {} (channel, zindex, cube) VALUES (%s, %s, %s)".format( self.db.annoproj.getTable(resolution) )
-
-      # this uses a cursor defined in the caller (locking context): not beautiful, but needed for locking
-      try:
-        cursor.execute ( sql, (channel,zidx,cubestr))
-      except MySQLdb.Error, e:
         logger.error ( "Error inserting cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
         raise
       finally:
-        # close the local cursor if not in a transaction
-        # and commit right away
-        if self.txncursor == None:
+        # close the local cursor if not in a transaction and commit right away
+        if self.txncursor is None:
           cursor.close()
 
     else:
 
-      sql = "UPDATE {} SET cube=(%s) WHERE (channel,zindex)=({},{})".format( self.db.annoproj.getTable(resolution), channel, zidx )
+      sql = "UPDATE {} SET cube=(%s) WHERE zindex={}".format( ch.getTable(resolution), zidx)
       try:
-        cursor.execute ( sql, (cubestr))
+        cursor.execute ( sql, (cubestr,) )
       except MySQLdb.Error, e:
         logger.error ( "Error updating data cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
         raise
       finally:
-        # close the local cursor if not in a transaction
-        # and commit right away
-        if self.txncursor == None:
+        # close the local cursor if not in a transaction and commit right away
+        if self.txncursor is None:
           cursor.close()
 
     # commit if not in a txn
-    if self.txncursor == None:
+    if self.txncursor is None:
       self.conn.commit()
 
 
-  def putTimeSeriesCube ( self, zidx, timestamp, resolution, cubestr, update=False ):
-    """ Store a cube from the timeseries database """
+  #def putChannel ( self, channelstr, channelid ):
+    #""" Store a channel in the channels database """
+
+    ## if in a TxN us the transaction cursor.  Otherwise create one.
+    #if self.txncursor == None:
+      #cursor = self.conn.cursor()
+    #else:
+      #cursor = self.txncursor
+
+    #sql = "INSERT INTO channels (chanstr,chanid) VALUES (%s,%s)"
+
+    ## this uses a cursor defined in the caller (locking context): not beautiful, but needed for locking
+    #try:
+      #cursor.execute ( sql, (channelstr, str(channelid)) )
+    #except MySQLdb.Error, e:
+      #logger.error ( "Error inserting cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
+      #raise
+    #finally:
+      ## close the local cursor if not in a transaction
+      ## and commit right away
+      #if self.txncursor == None:
+        #cursor.close()
+  
+    ## commit if not in a txn
+    #if self.txncursor == None:
+      #self.conn.commit()
+
+
+  def putTimeCube(self, ch, zidx, timestamp, resolution, cubestr, update=False):
+    """Store a cube from the timeseries database"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
@@ -450,7 +329,7 @@ class MySQLKVIO:
     # we created a cube from zeros
     if not update:
 
-      sql = "INSERT INTO {} (zindex, timestamp, cube) VALUES (%s, %s, %s)".format( self.db.annoproj.getTable(resolution) )
+      sql = "INSERT INTO {} (zindex, timestamp, cube) VALUES (%s, %s, %s)".format(ch.getTable(resolution))
 
       # this uses a cursor defined in the caller (locking context): not beautiful, but needed for locking
       try:
@@ -461,283 +340,329 @@ class MySQLKVIO:
       finally:
         # close the local cursor if not in a transaction
         # and commit right away
-        if self.txncursor == None:
+        if self.txncursor is None:
           cursor.close()
 
     else:
 
-      sql = "UPDATE {} SET cube=(%s) WHERE (zindex,timestamp)=({},{})".format( self.db.annoproj.getTable(resolution), zidx, timestamp )
+      sql = "UPDATE {} SET cube=(%s) WHERE (zindex,timestamp)=({},{})".format(ch.getTable(resolution), zidx, timestamp)
       try:
-        cursor.execute ( sql, (cubestr))
+        cursor.execute (sql, (cubestr))
       except MySQLdb.Error, e:
         logger.error ( "Error updating data cube: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
         raise
       finally:
         # close the local cursor if not in a transaction
         # and commit right away
-        if self.txncursor == None:
+        if self.txncursor is None:
           cursor.close()
 
     # commit if not in a txn
-    if self.txncursor == None:
+    if self.txncursor is None:
       self.conn.commit()
   
   
-  def putCubes ( self, zidx, resolution, cubestr, update=False ):
-    """ Store a batch of cubes from the annotation database """
+  #def putCubes ( self, zidx, resolution, cubestr, update=False ):
+    #""" Store a batch of cubes from the annotation database """
 
-    # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
-      cursor = self.conn.cursor()
-    else:
-      cursor = self.txncursor
+    ## if in a TxN us the transaction cursor.  Otherwise create one.
+    #if self.txncursor == None:
+      #cursor = self.conn.cursor()
+    #else:
+      #cursor = self.txncursor
 
-    # we created a cube from zeros
-    if not update:
+    ## we created a cube from zeros
+    #if not update:
 
-      sql = "INSERT INTO {} (zindex, cube) VALUES (%s, %s)".format( self.db.annoproj.getTable(resolution) )
+      #sql = "INSERT INTO {} (zindex, cube) VALUES (%s, %s)".format( self.db.annoproj.getTable(resolution) )
 
-      # this uses a cursor defined in the caller (locking context): not beautiful, but needed for locking
-      try:
-        cursor.executemany ( sql, zip(zidx,cubestr) )
-      except MySQLdb.Error, e:
-        logger.error ( "Error inserting cube: %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-        raise
-      finally:
-        # close the local cursor if not in a transaction and commit right away
-        if self.txncursor == None:
-          cursor.close()
+      ## this uses a cursor defined in the caller (locking context): not beautiful, but needed for locking
+      #try:
+        #cursor.executemany ( sql, zip(zidx,cubestr) )
+      #except MySQLdb.Error, e:
+        #logger.error ( "Error inserting cube: %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+        #raise
+      #finally:
+        ## close the local cursor if not in a transaction and commit right away
+        #if self.txncursor == None:
+          #cursor.close()
 
-    else:
+    #else:
 
-      sql = "UPDATE {} SET cube=(%s) WHERE zindex=".format( self.db.annoproj.getTable(resolution) )
-      try:
-        cursor.executemany ( sql, zip(zidx,cubestr) )
-      except MySQLdb.Error, e:
-        logger.error ( "Error updating data cube: %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-        raise
-      finally:
-        # close the local cursor if not in a transaction and commit right away
-        if self.txncursor == None:
-          cursor.close()
+      #sql = "UPDATE {} SET cube=(%s) WHERE zindex=%s".format( self.db.annoproj.getTable(resolution) )
+      #try:
+        #cursor.executemany ( sql, zip(zidx,cubestr) )
+      #except MySQLdb.Error, e:
+        #logger.error ( "Error updating data cube: %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+        #raise
+      #finally:
+        ## close the local cursor if not in a transaction and commit right away
+        #if self.txncursor == None:
+          #cursor.close()
 
-    # commit if not in a txn
-    if self.txncursor == None:
-      self.conn.commit()
+    ## commit if not in a txn
+    #if self.txncursor == None:
+      #self.conn.commit()
 
-
-  def getIndex ( self, annid, resolution, update ):
+  def getAnnotationType ( self, ch, annid ):
     """MySQL fetch index routine"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
     #get the block from the database                                            
-    sql = "SELECT cube FROM " + self.db.annoproj.getIdxTable(resolution) + " WHERE annid\
-= " + str(annid) 
-    if update==True:
-      sql += " FOR UPDATE"
+    sql = "SELECT type FROM {} where annoid = {}".format(ch.getAnnoTable('annotation'), annid) 
     try:
       cursor.execute ( sql )
       row = cursor.fetchone ()
     except MySQLdb.Error, e:
-      logger.warning ("Failed to retrieve cube %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+      logger.warning ("Error reading Id: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
+      #raise OCPCAError ("Error reading Id: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
       raise
     except BaseException, e:
       logger.exception("Unknown exception")
       raise
     finally:
       # close the local cursor if not in a transaction
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
    
     # If we can't find a index, they don't exist                                
-    if ( row == None ):
+    if row is None:
+       return None
+    else:
+       return row[0]
+
+  def getAnnotation ( self, ch, annid, anno_type='annotation' ):
+    """MySQL fetch index routine"""
+
+    # if in a TxN us the transaction cursor.  Otherwise create one.
+    if self.txncursor is None:
+      cursor = self.conn.cursor()
+    else:
+      cursor = self.txncursor
+
+    #get the block from the database                                            
+    sql = "SELECT * FROM {} where annoid = {}".format(ch.getAnnoTable(anno_type), annid) 
+    try:
+      cursor.execute ( sql )
+      row = cursor.fetchone ()
+    except MySQLdb.Error, e:
+      logger.warning ("Error reading Id: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
+      #raise OCPCAError ("Error reading Id: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
+      raise
+    except BaseException, e:
+      logger.exception("Unknown exception")
+      raise
+    finally:
+      # close the local cursor if not in a transaction
+      if self.txncursor is None:
+        cursor.close()
+   
+    # If we can't find a index, they don't exist                                
+    if row is None:
+       return None
+    else:
+       return row[0]
+
+  def getIndex ( self, ch, annid, resolution, update ):
+    """MySQL fetch index routine"""
+
+    # if in a TxN us the transaction cursor.  Otherwise create one.
+    if self.txncursor is None:
+      cursor = self.conn.cursor()
+    else:
+      cursor = self.txncursor
+
+    #get the block from the database                                            
+    sql = "SELECT cube FROM {} WHERE annid = {}".format( ch.getIdxTable(resolution), annid )
+    if update:
+      sql += " FOR UPDATE"
+    try:
+      cursor.execute ( sql )
+      row = cursor.fetchone ()
+    except MySQLdb.Error, e:
+      logger.warning ("Failed to retrieve cube {}: {}. sql={}".format(e.args[0], e.args[1], sql))
+      raise
+    except BaseException, e:
+      logger.exception("Unknown exception")
+      raise
+    finally:
+      # close the local cursor if not in a transaction
+      if self.txncursor is None:
+        cursor.close()
+   
+    # If we can't find a index, they don't exist                                
+    if row is None:
        return []
     else:
        return row[0]
 
 
-  def putIndex ( self, zidx, resolution, indexstr, update ):
+  def putIndex ( self, ch, zidx, resolution, indexstr, update ):
     """MySQL put index routine"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
     if not update:
-
-      sql = "INSERT INTO {} ( annid, cube) VALUES ( %s, %s )".format( self.db.annoproj.getIdxTable(resolution) )
-      
+      sql = "INSERT INTO {} ( annid, cube) VALUES ( %s, %s )".format( ch.getIdxTable(resolution) )
       try:
          cursor.execute ( sql, (zidx,indexstr) )
       except MySQLdb.Error, e:
-         logger.warning("Error updating index %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+         logger.warning("Error updating index {}: {}. sql={}".format(e.args[0], e.args[1], sql))
          raise
       except BaseException, e:
          logger.exception("Unknown error when updating index")
          raise
       finally:
         # close the local cursor if not in a transaction
-        if self.txncursor == None:
+        if self.txncursor is None:
           cursor.close()
 
     else:
-
       # update index in the database
-      sql = "UPDATE {} SET cube=(%s) WHERE annid={}".format( self.db.annoproj.getIdxTable(resolution), zidx )
+      sql = "UPDATE {} SET cube=(%s) WHERE annid={}".format( ch.getIdxTable(resolution), zidx )
       try:
          cursor.execute ( sql, (indexstr,) )
       except MySQLdb.Error, e:
-         logger.warning("Error updating exceptions %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+         logger.warning("Error updating exceptions {}: {}. sql={}".format(e.args[0], e.args[1], sql))
          raise
       except:
         logger.exception("Unknown exception")
         raise
       finally:
         # close the local cursor if not in a transaction
-        if self.txncursor == None:
+        if self.txncursor is None:
           cursor.close()
 
     # commit if not in a txn
-    if self.txncursor == None:
+    if self.txncursor is None:
       self.conn.commit()
 
 
-  def deleteIndex ( self, annid, resolution ):
+  def deleteIndex ( self, ch, annid, resolution ):
     """MySQL update index routine"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
-    sql = "DELETE FROM {} WHERE annid={}".format( self.db.annoproj.getIdxTable(resolution), annid )
+    sql = "DELETE FROM {} WHERE annid={}".format( ch.getIdxTable(resolution), annid )
     
     try:
-       cursor.execute ( sql )
+       cursor.execute(sql)
     except MySQLdb.Error, e:
-       logger.error("Error deleting the index %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+       logger.error("Error deleting the index {}: {}. sql={}".format(e.args[0], e.args[1], sql))
        raise
     except:
       logger.exception("Unknown exception")
     finally:
       # close the local cursor if not in a transaction
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
 
     # commit if not in a txn
-    if self.txncursor == None:
+    if self.txncursor is None:
       self.conn.commit()
 
 
-  #
-  # getExceptions
-  #
-  def getExceptions ( self, zidx, resolution, annid ):
+  def getExceptions ( self, ch, zidx, resolution, annid ):
     """Load a the list of excpetions for this cube."""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
     # get the block from the database
-    sql = "SELECT exlist FROM %s where zindex=%s AND id=%s" % ( 'exc'+str(resolution), zidx, annid )
+    sql = "SELECT exlist FROM {} where zindex={} AND id={}".format( ch.getExceptionsTable(resolution), zidx, annid )
     try:
-      cursor.execute ( sql )
+      cursor.execute(sql)
       row = cursor.fetchone()
     except MySQLdb.Error, e:
-      logger.error ( "Error reading exceptions %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
+      logger.error ( "Error reading exceptions {}: {}. sql={}".format(e.args[0], e.args[1], sql))
       raise
     finally:
       # close the local cursor if not in a transaction
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
 
     # If we can't find a list of exceptions, they don't exist
-    if ( row == None ):
+    if row is None:
       return []
     else: 
       return row[0] 
 
-  #
-  # deleteExceptions
-  #
-  def deleteExceptions ( self, zidx, resolution, annid ):
+
+  def deleteExceptions ( self, ch, zidx, resolution, annid ):
     """Delete a list of exceptions for this cuboid"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
-    table = 'exc'+str(resolution)
-
-    sql = "DELETE FROM {} WHERE zindex ={} AND id ={}".format( table, zidx, annid ) 
+    sql = "DELETE FROM {} WHERE zindex ={} AND id ={}".format( ch.getExceptionsTable(resolution), zidx, annid ) 
     try:
       cursor.execute ( sql )
     except MySQLdb.Error, e:
       logger.error ( "Error deleting exceptions %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-      if self.txncursor == None:
+      if self.txncursor is None:
         cursor.close()
       raise
 
     # commit if not in a txn
-    if self.txncursor == None:
+    if self.txncursor is None:
       self.conn.commit()
       cursor.close()
 
 
-  #
-  # putExceptions
-  #
-  def putExceptions ( self, zidx, resolution, annid, excstr, update=False ):
+  def putExceptions ( self, ch, zidx, resolution, annid, excstr, update=False ):
     """Store a list of exceptions"""
     """This should be done in a transaction"""
 
     # if in a TxN us the transaction cursor.  Otherwise create one.
-    if self.txncursor == None:
+    if self.txncursor is None:
       cursor = self.conn.cursor()
     else:
       cursor = self.txncursor
 
-    table = 'exc'+str(resolution)
 
     if not update:
 
-      sql = "INSERT INTO " + table + " (zindex, id, exlist) VALUES (%s, %s, %s)"
+      sql = "INSERT INTO {} (zindex, id, exlist) VALUES (%s, %s, %s)".format( ch.getExceptionsTable(resolution) )
       try:
         cursor.execute ( sql, (zidx, annid, zlib.compress(excstr)))
       except MySQLdb.Error, e:
         logger.error ( "Error inserting exceptions %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-        if self.txncursor == None:
+        if self.txncursor is None:
           cursor.close()
         raise
 
     # In this case we have an update query
     else:
 
-      sql = "UPDATE " + table + " SET exlist=(%s) WHERE zindex=%s AND id=%s" 
+      sql = "UPDATE {} SET exlist=(%s) WHERE zindex=%s AND id=%s".format( ch.getExceptionsTable(resolution) )
       try:
         cursor.execute ( sql, (zlib.compress(excstr),zidx,annid))
       except MySQLdb.Error, e:
         logger.error ( "Error updating exceptions %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-        if self.txncursor == None:
+        if self.txncursor is None:
           cursor.close()
         raise
 
     # commit if not in a txn
-    if self.txncursor == None:
+    if self.txncursor is None:
       self.conn.commit()
       cursor.close()
-
-

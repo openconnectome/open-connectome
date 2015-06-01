@@ -1,123 +1,128 @@
 {% extends "base.html" %}
 
 {% block title %}
-     Tokens 
+     TOKENS 
 {% endblock title %}
 
-
 {% block content %}
+
+{% if messages %}
 <ul>
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-      </ul>
+  {% for message in messages %}
+  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
 
 <form class="form-inline" method="post" action="">
-
-  
   <div class="container-fluid">
     <div class = "row-fluid">
       <div class ="span12">
-	<div id="header" style="background-color:#4682B4;" align="center">  
-	  <h2 style="margin-bottom:0;">TOKENS</h2></div>
+        <div id="header" style="background-color:#4682B4;" align="center">  
+          <h2 style="margin-bottom:0;">TOKENS</h2>
+        </div>
       </div>
     </div>
   </div>
-  
 
-  <div class="container-fluid">
+<!---  <div class="container-fluid">
     <div class = "row-fluid">
       <div class ="span3"></div>
-      <div class ="span6">
-	<div id="content" style="background-color:#F5F6CE;float:left;">
-    
-	  Filter By:
-	  <select name="filteroption">
-	    <option value="token">Token</option>
-	  </select>
-	  
-	  <input type="text"  name="filtervalue" placeholder="Enter Filter Value">
-	  <button type="submit" class= "btn" name ="filter">Filter Projects </button>
-	  
-	</div>
-	<div class ="span3"></div>
+        <div class ="span6">
+      .  <div id="content" style="background-color:#F5F6CE;float:left;">
+          Search by:
+          <select name="filteroption">
+            <option value="Channel">Channel</option>
+          select>
+          <input type="text"  name="filtervalue" placeholder="Enter Channel Value">
+          <button type="submit" class= "btn" name ="filter">Search Channels</button>
+  	    </div>
+      	<div class ="span3"></div>
       </div>
     </div>
   </div>
-
 </form>
+--->
+
 <body>
-
-<form method="post" action="">
-
-  <div class="container-fluid">
-    <div class = "row-fluid">
+  <form method="post" action="">
+    <div class="container-fluid">
+      <div class = "row-fluid">
       <div class ="span1"></div>
-      <div class ="span11">  
-	<table class ="table">
-	  {% for token in tokens %}
-	  
-	  <thead>
-	  <tr class="success"><th>Dataset</th> <th>{{database}}</th></tr>
-	  </thead>
-	  <tr>
-	    <td></td>
-	    <td>
-	      <table class="table table-bordered">
-		<tr class ="error">
-		  <th>Token</th>
-		  <th>Dataset</th>
-		  <th>Read Only</th>
-		  <th>Exceptions</th>
-		  <th>Resolution</th>
-		  <th>Description</th>
-		</tr>	   
-		<form method="post" action = "">
-		  <tr>
-	            <input type="hidden" name="token" value={{token.0}}>
-                    <td style="width: 15%;">{{ token.0 }}</td>
-                    <td>{{ token.5 }}</td>
-		    {% if token.7 == 1 %}
-                    <td>Yes</td>
-                    {% else %}
-                    <td>No</td>
-                    {% endif %}
-		    {% if token.8 == 1 %}
-		    <td>Yes</td>
-                    {% else %}
-                    <td>No</td>
-                    {% endif %}
-		    <td>{{ token.9 }}</td>
-		    <td>{{ token.11 }}</td>
-                    <td><button class="btn" id="delete" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete?')"> <i class ="icon-trash icon-black"></i>Delete Token</button></td>
-		    <td><button class="btn" id="update" type="submit" name="update"> <i class ="icon-inbox icon-black"></i>Update</button></td>
-		    <td><button class="btn" id="DownloadToken" type="submit" name="downloadtoken");"> <i class ="icon-inbox icon-black"></i>Download Token</button></td>
-		    
-		</form>
-		
-	    </table></td>
-	  </tr>
-	  {% empty %}
-	  <li>No Tokens Available!</li>
-	  {% endfor %}      
-	</table>
+        <div class ="span11">  
+
+          <table class ="table">
+          <thead>
+            <tr class="success"><th>Project</th> <th>{{project}}</th></tr>
+          </thead>
+
+          <tr>
+            <td></td>
+            <td>
+
+            {% if not tokens %}
+ 
+              <b>No Channels defined! </b>
+            
+            {% else %}
+
+              <table class="table table-bordered">
+
+              <tr class ="error">
+                <th>Token</th>
+                <th>Description</th>
+                <th>Project</th>
+                <th>Public</th>
+              </tr>	   
+
+              {% for token in tokens %}
+		          <form method="post" action = "">
+        		  <tr>
+	              <input type="hidden" name="token" value={{token.token_name}}>
+                <td style="width: 15%;">{{ token.token_name }}</td>
+                <td>{{ token.token_description }}</td>
+                <td>{{ token.project_id }}</td>
+	        	    {% if token.public == 1 %}
+		              <td>Yes</td>
+                {% else %}
+                  <td>No</td>
+                 {% endif %}
+                <td><button class="btn" id="delete" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete?')"> <i class ="icon-trash icon-black"></i>Delete Token</button></td>
+        		    <td><button class="btn" id="update" type="submit" name="update"> <i class ="icon-inbox icon-black"></i>Update</button></td>
+		            <td><button class="btn" id="DownloadToken" type="submit" name="downloadtoken"> <i class ="icon-inbox icon-black"></i>Download Token</button></td>
+		          </form>
+
+              {% endfor %}
+
+              </table>
+            
+            {% endif %}
+
+            </td>
+          </tr>
+          </table>
+           <div align=center>
+            <button class="btn btn-primary" id="add" type="submit" name="add"> <i class ="icon-inbox icon-black"></i>Add Token</button>
+            <button class="btn btn-primary" id="backtoprojects" type="submit" name="backtoprojects"> <i class ="icon-inbox icon-black"></i>Back to Projects</button>
+           </div>
+        </div>
       </div>
-
     </div>
-  </div>
-</form>
-
-
-
-
-
-
-
-
+  </form>
 </body>
 
-
-
 {% endblock content %}
+
+
+
+
+
+
+
+
+
+
+
+
 
 

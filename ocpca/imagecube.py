@@ -20,7 +20,6 @@ import ocplib
 from windowcutout import windowCutout
 
 from ocpcaerror import OCPCAError
-
 import logging
 logger=logging.getLogger("ocp")
 
@@ -34,7 +33,6 @@ logger=logging.getLogger("ocp")
 #
 class ImageCube8(Cube):
 
-  # Constructor 
   def __init__(self, cubesize=[64,64,64]):
     """Create empty array of cubesize"""
 
@@ -46,7 +44,6 @@ class ImageCube8(Cube):
     # variable that describes when a cube is created from zeros rather than loaded from another source
     self._newcube = False
 
-  # was the cube created from zeros?
   def fromZeros ( self ):
     """Determine if the cube was created from all zeros?"""
     if self._newcube == True:
@@ -54,48 +51,25 @@ class ImageCube8(Cube):
     else: 
       return False
 
-  # create an all zeros cube
   def zeros ( self ):
-    """Create a cube of all 0"""
+    """Create a cube of all zeros"""
     self._newcube = True
     self.data = np.zeros ( self.cubesize, dtype=np.uint8 )
 
-  def overwrite ( self, annodata ):
-    """Get's a dense voxel region and overwrites all non-zero values"""
-
-    #vector_func = np.vectorize ( lambda a,b: b if b!=0 else a ) 
-    #self.data = vector_func ( self.data, annodata ) 
-
-    if (self.data.dtype != annodata.dtype ):
-      logger.error("Conflicting data types for overwrite")
-      raise OCPCAError ("Conflicting data types for overwrite")
-
-    self.data = ocplib.overwriteDense_ctype ( self.data, annodata )
-
-
-  #
-  # Create the specified slice (index) 
-  #
   def xyImage ( self ):
-
+    """Create xy slice"""
     zdim,ydim,xdim = self.data.shape
     return Image.frombuffer ( 'L', (xdim,ydim), self.data[0,:,:].flatten(), 'raw', 'L', 0, 1 ) 
 
-  #
-  # Create the specified slice (index) 
-  #
   def xzImage ( self, zscale ):
-
+    """Create xz slice"""
     zdim,ydim,xdim = self.data.shape
     outimage = Image.frombuffer ( 'L', (xdim,zdim), self.data[:,0,:].flatten(), 'raw', 'L', 0, 1 ) 
     #if the image scales to 0 pixels it don't work
     return outimage.resize ( [xdim, int(zdim*zscale)] )
 
-  #
-  # Create the specified slice (index) 
-  #
   def yzImage ( self, zscale ):
-
+    """Create yz slice"""
     zdim,ydim,xdim = self.data.shape
     outimage = Image.frombuffer ( 'L', (ydim,zdim), self.data[:,:,0].flatten(), 'raw', 'L', 0, 1 ) 
     #if the image scales to 0 pixels it don't work
@@ -127,7 +101,6 @@ class ImageCube16(Cube):
     #  rather than loaded from another source
     self._newcube = False
 
-  # was the cube created from zeros?
   def fromZeros ( self ):
     """Determine if the cube was created from all zeros?"""
     if self._newcube == True:
@@ -135,29 +108,13 @@ class ImageCube16(Cube):
     else: 
       return False
 
-  # create an all zeros cube
   def zeros ( self ):
     """Create a cube of all 0"""
     self._newcube = True
     self.data = np.zeros ( self.cubesize, dtype=np.uint16 )
 
-  def overwrite ( self, annodata ):
-    """Get's a dense voxel region and overwrites all non-zero values"""
-
-    #vector_func = np.vectorize ( lambda a,b: b if b!=0 else a ) 
-    #self.data = vector_func ( self.data, annodata ) 
-
-    if (self.data.dtype != annodata.dtype ):
-      logger.error("Conflicting data types for overwrite")
-      raise OCPCAError ("Conflicting data types for overwrite")
-
-    self.data = ocplib.overwriteDense_ctype ( self.data, annodata )
-
-  #
-  # Create the specified slice (index) 
-  #
   def xyImage ( self ):
-
+    """Create xy slice"""
     # This works for 16-> conversions
     zdim,ydim,xdim = self.data.shape
     if self.data.dtype == np.uint8:  
@@ -167,11 +124,8 @@ class ImageCube16(Cube):
       return outimage.point(lambda i:i*(1./256)).convert('L')
 
 
-  #
-  # Create the specified slice (index) 
-  #
   def xzImage ( self, zscale ):
-
+    """Create xz slice"""
     zdim,ydim,xdim = self.data.shape
     if self.data.dtype == np.uint8:  
       outimage = Image.frombuffer ( 'L', (xdim,zdim), self.data[:,0,:].flatten(), 'raw', 'L', 0, 1)
@@ -181,11 +135,9 @@ class ImageCube16(Cube):
     
     return  outimage.resize ( [xdim, int(zdim*zscale)] )
 
-  #
-  # Create the specified slice (index) 
-  #
-  def yzImage ( self, zscale ):
 
+  def yzImage ( self, zscale ):
+    """Create yz slice"""
     zdim,ydim,xdim = self.data.shape
     if self.data.dtype == np.uint8:  
       outimage = Image.frombuffer ( 'L', (ydim,zdim), self.data[:,:,0].flatten(), 'raw', 'L', 0, 1)
@@ -198,8 +150,6 @@ class ImageCube16(Cube):
 
 # end BrainCube
 
-### Added by Kunal ###
-
 #
 #  ImageCube32: manipulate the in-memory data representation of the 3-d cube 
 #    includes loading, export, read and write routines
@@ -211,7 +161,6 @@ class ImageCube16(Cube):
 #
 class ImageCube32(Cube):
 
-  # Constructor 
   def __init__(self, cubesize=[64,64,64]):
     """Create empty array of cubesize"""
 
@@ -219,28 +168,20 @@ class ImageCube32(Cube):
     Cube.__init__(self,cubesize)
     # note that this is self.cubesize (which is transposed) in Cube
     self.data = np.zeros ( self.cubesize, dtype=np.uint32 )
+    # variable that describes when a cube is created from zeros rather than loaded from another source
+    self._newcube = False
 
-  # was the cube created from zeros?
   def fromZeros ( self ):
-    """Determine if the cube was created from all zeros?"""
+    """Determine if the cube was created from all zeros"""
     if self._newcube == True:
       return True
     else: 
       return False
 
-  # create an all zeros cube
   def zeros ( self ):
     """Create a cube of all 0"""
     self._newcube = True
     self.data = np.zeros ( self.cubesize, dtype=np.uint32 )
-
-  def overwrite ( self, annodata ):
-    """Get's a dense voxel region and overwrites all non-zero values"""
-
-    #vector_func = np.vectorize ( lambda a,b: b if b!=0 else a ) 
-    #self.data = vector_func ( self.data, annodata ) 
-
-    self.data = ocplib.overwriteDense_ctype ( self.data, annodata )
 
   #
   # Create the specified slice (index) 
@@ -271,10 +212,8 @@ class ImageCube32(Cube):
     return outimage.resize ( [ydim, int(zdim*zscale)] )
 
 
-  #
-  # Convert the uint32 back into 4x8 bit channels
-  #
   def RGBAChannel ( self ):
+    """Convert the uint32 back into 4x8 bit channels"""
 
     zdim, ydim, xdim = self.data.shape
     newcube = np.zeros( (4, zdim, ydim, xdim), dtype=np.uint8 )
@@ -284,8 +223,6 @@ class ImageCube32(Cube):
     newcube[3,:,:,:] = np.uint8 ( np.right_shift (self.data, 24) )
     self.data = newcube
 
-
-# end BrainCube
 
 #
 #  ImageCube64: manipulate the in-memory data representation of the 3-d cube 
@@ -298,7 +235,6 @@ class ImageCube32(Cube):
 #
 class ImageCube64(Cube):
 
-  # Constructor 
   def __init__(self, cubesize=[64,64,64]):
     """Create empty array of cubesize"""
 
@@ -306,8 +242,9 @@ class ImageCube64(Cube):
     Cube.__init__(self,cubesize)
     # note that this is self.cubesize (which is transposed) in Cube
     self.data = np.zeros ( self.cubesize, dtype=np.uint64 )
+    # variable that describes when a cube is created from zeros rather than loaded from another source
+    self._newcube = False
 
-  # was the cube created from zeros?
   def fromZeros ( self ):
     """Determine if the cube was created from all zeros?"""
     if self._newcube == True:
@@ -315,56 +252,37 @@ class ImageCube64(Cube):
     else: 
       return False
 
-  # create an all zeros cube
   def zeros ( self ):
     """Create a cube of all 0"""
     self._newcube = True
     self.data = np.zeros ( self.cubesize, dtype=np.uint64 )
 
-  def overwrite ( self, annodata ):
-    """Get's a dense voxel region and overwrites all non-zero values"""
-
-    #vector_func = np.vectorize ( lambda a,b: b if b!=0 else a ) 
-    #self.data = vector_func ( self.data, annodata ) 
-
-    self.data = ocplib.overwriteDense_ctype ( self.data, annodata )
-
-  #
-  # Create the specified slice (index) 
-  #
   def xyImage ( self ):
+    """Create xy slice"""
 
 #RB I think this does nothing
 #    channels,ydim,xdim = self.data.shape
     self.extractChannel()
     return Image.fromarray( self.data, "RGBA")
 
-
-  #
-  # Create the specified slice (index) 
-  #
   def xzImage ( self, zscale ):
+    """Create xz slice"""
 
     zdim,ydim,xdim = self.data.shape
     self.extractChannel()
     outimage = Image.fromarray( self.data, "RGBA")
     return outimage.resize ( [xdim, int(zdim*zscale)] )
 
-
-  #
-  # Create the specified slice (index) 
-  #
   def yzImage ( self, zscale ):
+    """Create yz slice"""
 
     zdim,ydim,xdim = self.data.shape
     self.extractChannel()
     outimage = Image.fromarray( self.data, "RGBA")
     return outimage.resize ( [ydim, int(zdim*zscale)] )
   
-  #
-  # Convert the uint32 back into 4x8 bit channels
-  #
   def extractChannel ( self ):
+    """Convert the uint32 back into 4x8 bit channels"""
 
     zdim, ydim, xdim = self.data.shape
     newcube = np.zeros( (ydim, xdim, 4), dtype=np.uint8 )
@@ -374,10 +292,8 @@ class ImageCube64(Cube):
     newcube[:,:,3] = np.uint8 ( np.right_shift (self.data, 48) )
     self.data = newcube
 
-  #
-  # Convert the uint32 back into 4x8 bit channels
-  #
   def RGBAChannel ( self ):
+    """Convert the uint32 back into 4x8 bit channels"""
 
     zdim, ydim, xdim = self.data.shape
     newcube = np.zeros( (4, zdim, ydim, xdim), dtype=np.uint16 )
@@ -386,5 +302,3 @@ class ImageCube64(Cube):
     newcube[2,:,:,:] = np.uint16 ( np.right_shift( self.data, 32) & 0xffff )
     newcube[3,:,:,:] = np.uint16 ( np.right_shift (self.data, 48) )
     self.data = newcube
-
-# end BrainCube

@@ -32,7 +32,10 @@ def main():
   parser.add_argument('datatype', action="store", type=int, help='1 8-bit data or 2 32-bit annotations' )
   parser.add_argument('dataset', action="store")
   parser.add_argument('dataurl', action="store")
+  parser.add_argument('--kvserver', action="store", default='localhost')
+  parser.add_argument('--kvengine', action="store", default='MySQL')
   parser.add_argument('--readonly', action='store_true', help='Project is readonly')
+  parser.add_argument('--public', action='store_true', help='Project is readonly')
   parser.add_argument('--noexceptions', action='store_true', help='Project has no exceptions.  (FASTER).')
   parser.add_argument('--nocreate', action='store_true', help='Do not create a database.  Just make a project entry.')
   parser.add_argument('--resolution', action='store',type=int, help='Maximum resolution for an annotation projects', default=0)
@@ -43,7 +46,7 @@ def main():
 
   # Get database info
   pd = ocpcaproj.OCPCAProjectsDB()
-  pd.newOCPCAProj ( result.token, result.openid, result.host, result.project, result.datatype, result.dataset, result.dataurl, result.readonly, not result.noexceptions, result.nocreate, result.resolution )
+  pd.newOCPCAProj ( result.token, result.openid, result.host, result.project, result.datatype, result.dataset, result.dataurl, result.readonly, not result.noexceptions, result.nocreate, result.resolution, result.public, result.kvserver, result.kvengine, False )
 
 
 if __name__ == "__main__":

@@ -32,7 +32,10 @@ import sys
 
 sys.path += [  os.path.abspath(os.path.join(os.path.dirname(__file__), ".." ))]
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "OCP.settings")
+#RB Test
+#os.environ.setdefault("DJANGO_SETTINGS_MODULE", "OCP.settings")
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'OCP.settings'
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
@@ -40,6 +43,3 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "OCP.settings")
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
-# Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)

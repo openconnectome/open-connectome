@@ -14,64 +14,70 @@
 
 from django.db import models
 from django.db.models.signals import post_save
+from django.template import Context
+from collections import defaultdict
+from django.contrib import messages
 from django.contrib.auth.models import User
+from django.conf import settings
 
-class ocpProject ( models.Model):
-    token  =  models. CharField(max_length=200)
-    description  =  models. CharField(max_length=4096)
-    project  =  models. CharField(max_length=200)
-    dataset  =  models. CharField(max_length=200)
-
-    DATATYPE_CHOICES = (
-        (1, 'IMAGES'),
-        (2, 'ANNOTATIONS'),
-        (3, 'CHANNEL_16bit'),
-        (4, 'CHANNEL_8bit'),
-        (5, 'PROBMAP_32bit'),
-        (6, 'BITMASK'),
-        (7, 'ANNOTATIONS_64bit'),
-        (8, 'IMAGES_16bit'),
-        (9, 'RGB_32bit'),
-        (10, 'RGB_64bit'),
-        (11,'TIMESERIES_4d_8bit'),
-        (12,'TIMESERIES_4d_16bit'),
-        )
-    datatype = models.IntegerField(choices=DATATYPE_CHOICES, default=1)
+# Create your models here.
+class Dataset ( models.Model):
+    dataset_name = models.CharField(max_length=255, primary_key=True,verbose_name="Name of the Image dataset")    
+    dataset_description = models.CharField(max_length=4096,blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,blank=True)
+    ISPUBLIC_CHOICES = (
+        (0, 'Private'),
+        (1, 'Public'),
+    )
+    public =  models.IntegerField(default=0, choices=ISPUBLIC_CHOICES)
+    ximagesize =  models.IntegerField()
+    yimagesize =  models.IntegerField()
+    zimagesize =  models.IntegerField()
+    xoffset =  models.IntegerField(default=0)
+    yoffset =  models.IntegerField(default=0)
+    zoffset =  models.IntegerField(default=0)
+    xvoxelres = models.FloatField(default=1.0)
+    yvoxelres = models.FloatField(default=1.0)
+    zvoxelres = models.FloatField(default=1.0)
+    SCALING_CHOICES = (
+        (0, 'Z Slices'),
+        (1, 'Isotropic'),
+    )
+    scalingoption = models.IntegerField(default=0, choices=SCALING_CHOICES)
+    scalinglevels = models.IntegerField(default=0)
+    starttime = models.IntegerField(default=0)
+    endtime = models.IntegerField(default=0)
     
+    class Meta:
+        """ Meta """
+        db_table = u"datasets"
+        managed = True
+       
+    def __unicode__(self):
+        return self.dataset_name
 
-#    dataurl  =  models. CharField(max_length=200)
-    overlayproject = models. CharField(max_length=200,default="None")
 
-    resolution = models.IntegerField(default=0)
-    PUBLIC_CHOICES = (
-        (1, 'Yes'),
-        (0, 'No'),
-        )
-    public =  models.IntegerField(choices=PUBLIC_CHOICES, default=0)
-    
-    READONLY_CHOICES = (
-        (1, 'Yes'),
-        (0, 'No'),
-        )
-    readonly =  models.IntegerField(choices=READONLY_CHOICES, default=2)
-
-    EXCEPTION_CHOICES = (
-        (1, 'Yes'),
-        (0, 'No'),
-        )
-    exceptions =  models.IntegerField(choices=EXCEPTION_CHOICES, default=2)
+class Project ( models.Model):
+    project_name  =  models.CharField(max_length=255, primary_key=True)
+    project_description  =  models.CharField(max_length=4096, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,blank=True)
+    ISPUBLIC_CHOICES = (
+        (0, 'Private'),
+        (1, 'Public'),
+    )
+    public =  models.IntegerField(default=0, choices=ISPUBLIC_CHOICES)
+    dataset = models.ForeignKey(Dataset)
     HOST_CHOICES = (
-        ('localhost', 'localhost'),
-        ('braingraph1.cs.jhu.edu', 'openconnecto.me'),
-        ('braingraph1dev.cs.jhu.edu', 'braingraph1dev'),
-        ('braingraph2.cs.jhu.edu', 'braingraph2'),
-        ('dsp061.pha.jhu.edu', 'dsp061'),
-        ('dsp062.pha.jhu.edu', 'dsp062'),
-        ('dsp063.pha.jhu.edu', 'dsp063'),
-
-        )
-    host =  models.CharField(max_length=200, choices=HOST_CHOICES, default='localhost')
-    
+      ('localhost', 'localhost'),
+      ('openconnecto.me', 'openconnecto.me'),
+      ('braingraph1.cs.jhu.edu', 'braingraph1'),
+      ('braingraph1dev.cs.jhu.edu', 'braingraph1dev'),
+      ('braingraph2.cs.jhu.edu', 'braingraph2'),
+      ('dsp061.pha.jhu.edu', 'dsp061'),
+      ('dsp062.pha.jhu.edu', 'dsp062'),
+      ('dsp063.pha.jhu.edu', 'dsp063'),
+    )
+    host =  models.CharField(max_length=255, choices=HOST_CHOICES, default='localhost')
     KVENGINE_CHOICES = (
         ('MySQL','MySQL'),
         ('Cassandra','Cassandra'),
@@ -80,51 +86,105 @@ class ocpProject ( models.Model):
         )
     kvengine =  models.CharField(max_length=255, choices=KVENGINE_CHOICES, default='MySQL')
     KVSERVER_CHOICES = (
-        ('localhost','localhost'),
-        ('172.23.253.61','dsp061'),
-        ('172.23.253.62','dsp062'),
-        ('172.23.253.63','dsp063'),
+        ('localhost', 'localhost'),
+        ('openconnecto.me', 'openconnecto.me'),
+        ('braingraph1.cs.jhu.edu', 'braingraph1'),
+        ('braingraph1dev.cs.jhu.edu', 'braingraph1dev'),
+        ('braingraph2.cs.jhu.edu', 'braingraph2'),
+        ('dsp061.pha.jhu.edu', 'dsp061'),
+        ('dsp062.pha.jhu.edu', 'dsp062'),
+        ('dsp063.pha.jhu.edu', 'dsp063'),
         )
     kvserver =  models.CharField(max_length=255, choices=KVSERVER_CHOICES, default='localhost')
 
-    PROPOGATE_CHOICES = (
-        (0, 'NOT PROPOGATED'),
-        (1, 'UNDER PROPOGATION'),
-        (2, 'PROPOGATED'),
-        )
-    propogate =  models.IntegerField(choices=PROPOGATE_CHOICES, default=0)
-#    NOCREATE_CHOICES = (
- #       (0, 'No'),
- #       (1, 'Yes'),
- #       )
- #   nocreate =  models.IntegerField(choices=NOCREATE_CHOICES, default=0)
+    # Version information -- set automatically
+    ocp_version =  models.CharField(max_length=255, default='0.6')
+    schema_version =  models.CharField(max_length=255, default='0.6')
 
     class Meta:
         """ Meta """
-        app_label = 'emca'
         db_table = u"projects"
+        managed = True
+        
     def __unicode__(self):
-        return self.name
+        return self.project_name
 
-# Create your models here.
-class ocpDataset ( models.Model):
-    dataset  =  models. CharField(max_length=200)    
-    ximagesize =  models.IntegerField()
-    yimagesize =  models.IntegerField()
 
-    startslice = models.IntegerField()
-    endslice = models.IntegerField()
-    startwindow = models.IntegerField(default=0)
-    endwindow = models.IntegerField(default=0)
-    starttime = models.IntegerField(default=0)
-    endtime = models.IntegerField(default=0)
-    zoomlevels = models.IntegerField()
-    zscale = models.FloatField()
-    description  =  models. CharField(max_length=4096)
+class Token ( models.Model):
+    token_name = models.CharField(max_length=255, primary_key=True)
+    token_description  =  models.CharField(max_length=4096,blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,blank=True)
+    project  = models.ForeignKey(Project)
+    ISPUBLIC_CHOICES = (
+        (0, 'Private'),
+        (1, 'Public'),
+    )
+    public =  models.IntegerField(default=0, choices=ISPUBLIC_CHOICES)
+    
     
     class Meta:
         """ Meta """
-        app_label = 'emca'
-        db_table = u"projects"
+         # Required to override the default table name
+        db_table = u"tokens"
+        managed = True
     def __unicode__(self):
-        return self.name
+        return self.token_name
+
+
+class Channel ( models.Model):
+
+   project  = models.ForeignKey(Project,blank=True)
+   channel_name = models.CharField(max_length=255)
+   channel_description  =  models.CharField(max_length=4096,blank=True)
+   CHANNELTYPE_CHOICES = (
+        ('image', 'IMAGES'),
+        ('annotation', 'ANNOTATIONS'),
+        ('probmap', 'PROBABILITY_MAP'),
+        ('rgb', 'RGB'),
+        ('timeseries','TIMESERIES'),
+        )
+   channel_type = models.CharField(max_length=255,choices=CHANNELTYPE_CHOICES)
+
+   resolution = models.IntegerField(default=0)
+
+   PROPAGATE_CHOICES = (
+        (0, 'NOT PROPAGATED'),
+        (2, 'PROPAGATED'),
+        )
+   propagate =  models.IntegerField(choices=PROPAGATE_CHOICES, default=0)
+
+   DATATYPE_CHOICES = (
+        ('uint8', 'uint8'),
+        ('uint16', 'uint16'),
+        ('uint32', 'uint32'),
+        ('uint64', 'uint64'),
+        ('float32', 'float32'),
+        )
+   channel_datatype = models.CharField(max_length=255,choices=DATATYPE_CHOICES)
+
+   READONLY_CHOICES = (
+        (1, 'Yes'),
+        (0, 'No'),
+        )
+   readonly =  models.IntegerField(choices=READONLY_CHOICES, default=0)
+
+   EXCEPTION_CHOICES = (
+       (1, 'Yes'),
+       (0, 'No'),
+     )
+   exceptions =  models.IntegerField(choices=EXCEPTION_CHOICES, default=0)
+   startwindow = models.IntegerField(default=0)
+   endwindow = models.IntegerField(default=0)
+   default = models.BooleanField(default=False)
+   
+   class Meta:
+       """ Meta """
+        # Required to override the default table name
+       db_table = u"channels"
+       managed = True
+       unique_together = ('project', 'channel_name',)
+
+
+   def __unicode__(self):
+       return self.channel_name
+

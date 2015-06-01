@@ -22,62 +22,63 @@ import ocpcaproj
 import logging
 logger=logging.getLogger("ocp")
 
-#
-# h5ChannelsInfo
-#
-#  part of the projinfo interface. put channel information into a H5 file
-def h5ChannelsInfo ( db, h5f ):
-  """put channels into a h5 file"""
-
-  chans = db.getChannels()
-  changrp = h5f.create_group ( 'CHANNELS' )
-  for chanstr, chanid in chans.iteritems():
-     changrp.create_dataset ( chanstr, data=chanid ) 
-
 
 def h5ProjInfo ( proj, h5f ):
   """Populate the HDF5 file with project attributes"""
   
   projgrp = h5f.create_group ( 'PROJECT' )
-  projgrp.create_dataset ( "NAME", (1,), dtype=h5py.special_dtype(vlen=str), data=proj._dbname )
-  projgrp.create_dataset ( "HOST", (1,), dtype=h5py.special_dtype(vlen=str), data=proj._dbhost )
-  projgrp.create_dataset ( "TYPE", (1,), dtype=np.uint32, data=proj._dbtype )
-  projgrp.create_dataset ( "DATASET", (1,), dtype=h5py.special_dtype(vlen=str), data=proj._dataset )
-  projgrp.create_dataset ( "DATAURL", (1,), dtype=h5py.special_dtype(vlen=str), data=proj._dataurl )
-  projgrp.create_dataset ( "READONLY", (1,), dtype=bool, data=(False if proj._readonly==0 else True))
-  projgrp.create_dataset ( "EXCEPTIONS", (1,), dtype=bool, data=(False if proj._exceptions==0 else True))
-  projgrp.create_dataset ( "RESOLUTION", (1,), dtype=np.uint8, data=proj._resolution)
+  projgrp.create_dataset("NAME", (1,), dtype=h5py.special_dtype(vlen=str), data=proj.getProjectName())
+  projgrp.create_dataset("HOST", (1,), dtype=h5py.special_dtype(vlen=str), data=proj.getDBHost())
+  projgrp.create_dataset("OCP_VERSION", (1,), dtype=h5py.special_dtype(vlen=str), data=proj.getOCPVersion())
+  projgrp.create_dataset("SCHEMA_VERSION", (1,), dtype=h5py.special_dtype(vlen=str), data=proj.getSchemaVersion())
+  #projgrp.create_dataset ( "DATAURL", (1,), dtype=h5py.special_dtype(vlen=str), data=proj._overlayserver )
   #projgrp.create_dataset ( "KNENGINE", (1,), dtype=h5py.special_dtype(vlen=str), data=proj._kvserver )
   #projgrp.create_dataset ( "KVSERVER", (1,), dtype=h5py.special_dtype(vlen=str), data=proj._kvengine )
-  projgrp.create_dataset ( "PROPAGATE", (1,), dtype=np.uint8, data=proj._propagate)
 
 
 def h5DatasetInfo ( dataset, h5f ):
   """Populate the HDF5 with db configuration information"""
 
-  dcfggrp = h5f.create_group ( 'DATASET' )
-  dcfggrp.create_dataset ( "RESOLUTIONS", data=dataset.resolutions )
-  dcfggrp.create_dataset ( "SLICERANGE", data=dataset.slicerange )
-  imggrp = dcfggrp.create_group ( 'IMAGE_SIZE' )
-  for k,v in dataset.imagesz.iteritems():
+  dsgrp = h5f.create_group('DATASET')
+  dsgrp.create_dataset('NAME', (1,), dtype=h5py.special_dtype(vlen=str), data=dataset.getDatasetName())
+  dsgrp.create_dataset('RESOLUTIONS', data=dataset.getResolutions())
+  imggrp = dsgrp.create_group('IMAGE_SIZE')
+  for k,v in dataset.getImageSize().iteritems():
     imggrp.create_dataset ( str(k), data=v )
-  zsgrp = dcfggrp.create_group ( 'ZSCALE' )
-  for k,v in dataset.zscale.iteritems():
-    zsgrp.create_dataset ( str(k), data=v )
-  cdgrp = dcfggrp.create_group ( 'CUBE_DIMENSION' )
-  for k,v in dataset.cubedim.iteritems():
+  imggrp = dsgrp.create_group('OFFSET')
+  for k,v in dataset.getOffset().iteritems():
+    imggrp.create_dataset ( str(k), data=v )
+  imggrp = dsgrp.create_group('VOXELRES')
+  for k,v in dataset.getVoxelRes().iteritems():
+    imggrp.create_dataset ( str(k), data=v )
+  cdgrp = dsgrp.create_group('CUBE_DIMENSION')
+  for k,v in dataset.getCubeDims().iteritems():
     cdgrp.create_dataset ( str(k), data=v )
-  isgrp = dcfggrp.create_group ( 'ISOTROPIC_SLICERANGE' )
-  for k,v, in dataset.isoslicerange.iteritems():
-    isgrp.create_dataset ( str(k), data=v )
-  dcfggrp.create_dataset ( "WINDOWRANGE", data=dataset.windowrange )
-  dcfggrp.create_dataset ( "TIMERANGE", data=dataset.timerange )
+  dsgrp.create_dataset("TIMERANGE", data=dataset.getTimeRange())
+
+
+def h5ChannelInfo (proj, h5f):
+  """Populate the HDF5 file with chanel information"""
+
+  chgrp = h5f.create_group('CHANNELS')
+
+  for ch in proj.projectChannels():
+
+    changrp = chgrp.create_group(ch.getChannelName())
+    changrp.create_dataset('NAME', (1,), dtype=h5py.special_dtype(vlen=str), data=ch.getChannelName())
+    changrp.create_dataset("TYPE", (1,), dtype=h5py.special_dtype(vlen=str), data=ch.getChannelType())
+    changrp.create_dataset("DATATYPE", (1,), dtype=h5py.special_dtype(vlen=str), data=ch.getDataType())
+    changrp.create_dataset("RESOLUTION", (1,), dtype=np.uint8, data=ch.getResolution())
+    changrp.create_dataset("READONLY", (1,), dtype=bool, data=(False if ch.getReadOnly() == ocpcaproj.READONLY_FALSE else True))
+    changrp.create_dataset("EXCEPTIONS", (1,), dtype=bool, data=(False if ch.getExceptions() == ocpcaproj.EXCEPTION_FALSE else True))
+    changrp.create_dataset("PROPAGATE", (1,), dtype=np.uint8, data=ch.getPropagate())
+    changrp.create_dataset("DEFAULT", (1,), dtype=bool, data=ch.isDefault())
+    changrp.create_dataset("WINDOWRANGE", data=ch.getWindowRange())
 
 
 def h5Info ( proj, db, h5f ):
-  """wrapper for the parts"""
+  """Wrapper for the parts"""
 
   h5ProjInfo ( proj, h5f )
-  h5DatasetInfo ( proj.datasetcfg, h5f ) 
-  if proj.getDBType() == ocpcaproj.CHANNELS_16bit or proj.getDBType() == ocpcaproj.CHANNELS_8bit:
-    h5ChannelsInfo ( db, h5f )
+  h5DatasetInfo ( proj.datasetcfg, h5f )
+  h5ChannelInfo (proj, h5f)

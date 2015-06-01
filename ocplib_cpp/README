@@ -1,0 +1,9 @@
+########################
+# README for make file #
+########################
+# Author : Kunal Lillaney
+#
+#
+# make all - Make all implementations
+# make test - Make test for testing the C implementations
+# make clean - Removes all compiled files

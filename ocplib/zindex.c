@@ -19,12 +19,8 @@
  * Routines to converty to/from Morton-order z-index 
  */
 
-#include<stdio.h>
 #include<stdint.h>
-#include<stdbool.h>
-#include<stdlib.h>
-#include<string.h>
-
+#include<ocplib.h>
 
 // Generate morton order from XYZ coordinates
 
@@ -69,5 +65,4 @@ void MortonXYZ ( uint64_t morton, uint64_t xyz[3] )
     xyz[2] += ( (zmask & morton) << i) >> 2;
     morton >>= 3;
   }
-
 }

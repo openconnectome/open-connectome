@@ -29,17 +29,30 @@ def main():
   parser.add_argument('dsname', action="store", help='Name of the dataset')
   parser.add_argument('ximagesize', type=int, action="store")
   parser.add_argument('yimagesize', type=int, action="store")
-  parser.add_argument('startslice', type=int, action="store")
-  parser.add_argument('endslice', type=int, action="store")
-  parser.add_argument('zoomlevels', type=int, action="store")
-  parser.add_argument('zscale', type=float, action="store", help='Relative resolution between x,y and z')
+  parser.add_argument('zimagesize', type=int, action="store")
+  parser.add_argument('xoffset', type=int, action="store")
+  parser.add_argument('yoffset', type=int, action="store")
+  parser.add_argument('zoffset', type=int, action="store")
+  parser.add_argument('xvoxelres', type=float, action="store")
+  parser.add_argument('yvoxelres', type=float, action="store")
+  parser.add_argument('zvoxelres', type=float, action="store")
+  parser.add_argument('scalinglevels', type=int, action="store")
+  parser.add_argument('scalingoption', type=str, action="store", help='should be isotropic or zslices', default='zslices')
+  parser.add_argument('--startwindow', type=int, action="store", default=0)
+  parser.add_argument('--endwindow', type=int, action="store", default=0)
+  parser.add_argument('--starttime', type=int, action="store", default=0)
+  parser.add_argument('--endtime', type=int, action="store", default=0)
 
   result = parser.parse_args()
 
   # Get database info
   pd = ocpcaproj.OCPCAProjectsDB()
 
-  pd.newDataset ( result.dsname, result.ximagesize, result.yimagesize, result.startslice, result.endslice, result.zoomlevels, result.zscale )
+
+  imagesize = (result.ximagesize,result.yimagesize,result.zimagesize)
+  offset = (result.xoffset,result.yoffset,result.zoffset)
+  voxelres = (result.xvoxelres,result.yvoxelres,result.zvoxelres)
+  pd.newDataset ( result.dsname, imagesize, offset, voxelres, result.scalinglevels, result.scalingoption, result.startwindow, result.endwindow, result.starttime, result.endtime ) 
 
 
 if __name__ == "__main__":

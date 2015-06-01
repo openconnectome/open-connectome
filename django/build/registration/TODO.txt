@@ -1,4 +1,0 @@
-* Add a CAPTCHA option on new, lost_password
-* Better logging
-* Make compatible with Python 2.3
-* Make templates look better

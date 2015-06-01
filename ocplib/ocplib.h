@@ -36,43 +36,54 @@ int annotateCube ( uint32_t * , int , int * , int , uint32_t * , uint32_t [][3] 
 void locateCube ( uint64_t [][4] , int , uint32_t [][3] , int , int * );
 
 // Declaring XYZMorton zindex function
-int XYZMorton ( uint64_t * );
+uint64_t XYZMorton ( uint64_t * );
 
 // Declaring MortonXYZ zindex function
 void MortonXYZ ( uint64_t , uint64_t [3] );
 
-// Declaring recolorSlice function
-void recolorSlice ( uint32_t * , int , int , uint32_t * , uint32_t * ); 
+// Declaring recolorCube function
+void recolorCubeOMP ( uint32_t * , int , int , uint32_t * , uint32_t * ); 
 
 // Declaring Quick Sort function
 void quicksort ( uint64_t [][4] , int ); 
 
 // Declaring the shaveCube function
-int shaveCube ( uint32_t * , int , int * , int , uint32_t * , uint32_t [][3] , int , uint32_t [][3] , int , uint32_t [][3] , int );
+void shaveCube ( uint32_t * , int , int * , int , uint32_t * , uint32_t [][3] , int , uint32_t [][3] , int , uint32_t [][3] , int );
 
 // Declaring the annotateEntityDense function
-int annotateEntityDense ( uint32_t * , int * , int );
+void annotateEntityDense ( uint32_t * , int * , int );
 
 // Declaring the shaveDense function
-int shaveDense ( uint32_t * , uint32_t * , int * );
+void shaveDense ( uint32_t * , uint32_t * , int * );
 
 // Declaring the exceptionDense function
-int exceptionDense ( uint32_t * , uint32_t * , int * );
+void exceptionDense ( uint32_t * , uint32_t * , int * );
 
 // Declaring the exceptionDense function
-int overwriteDense ( uint32_t * , uint32_t * , int * );
+void overwriteDense ( uint32_t * , uint32_t * , int * );
 
 // Declaring the zoomOutData function
-int zoomOutData ( uint32_t * , uint32_t * , int * , int );
+void zoomOutData ( uint32_t * , uint32_t * , int * , int );
 
 // Declaring the zoomOutData function OMP optimized
-int zoomOutDataOMP ( uint32_t * , uint32_t * , int * , int );
+void zoomOutDataOMP ( uint32_t * , uint32_t * , int * , int );
 
 // Declaring the zoomInData function
-int zoomInData ( uint32_t * , uint32_t * , int * , int );
+void zoomInData ( uint32_t * , uint32_t * , int * , int );
 
 // Declaring the zoomInData function OMP optimized
-int zoomInDataOMP ( uint32_t * , uint32_t * , int * , int );
+void zoomInDataOMP ( uint32_t * , uint32_t * , int * , int );
 
 // Declaring the mergeCube function
-int mergeCube ( uint32_t * , int * , int , int );
+void mergeCube ( uint32_t * , int * , int , int );
+
+// Declaring the isotropicBuild function
+void isotropicBuild32 ( uint32_t * , uint32_t * , uint32_t * , int * );
+void isotropicBuild16 ( uint16_t * , uint16_t * , uint16_t * , int * );
+void isotropicBuild8 ( uint8_t * , uint8_t * , uint8_t * , int * );
+
+// Declaring the addDataZSlice function
+void addDataZslice ( uint32_t * , uint32_t *, int * , int * );
+
+// Declaring the addDataZSlice function
+void addDataIsotropic ( uint32_t * , uint32_t *, int * , int * );

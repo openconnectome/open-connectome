@@ -34,7 +34,7 @@ def mcfccatmaidview (request, webargs):
   try:
     mc = mcfccatmaid.MCFCCatmaid()
     imgfobj = mc.getTile(webargs)
-    return django.http.HttpResponse(imgfobj.read(), mimetype="image/png")
+    return django.http.HttpResponse(imgfobj.read(), content_type="image/png")
 
   except OCPCAError, e:
     return django.http.HttpResponseNotFound(e)
@@ -49,7 +49,7 @@ def colorcatmaidview (request, webargs):
   try:
     cc = colorcatmaid.ColorCatmaid()
     imgfobj = cc.getTile(webargs)
-    return django.http.HttpResponse(imgfobj.read(), mimetype="image/png")
+    return django.http.HttpResponse(imgfobj.read(), content_type="image/png")
 
   except OCPCAError, e:
     return django.http.HttpResponseNotFound(e)
@@ -64,7 +64,7 @@ def simplecatmaidview (request, webargs):
   try:
     sc = simplecatmaid.SimpleCatmaid()
     imgfobj = sc.getTile(webargs)
-    return django.http.HttpResponse(imgfobj.read(), mimetype="image/png")
+    return django.http.HttpResponse(imgfobj.read(), content_type="image/png")
 
   except OCPCAError, e:
     return django.http.HttpResponseNotFound(e)

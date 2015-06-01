@@ -18,94 +18,86 @@ import numpy as np
 from PIL import Image
 import urllib2
 import zlib
+import json
 
 import cStringIO
 
-import ocpcaproj
-import ocpcarest
-
-# Errors we are going to catch
-from ocpcaerror import OCPCAError
-
 from django.conf import settings
+
+from ocpcaerror import OCPCAError
 
 import logging
 logger=logging.getLogger("ocp")
 
-"""Merge two cutouts one from a data set and one from an annotation database"""
-
-def overlayCutout (request, webargs):
+"""Merge two cutouts of any type"""
+def overlayImage (request, webargs):
+ 
   """Get both data and annotation cubes as npz"""
-  alpha, token, cutout = webargs.split('/',2)
+  alpha, server1, token1, channel1, server2, token2, channel2, plane, cutout = webargs.split('/',8)
+
   alpha = float(alpha)
 
-  # Get the project and dataset
-  projdb = ocpcaproj.OCPCAProjectsDB()
-  proj = projdb.loadProject ( token )
-  
-  # RBTODO assuming that the dataset name is the token.  Not the case anymore.
-  dataurl = request.build_absolute_uri( '{}/ocpca/{}/{}'.format( proj.getDataURL(), proj.getDataset(), cutout ))
-  #dataurl = request.build_absolute_uri( '%s%s/ocpca/%s/%s' % ( proj.getDataURL(),request.META.get('SCRIPT_NAME'), proj.getDataset(), cutout ))
-
-  # RBTODO can't seen to get WSGIScriptAlias information from apache.  So 
-  #  right now we have to hardwire.  Yuck.
-  #
-  #  dev server and production server urls.
-  #
-  annourl = request.build_absolute_uri( '{}/ocpca/{}/{}'.format( request.META.get('SCRIPT_NAME'), token, cutout ))
-#  annourl = request.build_absolute_uri( '/ocpca/%s/%s' % ( token, cutout ))
-
-  # Get data 
+  # Get the info for project 1
+  url = 'http://{}/ocp/ca/{}/info/'.format(server1,token1)
   try:
-    f = urllib2.urlopen ( dataurl )
-    # create the data image
-    fobj = cStringIO.StringIO ( f.read() )
-    dataimg = Image.open(fobj) 
+    f = urllib2.urlopen ( url )
+  except urllib2.URLError, e:
+    raise OCPCAError ( "Web service error. URL {}.  Error {}.".format(url,e))
+  layer1info = json.loads ( f.read() )
 
-  except:
-    logger.error("Failed to fetch dataurl {}".format(dataurl))
-    raise
-
-
-  # Get annotations 
+  # Get the info for project 2
+  url = 'http://{}/ocp/ca/{}/info/'.format(server2,token2)
   try:
-    f = urllib2.urlopen ( annourl )
-    # create the annotation image
-    fobj = cStringIO.StringIO ( f.read() )
-    annoimg = Image.open(fobj) 
+    f = urllib2.urlopen ( url )
+  except urllib2.URLError, e:
+    raise OCPCAError ( "Web service error. URL {}.  Error {}.".format(url,e.fp.read()))
+  layer2info = json.loads ( f.read() )
 
-  except:
-    logger.error("Failed to fetch annourl {}".format(annourl))
-    raise
+  # Do some checking to make sure that are compatible based on the same datasets
+  # and that the channels exist
+ 
+  # get the first image
+  url = 'http://{}/ocp/ca/{}/{}/{}/{}'.format(server1,token1,plane,channel1,cutout) 
+  try:
+    f = urllib2.urlopen ( url )
+  except urllib2.URLError, e:
+    raise OCPCAError ( "Web service error. URL {}.  Error {}.".format(url,e.fp.read()))
+
+  fobj = cStringIO.StringIO ( f.read() )
+  img1 = Image.open(fobj) 
+   
+  # get the second image
+  url = 'http://{}/ocp/ca/{}/{}/{}/{}'.format(server2,token2,plane,channel2,cutout) 
+  try:
+    f = urllib2.urlopen ( url )
+  except urllib2.URLError, e:
+    raise OCPCAError ( "Web service error. URL {}.  Error {}.".format(url,e.fp.read()))
+
+  fobj = cStringIO.StringIO ( f.read() )
+  img2 = Image.open(fobj) 
 
   try:
     # convert data image to RGBA
-    dataimg = dataimg.convert("RGBA")
-    annoimg = annoimg.convert("RGBA")
+    img1 = img1.convert("RGBA")
+    img2 = img2.convert("RGBA")
     # build the overlay
-    
-    compimg1 = Image.composite ( annoimg, dataimg, annoimg )
-    compimg = Image.blend ( dataimg, compimg1, alpha )
-
-    logger.warning("What up here.  {} {} {}".format(dataimg, annoimg, compimg))
+    compimg1 = Image.composite ( img1, img2, img1 )
+    compimg = Image.blend ( img2, compimg1, alpha )
 
   except Exception, e:
     logger.error ("Unknown error processing overlay images. Error={}".format(e))
     raise
-
-
   # Create blended image of the two
   return compimg
 
 
-def imgAnnoOverlay (request, webargs):
+def overlay (request, webargs):
   """Return overlayCutout as a png"""
 
   try:
-    overlayimg = overlayCutout ( request, webargs )
+    overlayimg = overlayImage ( request, webargs )
   except Exception, e:
      raise
-#    return django.http.HttpResponseNotFound(e)
 
   # write the merged image to a buffer
   fobj2 = cStringIO.StringIO ( )
@@ -113,6 +105,6 @@ def imgAnnoOverlay (request, webargs):
 
   fobj2.seek(0)
 
-  return django.http.HttpResponse(fobj2.read(), mimetype="image/png" )
+  return django.http.HttpResponse(fobj2.read(), content_type="image/png" )
 
 

@@ -57,7 +57,7 @@ def h5Async( fileName ):
 
   token = "kunal_hdf5_test"
   with closing ( ocpcaproj.OCPCAProjectsDB() ) as projdb:
-    proj = projdb.loadProject ( token )
+    proj = projdb.loadToken ( token )
 
   with closing ( ocpcadb.OCPCADB(proj) ) as db:
 
@@ -155,14 +155,14 @@ def h5Async( fileName ):
           # for now.
 
           corner = h5xyzoffset[:]
-          corner[2] -= proj.datasetcfg.slicerange[0]
+          # RBISO?? apply offsets?
 
           db.annotateEntityDense ( anno.annid, corner, resolution, np.array(cutout), conflictopt )
 
         elif cutout != None and h5xyzoffset != None and 'reduce' in options:
 
           corner = h5xyzoffset[:]
-          corner[2] -= proj.datasetcfg.slicerange[0]
+          # RBISO?? apply offsets?
 
         elif cutout != None or h5xyzoffset !=None:
           #TODO this is a loggable error

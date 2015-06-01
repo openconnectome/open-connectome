@@ -18,7 +18,7 @@ from django.conf.urls import patterns, include, url
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
+base_urlpatterns = patterns('',
     url(r'^ocpca/', include('ocpca.urls')),
     url(r'^ca/', include('ocpca.urls')),
     url(r'^overlay/', include('overlay.urls')),
@@ -28,3 +28,9 @@ urlpatterns = patterns('',
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^ocpuser/', include('ocpuser.urls')),
 )
+
+urlpatterns = patterns('', 
+    url('^', include(base_urlpatterns)), # maintains unprefixed URLs
+    url('^ocp/', include(base_urlpatterns)),
+)
+

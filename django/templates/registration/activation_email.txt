@@ -2,6 +2,6 @@ Welcome to the Open Connectome Project!
 
 To finalize your account, just visit the address below. (If it's not a link, you can copy and paste it into your web browser's address bar.)
 
-http://dsp061.pha.jhu.edu/ocp/accounts/activate/{{ activation_key }}/
+http://{{site}}/ocp/accounts/activate/{{ activation_key }}/
 
 If you didn't sign up for an account, just ignore this message: 

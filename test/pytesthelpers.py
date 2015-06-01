@@ -19,7 +19,10 @@ import tempfile
 import h5py
 import numpy as np
 
-import ocppaths
+sys.path += [os.path.abspath('../django')]
+import OCP.settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'OCP.settings'
+from django.conf import settings
 
 def makeAnno ( anntype, hosturl ):
   """Helper make an annotation"""
@@ -40,7 +43,7 @@ def makeAnno ( anntype, hosturl ):
   tmpfile.seek(0)
 
   # Build the put URL
-  url = "http://%s/ocpca/%s/" % ( hosturl, 'unittest')
+  url = "http://{}/ocpca/{}/{}/".format(hosturl, 'unittest', 'unit_anno')
 
   # write an object (server creates identifier)
   req = urllib2.Request ( url, tmpfile.read())

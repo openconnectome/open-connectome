@@ -16,7 +16,6 @@
 import re
 
 from ocpcaerror import OCPCAError
-
 import logging
 logger=logging.getLogger("ocp")
 

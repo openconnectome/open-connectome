@@ -28,10 +28,14 @@ import rgbColor
 # Load the shared C library using ctype mechanism
 ocplib = npct.load_library("ocplib", OCP.ocppaths.OCP_OCPLIB_PATH) 
 
-array_1d_uint32 = npct.ndpointer(dtype=np.uint32, ndim=1, flags='CONTIGUOUS')
-array_2d_uint32 = npct.ndpointer(dtype=np.uint32, ndim=2, flags='CONTIGUOUS')
-array_1d_uint64 = npct.ndpointer(dtype=np.uint64, ndim=1, flags='CONTIGUOUS')
-array_2d_uint64 = npct.ndpointer(dtype=np.uint64, ndim=2, flags='CONTIGUOUS')
+array_1d_uint8 = npct.ndpointer(dtype=np.uint8, ndim=1, flags='C_CONTIGUOUS')
+array_1d_uint16 = npct.ndpointer(dtype=np.uint16, ndim=1, flags='C_CONTIGUOUS')
+array_1d_uint32 = npct.ndpointer(dtype=np.uint32, ndim=1, flags='C_CONTIGUOUS')
+array_2d_uint32 = npct.ndpointer(dtype=np.uint32, ndim=2, flags='C_CONTIGUOUS')
+array_3d_uint32 = npct.ndpointer(dtype=np.uint32, ndim=3, flags='C_CONTIGUOUS')
+array_1d_uint64 = npct.ndpointer(dtype=np.uint64, ndim=1, flags='C_CONTIGUOUS')
+array_2d_uint64 = npct.ndpointer(dtype=np.uint64, ndim=2, flags='C_CONTIGUOUS')
+
 
 # defining the parameter types of the functions in C
 # FORMAT: <library_name>,<functiona_name>.argtypes = [ ctype.<argtype> , ctype.<argtype> ....]
@@ -42,19 +46,22 @@ ocplib.locateCube.argtypes = [ array_2d_uint64, cp.c_int, array_2d_uint32, cp.c_
 ocplib.annotateCube.argtypes = [ array_1d_uint32, cp.c_int, cp.POINTER(cp.c_int), cp.c_int, array_1d_uint32, array_2d_uint32, cp.c_int, cp.c_char, array_2d_uint32 ]
 ocplib.XYZMorton.argtypes = [ array_1d_uint64 ]
 ocplib.MortonXYZ.argtypes = [ npct.ctypes.c_int64 , array_1d_uint64 ]
-ocplib.recolorCube.argtypes = [ array_1d_uint32, cp.c_int, cp.c_int, array_1d_uint32, array_1d_uint32 ]
+ocplib.recolorCubeOMP.argtypes = [ array_2d_uint32, cp.c_int, cp.c_int, array_2d_uint32, array_1d_uint32 ]
 ocplib.quicksort.argtypes = [ array_2d_uint64, cp.c_int ]
 ocplib.shaveCube.argtypes = [ array_1d_uint32, cp.c_int, cp.POINTER(cp.c_int), cp.c_int, array_1d_uint32, array_2d_uint32, cp.c_int, array_2d_uint32, cp.c_int, array_2d_uint32 ]
-ocplib.annotateEntityDense.argtypes = [ array_1d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
-ocplib.shaveDense.argtypes = [ array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int) ]
-ocplib.exceptionDense.argtypes = [ array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int) ]
-ocplib.overwriteDense.argtypes = [ array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int) ]
-ocplib.zoomOutData.argtypes = [ array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
-ocplib.zoomOutDataOMP.argtypes = [ array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
-ocplib.zoomInData.argtypes = [ array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
-ocplib.zoomInDataOMP.argtypes = [ array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
-ocplib.mergeCube.argtypes = [ array_1d_uint32, cp.POINTER(cp.c_int), cp.c_int, cp.c_int ]
-
+ocplib.annotateEntityDense.argtypes = [ array_3d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
+ocplib.shaveDense.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int) ]
+ocplib.exceptionDense.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int) ]
+ocplib.overwriteDense.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int) ]
+ocplib.zoomOutData.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
+ocplib.zoomOutDataOMP.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
+ocplib.zoomInData.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
+ocplib.zoomInDataOMP.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int), cp.c_int ]
+ocplib.mergeCube.argtypes = [ array_3d_uint32, cp.POINTER(cp.c_int), cp.c_int, cp.c_int ]
+ocplib.isotropicBuild8.argtypes = [ array_1d_uint8, array_1d_uint8, array_1d_uint8, cp.POINTER(cp.c_int) ]
+ocplib.isotropicBuild16.argtypes = [ array_1d_uint16, array_1d_uint16, array_1d_uint16, cp.POINTER(cp.c_int) ]
+ocplib.isotropicBuild32.argtypes = [ array_1d_uint32, array_1d_uint32, array_1d_uint32, cp.POINTER(cp.c_int) ]
+ocplib.addDataZSlice.argtypes = [ array_3d_uint32, array_3d_uint32, cp.POINTER(cp.c_int), cp.POINTER(cp.c_int) ]
 
 # setting the return type of the function in C
 # FORMAT: <library_name>.<function_name>.restype = [ ctype.<argtype> ]
@@ -65,7 +72,7 @@ ocplib.locateCube.restype = None
 ocplib.annotateCube.restype = cp.c_int
 ocplib.XYZMorton.restype = npct.ctypes.c_uint64
 ocplib.MortonXYZ.restype = None
-ocplib.recolorCube.restype = None
+ocplib.recolorCubeOMP.restype = None
 ocplib.quicksort.restype = None
 ocplib.shaveCube.restype = None
 ocplib.annotateEntityDense.restype = None
@@ -77,7 +84,10 @@ ocplib.zoomOutDataOMP.restype = None
 ocplib.zoomInData.restype = None
 ocplib.zoomInDataOMP.restype = None
 ocplib.mergeCube.restype = None
-
+ocplib.isotropicBuild8.restype = None
+ocplib.isotropicBuild16.restype = None
+ocplib.isotropicBuild32.restype = None
+ocplib.addDataZSlice.restype = None
 
 def filter_ctype_OMP ( cutout, filterlist ):
   """Remove all annotations in a cutout that do not match the filterlist using OpenMP"""
@@ -163,19 +173,17 @@ def recolor_ctype ( cutout, imagemap ):
   """ Annotation recoloring function """
   
   xdim, ydim = cutout.shape
-  imagemap = imagemap.ravel()
-
+  if not cutout.flags['C_CONTIGUOUS']:
+    cutout = np.ascontiguousarray(cutout,dtype=np.uint32)
   # Calling the c native function
-  ocplib.recolorCube ( cutout.flatten(), cp.c_int(xdim), cp.c_int(ydim), imagemap, np.asarray( rgbColor.rgbcolor,dtype=np.uint32) )
-
-  return imagemap.reshape( (xdim,ydim) )
+  ocplib.recolorCubeOMP ( cutout, cp.c_int(xdim), cp.c_int(ydim), imagemap, np.asarray( rgbColor.rgbcolor,dtype=np.uint32) )
+  return imagemap
 
 def quicksort ( locs ):
   """ Sort the cube on Morton Id """
 
   # Calling the C native language
   ocplib.quicksort ( locs, len(locs) )
-
   return locs
 
 def shave_ctype ( data, annid, offset, locations ):
@@ -212,23 +220,16 @@ def annotateEntityDense_ctype ( data, entityid ):
   """ Relabel all non zero pixels to annotation id """
 
   dims = [ i for i in data.shape ]
-  data = data.ravel()
-
   ocplib.annotateEntityDense ( data, (cp.c_int * len(dims))(*dims), cp.c_int(entityid) )
-
-  return ( data.reshape(dims) )
+  return ( data )
 
 
 def shaveDense_ctype ( data, shavedata ):
   """ Remove the specified voxels from the annotation """
 
   dims = [ i for i in data.shape ]
-  data = data.ravel()
-  shavedata = shavedata.ravel()
-
   ocplib.shaveDense ( data, shavedata, (cp.c_int * len(dims))(*dims) )
-
-  return ( data.reshape(dims) )
+  return ( data )
 
 
 def exceptionDense_ctype ( data, annodata ):
@@ -236,13 +237,11 @@ def exceptionDense_ctype ( data, annodata ):
 
   data = np.uint32(data)
   annodata = np.uint32(annodata)
+  if not annodata.flags['C_CONTIGUOUS']:
+    annodata = np.ascontiguousarray(annodata,np.uint32)
   dims = [ i for i in data.shape ]
-  data = data.ravel()
-  annodata = annodata.ravel()
-
   ocplib.exceptionDense ( data, annodata, (cp.c_int * len(dims))(*dims) )
-
-  return ( data.reshape(dims) )
+  return ( data )
 
 
 def overwriteDense_ctype ( data, annodata ):
@@ -251,70 +250,66 @@ def overwriteDense_ctype ( data, annodata ):
   orginal_dtype = data.dtype
   data = np.uint32(data)
   annodata = np.uint32(annodata)
+  #data = np.ascontiguousarray(data,dtype=np.uint32)
+  if not annodata.flags['C_CONTIGUOUS']:
+    annodata = np.ascontiguousarray(annodata,dtype=np.uint32)
   dims = [ i for i in data.shape ]
-  data = data.ravel()
-  annodata = annodata.ravel()
-
   ocplib.overwriteDense ( data, annodata, (cp.c_int * len(dims))(*dims) )
-
-  #return ( data.reshape(dims) )
-  return ( data.reshape(dims).astype(orginal_dtype, copy=False) )
+  return ( data.astype(orginal_dtype, copy=False) )
 
 
 def zoomOutData_ctype ( olddata, newdata, factor ):
   """ Add the contribution of the input data to the next level at the given offset in the output cube """
 
   dims = [ i for i in newdata.shape ]
-  olddata = olddata.ravel()
-  newdata = newdata.ravel()
-
   ocplib.zoomOutData ( olddata, newdata, (cp.c_int * len(dims))(*dims), cp.c_int(factor) )
-
-  return ( newdata.reshape(dims) )
+  return ( newdata )
 
 
 def zoomOutData_ctype_OMP ( olddata, newdata, factor ):
   """ Add the contribution of the input data to the next level at the given offset in the output cube """
 
   dims = [ i for i in newdata.shape ]
-  olddata = olddata.ravel()
-  newdata = newdata.ravel()
-
   ocplib.zoomOutDataOMP ( olddata, newdata, (cp.c_int * len(dims))(*dims), cp.c_int(factor) )
-
-  return ( newdata.reshape(dims) )
+  return ( newdata )
 
 
 def zoomInData_ctype ( olddata, newdata, factor ):
   """ Add the contribution of the input data to the next level at the given offset in the output cube """
 
   dims = [ i for i in newdata.shape ]
-  olddata = olddata.ravel()
-  newdata = newdata.ravel()
-
   ocplib.zoomInData ( olddata, newdata, (cp.c_int * len(dims))(*dims), cp.c_int(factor) )
-
-  return ( newdata.reshape(dims) )
+  return ( newdata )
 
 
 def zoomInData_ctype_OMP ( olddata, newdata, factor ):
   """ Add the contribution of the input data to the next level at the given offset in the output cube """
 
   dims = [ i for i in newdata.shape ]
-  olddata = olddata.ravel()
-  newdata = newdata.ravel()
-
   ocplib.zoomInDataOMP ( olddata, newdata, (cp.c_int * len(dims))(*dims), cp.c_int(factor) )
-
-  return ( newdata.reshape(dims) )
+  return ( newdata )
 
 
 def mergeCube_ctype ( data, newid, oldid ):
   """ Relabel voxels in cube from oldid to newid """
 
   dims = [ i for i in data.shape ]
-  data = data.ravel()
-
   ocplib.mergeCube ( data, (cp.c_int * len(dims))(*dims), cp.c_int(newid), cp.c_int(oldid) )
+  return ( data )
 
-  return ( data.reshape(dims) )
+
+def isotropicBuild_ctype ( data1, data2, newdata ):
+  """ Merging Data """
+
+  dims = [ i for i in data.shape ]
+  newdata = np.zeros(data1.shape,dtype=data1.dtype)
+  ocplib.isotropicBuild32 ( data1, data2, newdata, (cp.c_int * len(dims))(*dims) )
+  return ( newdata )
+
+
+def addDataToZSliceStack_ctype ( cube, output, offset ):
+  """Add the contribution of the input data to the next level at the given offset in the output cube"""
+
+  dims = [ i for i in cube.data.shape ]
+  ocplib.addDataZSlice ( cube.data, output, (cp.c_int * len(offset))(*offset), (cp.c_int * len(dims))(*dims) )
+  return ( output )

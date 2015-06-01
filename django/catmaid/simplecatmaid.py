@@ -12,25 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
-import tempfile
+import re
 import numpy as np
-import zlib
 import cStringIO
 from PIL import Image
 import pylibmc
-import time
 import math
 from contextlib import closing
+import django
 
 import restargs
 import ocpcadb
 import ocpcaproj
 import ocpcarest
-import django
-import re
 
-from ocpca_cy import recolor_cy
+from ocpcaerror import OCPCAError
+import logging
+logger=logging.getLogger("ocp")
 
 
 class SimpleCatmaid:
@@ -40,6 +38,8 @@ class SimpleCatmaid:
     """ Bind the mocpcache """
 
     self.proj = None
+    self.channel = None
+    self.tilesz = 512
     # make the mocpcache connection
     self.mc = pylibmc.Client(["127.0.0.1"], binary=True,behaviors={"tcp_nodelay":True,"ketama": True})
 
@@ -47,57 +47,58 @@ class SimpleCatmaid:
     pass
 
 
-  def buildKey (self,res,xtile,ytile,zslice):
-    return 'simple/{}/{}/{}/{}/{}/{}'.format(self.token,self.tilesz,res,xtile,ytile,zslice)
+  def buildKey (self, res, xtile, ytile, ztile):
+    return 'simple/{}/{}/{}/{}/{}/{}'.format(self.token, self.channel, res, xtile, ytile, ztile)
 
 
-  def cacheMissXY ( self, resolution, xtile, ytile, zslice ):
-    """ On a miss. Cutout, return the image and load the cache in a background thread """
+  def cacheMissXY (self, res, xtile, ytile, ztile):
+    """On a miss. Cutout, return the image and load the cache in a background thread"""
 
     # make sure that the tile size is aligned with the cubedim
-    if self.tilesz % self.proj.datasetcfg.cubedim[resolution][0] != 0 or self.tilesz % self.proj.datasetcfg.cubedim[resolution][1]:
+    if self.tilesz % self.proj.datasetcfg.cubedim[res][0] != 0 or self.tilesz % self.proj.datasetcfg.cubedim[res][1]:
       raise("Illegal tile size.  Not aligned")
 
     # figure out the cutout (limit to max image size)
     xstart = xtile*self.tilesz
     ystart = ytile*self.tilesz
-    xend = min ((xtile+1)*self.tilesz,self.proj.datasetcfg.imagesz[resolution][0])
-    yend = min ((ytile+1)*self.tilesz,self.proj.datasetcfg.imagesz[resolution][1])
+    xend = min ((xtile+1)*self.tilesz,self.proj.datasetcfg.imagesz[res][0])
+    yend = min ((ytile+1)*self.tilesz,self.proj.datasetcfg.imagesz[res][1])
 
     # get an xy image slice
-    imageargs = '{}/{},{}/{},{}/{}/'.format(resolution,xstart,xend,ystart,yend,zslice) 
-    cb = ocpcarest.imgSlice ( "xy", imageargs, self.proj, self.db )
-    if cb.data.shape != (1,self.tilesz,self.tilesz):
-      tiledata = np.zeros((1,self.tilesz,self.tilesz), cb.data.dtype )
-      tiledata[0,0:((yend-1)%self.tilesz+1),0:((xend-1)%self.tilesz+1)] = cb.data[0,:,:]
+    imageargs = '{}/{}/{}/{},{}/{},{}/{}/'.format(self.channel, 'xy', res, xstart, xend, ystart, yend, ztile) 
+    cb = ocpcarest.imgSlice(imageargs, self.proj, self.db)
+    if cb.data.shape != (1, self.tilesz, self.tilesz):
+      tiledata = np.zeros((1, self.tilesz, self.tilesz), cb.data.dtype )
+      tiledata[0, 0:((yend-1)%self.tilesz+1), 0:((xend-1)%self.tilesz+1)] = cb.data[0,:,:]
       cb.data = tiledata
 
     return cb.xyImage()
 
 
-  def cacheMissXZ ( self, resolution, xtile, yslice, ztile ):
+  def cacheMissXZ ( self, res, xtile, ytile, ztile ):
     """ On a miss. Cutout, return the image and load the cache in a background thread """
 
     # make sure that the tile size is aligned with the cubedim
-    if self.tilesz % self.proj.datasetcfg.cubedim[resolution][1] != 0 or self.tilesz % self.proj.datasetcfg.cubedim[resolution][2]:
+    if self.tilesz % self.proj.datasetcfg.cubedim[res][1] != 0 or self.tilesz % self.proj.datasetcfg.cubedim[res][2]:
       raise("Illegal tile size.  Not aligned")
 
     # figure out the cutout (limit to max image size)
     xstart = xtile*self.tilesz
-    xend = min ((xtile+1)*self.tilesz,self.proj.datasetcfg.imagesz[resolution][0])
+    xend = min ((xtile+1)*self.tilesz,self.proj.datasetcfg.imagesz[res][0])
 
     # z cutouts need to get rescaled
-    #  we'll map to the closest pixel range and tolerate one pixel error at the boundary
-    scalefactor = self.proj.datasetcfg.zscale[resolution]
-    zoffset = self.proj.datasetcfg.slicerange[0]
+    # we'll map to the closest pixel range and tolerate one pixel error at the boundary
+    # Scalefactor = zvoxel / yvoxel
+    scalefactor = self.proj.datasetcfg.voxelres[res][2] / self.proj.datasetcfg.voxelres[res][1]
+    zoffset = self.proj.datasetcfg.offset[res][2]
     ztilestart = int((ztile*self.tilesz)/scalefactor) + zoffset
     zstart = max ( ztilestart, zoffset ) 
     ztileend = int(math.ceil((ztile+1)*self.tilesz/scalefactor)) + zoffset
-    zend = min ( ztileend, self.proj.datasetcfg.slicerange[1]+1 )
+    zend = min ( ztileend, self.proj.datasetcfg.imagesz[res][2]+1 )
    
     # get an xz image slice
-    imageargs = '{}/{},{}/{}/{},{}/'.format(resolution,xstart,xend,yslice,zstart,zend) 
-    cb = ocpcarest.imgSlice ( "xz", imageargs, self.proj, self.db )
+    imageargs = '{}/{}/{}/{},{}/{}/{},{}/'.format(self.channel, 'xz', res, xstart, xend, ytile, zstart, zend) 
+    cb = ocpcarest.imgSlice ( imageargs, self.proj, self.db )
 
     # scale by the appropriate amount
 
@@ -109,29 +110,30 @@ class SimpleCatmaid:
     return cb.xzImage( scalefactor )
 
 
-  def cacheMissYZ ( self, resolution, xslice, ytile, ztile ):
+  def cacheMissYZ (self, res, xtile, ytile, ztile):
     """ On a miss. Cutout, return the image and load the cache in a background thread """
 
     # make sure that the tile size is aligned with the cubedim
-    if self.tilesz % self.proj.datasetcfg.cubedim[resolution][1] != 0 or self.tilesz % self.proj.datasetcfg.cubedim[resolution][2]:
+    if self.tilesz % self.proj.datasetcfg.cubedim[res][1] != 0 or self.tilesz % self.proj.datasetcfg.cubedim[res][2]:
       raise("Illegal tile size.  Not aligned")
 
     # figure out the cutout (limit to max image size)
     ystart = ytile*self.tilesz
-    yend = min ((ytile+1)*self.tilesz,self.proj.datasetcfg.imagesz[resolution][1])
+    yend = min ((ytile+1)*self.tilesz,self.proj.datasetcfg.imagesz[res][1])
 
     # z cutouts need to get rescaled
-    #  we'll map to the closest pixel range and tolerate one pixel error at the boundary
-    scalefactor = self.proj.datasetcfg.zscale[resolution]
-    zoffset = self.proj.datasetcfg.slicerange[0]
+    # we'll map to the closest pixel range and tolerate one pixel error at the boundary
+    # Scalefactor = zvoxel / xvoxel
+    scalefactor = self.proj.datasetcfg.voxelres[res][2] / self.proj.datasetcfg.voxelres[res][0]
+    zoffset = self.proj.datasetcfg.offset[res][2]
     ztilestart = int((ztile*self.tilesz)/scalefactor) + zoffset
     zstart = max ( ztilestart, zoffset ) 
     ztileend = int(math.ceil((ztile+1)*self.tilesz/scalefactor)) + zoffset
-    zend = min ( ztileend, self.proj.datasetcfg.slicerange[1]+1 )
+    zend = min ( ztileend, self.proj.datasetcfg.imagesz[res][2]+1 )
 
     # get an yz image slice
-    imageargs = '{}/{}/{},{}/{},{}/'.format(resolution,xslice,ystart,yend,zstart,zend) 
-    cb = ocpcarest.imgSlice ( "yz", imageargs, self.proj, self.db )
+    imageargs = '{}/{}/{}/{}/{},{}/{},{}/'.format(self.channel, 'yz', res, xtile, ystart, yend, zstart, zend) 
+    cb = ocpcarest.imgSlice (imageargs, self.proj, self.db)
 
     # scale by the appropriate amount
    
@@ -144,46 +146,47 @@ class SimpleCatmaid:
 
 
   def getTile ( self, webargs ):
-    """ Either fetch the file from mocpcache or get a mcfc image """
+    """Fetch the file from mocpcache or get a cutout from the database"""
     
-    # parse the web args
-    self.token, slicetypestr, tileszstr, resstr, xtilestr, ytilestr, zslicestr, rest = webargs.split('/',7)
-    #[ self.db, self.proj, projdb ] = ocpcarest.loadDBProj ( self.token )
+    try:
+      # argument of format token/channel/slice_type/z/x_y_res.png
+      p = re.compile("(\w+)/([\w+,]*?)/(xy|yz|xz|)/(\d+)/(\d+)_(\d+)_(\d+).png")
+      m = p.match(webargs)
+      [self.token, self.channel, slice_type] = [i for i in m.groups()[:3]]
+      [ztile, ytile, xtile, res] = [int(i) for i in m.groups()[3:]]
+    except Exception, e:
+      logger.warning("Incorrect arguments give for getTile {}. {}".format(webargs, e))
+      raise OCPCAError("Incorrect arguments given for getTile {}. {}".format(webargs, e))
 
     with closing ( ocpcaproj.OCPCAProjectsDB() ) as projdb:
-        self.proj = projdb.loadProject ( self.token )
+        self.proj = projdb.loadToken(self.token)
     
     with closing ( ocpcadb.OCPCADB(self.proj) ) as self.db:
 
-        # convert args to ints
-        xvalue = int(xtilestr)
-        yvalue = int(ytilestr)
-        res = int(resstr)
-        # xyslice will modify zslice to the offset
-        zvalue = int(zslicestr)
-        self.tilesz = int(tileszstr)
-
         # mocpcache key
-        mckey = self.buildKey(res,xvalue,yvalue,zvalue)
+        mckey = self.buildKey(res, xtile, ytile, ztile)
 
-        # do something to sanitize the webargs??
         # if tile is in mocpcache, return it
         tile = self.mc.get(mckey)
-        tile = None
+        
         if tile == None:
-          if slicetypestr == 'xy':
-            img=self.cacheMissXY(res,xvalue,yvalue,zvalue)
-          elif slicetypestr == 'xz':
-            img=self.cacheMissXZ(res,xvalue,yvalue,zvalue)
-          elif slicetypestr == 'yz':
-            img=self.cacheMissYZ(res,xvalue,yvalue,zvalue)
+          if slice_type == 'xy':
+            img = self.cacheMissXY(res, xtile, ytile, ztile)
+          elif slice_type == 'xz':
+            img = self.cacheMissXZ(res, xtile, ytile, ztile)
+          elif slice_type == 'yz':
+            img = self.cacheMissYZ(res, xtile, ytile, ztile)
           else:
-            assert 0 # RBTODO
+            logger.warning ("Requested illegal image plance {}. Should be xy, xz, yz.".format(slice_type))
+            raise OCPCAError ("Requested illegal image plance {}. Should be xy, xz, yz.".format(slice_type))
+          
           fobj = cStringIO.StringIO ( )
           img.save ( fobj, "PNG" )
           self.mc.set(mckey,fobj.getvalue())
+        
         else:
           fobj = cStringIO.StringIO(tile)
+
 
         fobj.seek(0)
         return fobj

@@ -20,11 +20,8 @@
  * Naive implementation 
  */
 
-#include<stdio.h>
 #include<stdint.h>
-#include<stdbool.h>
-#include<stdlib.h>
-#include<string.h>
+#include<ocplib.h>
 
 void shaveCube( uint32_t * data, int dataSize, int * dims, int annid, uint32_t * offset,  uint32_t locations[][3], int locationsSize, uint32_t exceptions[][3], int exceptionIndex, uint32_t zeroed[][3], int zeroedIndex )
 {
@@ -59,13 +56,10 @@ void shaveCube( uint32_t * data, int dataSize, int * dims, int annid, uint32_t *
       // Already labelled voxels may be in the exceptions list
       else if ( data [ index ] != 0 )
       {
-        //printf ( "Append exceptions" );
         exceptionIndex += 1;
         exceptions [exceptionIndex][0] = locations[i][0]-xoffset;
         exceptions [exceptionIndex][1] = locations[i][1]-yoffset;
         exceptions [exceptionIndex][2] = locations[i][2]-zoffset;
       }
-        
     }
-    
 }

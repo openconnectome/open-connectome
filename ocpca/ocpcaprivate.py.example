@@ -1,9 +1,9 @@
 dbhost = 'localhost'
 dbuser = ''
 dbpasswd = ''
-db = 'ocpconfig'
+db = 'ocpdjango'
 projects = 'projects'
 datasets = 'datasets'
-project_description = 'project_description'
-token_description = 'token_description'
-dataset_description = 'dataset_description'
+tokens='tokens'
+# This has to exist
+backuppath='/data2/scratch/ocpbackup'

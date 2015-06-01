@@ -23,164 +23,181 @@ Create Project Template
      {% csrf_token %}  
      
      {{ form.non_field_errors }}
-     <div class="container-fluid">
-       <div class = "row-fluid"> <div class ="span12"></div></div>
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2 blue">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="Token">Token:</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.token }}
-	 </div>
-	 <div class ="span4"></div>
-       </div>
-       
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="description">Description</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.description }}
-	 </div>
-	 <div class ="span4"></div>
-       </div>
-       
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="project">Project:</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.project }}
-	 </div>
-	 <div class ="span4"></div>
-       </div>
 
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="dataset">Dataset</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.dataset }}
-	 </div>
-	 <div class ="span4"></div>
+     <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="project">Project:</label>
+         </div>
        </div>
-       
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
+       <div class ="col-md-2">
+         {{ form.project_name }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+     
+
+     <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="description">Description</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.project_description }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+     
+     
+      <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="oproject">Overlay Project:</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.overlayproject }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+      <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="overlayserver"> Overlay server</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.overlayserver }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+       <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="dataset">Dataset</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.dataset}}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+       <div class = "row">
+	 <div class ="col-md-4"></div>
+	 <div class ="col-md-2">
            <div class="fieldWrapper">
              {{ form.subject.errors }}
-           <label for="datatype">Datatype:</label>
+             <label for="datatype">Datatype:</label>
            </div>
          </div>
-         <div class ="span2">
+         <div class ="col-md-2">
            {{ form.datatype }}
          </div>
-         <div class ="span4"></div>
-       </div>
-       
-<!--       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="dataurl">Data URL</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.dataurl }}
-	 </div>
-	 <div class ="span4"></div>
-       </div>-->
-       
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="resolution">Resolution:</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.resolution }}
-	 </div>
-	 <div class ="span4"></div>
-       </div>
-       
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="readonly">Read Only:</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.readonly }}
-	 </div>
-	 <div class ="span4"></div>
+         <div class ="col-md-4"></div>
        </div>
 
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="exceptions">Enable Exceptions:</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.exceptions }}
-	 </div>
-	 <div class ="span4"></div>
-       </div>
-
-       <div class = "row-fluid">
-	 <div class ="span4"></div>
-	 <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="exceptions"> Database Host</label>
-           </div>
-	 </div>
-	 <div class ="span2">
-           {{ form.host }}
-	 </div>
-	 <div class ="span4"></div>
-       </div>
-
-
-       <!--<div class = "row-fluid">
-         <div class ="span4"></div>
-         <div class ="span2">
-           <div class="fieldWrapper">
-             {{ form.subject.errors }}
-             <label for="nocreate">No Create ( database):</label>
-           </div>
+       <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="resolution">Resolution:</label>
          </div>
-         <div class ="span2">
-           {{ form.nocreate }}
+       </div>
+       <div class ="col-md-2">
+         {{ form.resolution }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+       <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="exceptions">Enable Exceptions:</label>
          </div>
-         <div class ="span4"></div>
-       </div>-->
-       
-       <div class = "row-fluid">
+       </div>
+       <div class ="col-md-2">
+         {{ form.exceptions }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+        <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="exceptions"> Database Host</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.host }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+	
+      <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="kvenginelabel"> KV Engine</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.kvengine }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+       <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="kvserverlabel"> KV Server</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.kvserver }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+        <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="propagate">Propagate:</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.propagate }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+
+
+     <div class = "row-fluid">
          <div class ="span4"></div>
          <div class ="span4">
 	   

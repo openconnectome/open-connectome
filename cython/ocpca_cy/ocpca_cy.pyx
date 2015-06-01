@@ -434,7 +434,8 @@ cdef int getAnnValue ( int value00, int value01, int value10, int value11 ):
 
   return value
 
-def addData_cy ( cube, output, offset ):
+
+def addDataToZSliceStack_cy ( cube, output, offset ):
     """Add the contribution of the input data to the next level at the given offset in the output cube"""
 
     for z in range (cube.data.shape[0]):
@@ -443,6 +444,22 @@ def addData_cy ( cube, output, offset ):
            
             value = getAnnValue (cube.data[z,y*2,x*2],cube.data[z,y*2,x*2+1],cube.data[z,y*2+1,x*2],cube.data[z,y*2+1,x*2+1])
             output [ z+offset[2], y+offset[1], x+offset[0] ] = value
+
+def addDataToIsotropicStack_cy ( cube, output, offset ):
+    """Add the contribution of the input data to the next level at the given offset in the output cube"""
+
+    for z in range (cube.data.shape[0]/2):
+      for y in range (cube.data.shape[1]/2):
+        for x in range (cube.data.shape[2]/2):
+  
+            # not perfect take a value from either slice.  Not a majority over all.
+            # this whole rooutine getAnnValue needs to be replaced.
+            value = getAnnValue (cube.data[z*2,y*2,x*2],cube.data[z*2,y*2,x*2+1],cube.data[z*2,y*2+1,x*2],cube.data[z*2,y*2+1,x*2+1])          
+            if value == 0:
+              value = getAnnValue (cube.data[z*2+1,y*2,x*2],cube.data[z*2+1,y*2,x*2+1],cube.data[z*2+1,y*2+1,x*2],cube.data[z*2+1,y*2+1,x*2+1])          
+  
+            output [ z+offset[2], y+offset[1], x+offset[0] ] = value
+
 
 
 def zoomData_cy ( np.ndarray[np.uint32_t, ndim=3] olddata, np.ndarray[np.uint32_t, ndim=3] newdata, int factor ):

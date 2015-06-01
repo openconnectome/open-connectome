@@ -18,66 +18,56 @@ import os
 import numpy as np
 import urllib, urllib2
 import cStringIO
+from contextlib import closing
 from PIL import Image
 import zlib
-import MySQLdb
 
 sys.path += [os.path.abspath('../django')]
 import OCP.settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'OCP.settings'
 from django.conf import settings
 
+import django
+django.setup()
+
+from cube import Cube
+import ocpcarest
 import ocplib
 import ocpcaproj
 import ocpcadb
-import zindex
 
-"""Construct an image hierarchy up from a given resolution"""
+"""Construct an image hierarchy up from a given resolution for 16-bit images"""
 
-class ImgStack:
-  """Stack of images."""
+def buildStack(token, channel, res):
+  """Build the hierarchy of images"""
 
-  def __init__(self, token):
-    """Load the database and project"""
+  with closing (ocpcaproj.OCPCAProjectsDB()) as projdb:
+    proj = projdb.loadToken(token)
+  
+  with closing (ocpcadb.OCPCADB(proj)) as db:
 
-    projdb = ocpcaproj.OCPCAProjectsDB()
-    self.proj = projdb.loadProject ( token )
-
-    # Bind the annotation database
-    self.imgDB = ocpcadb.OCPCADB ( self.proj )
-
-
-  def buildStack ( self, startlevel ):
-    """Build the hierarchy of images"""
-
-    for  l in range ( startlevel, len(self.proj.datasetcfg.resolutions) ):
+    ch = proj.getChannelObj(channel)
+    high_res = proj.datasetcfg.scalinglevels
+    for cur_res in range(res, high_res+1):
 
       # Get the source database sizes
-      [ximagesz, yimagesz] = self.proj.datasetcfg.imagesz [ l ]
-      [xcubedim, ycubedim, zcubedim] = self.proj.datasetcfg.cubedim [ l ]
+      [[ximagesz, yimagesz, zimagesz], timerange] = proj.datasetcfg.imageSize(cur_res)
+      [xcubedim, ycubedim, zcubedim] = cubedim = proj.datasetcfg.getCubeDims()[cur_res]
+      [xoffset, yoffset, zoffset] = proj.datasetcfg.getOffset()[cur_res]
 
       biggercubedim = [xcubedim*2,ycubedim*2,zcubedim]
 
-      # Get the slices
-      [ startslice, endslice ] = self.proj.datasetcfg.slicerange
-      slices = endslice - startslice + 1
-
       # Set the limits for iteration on the number of cubes in each dimension
-      # RBTODO These limits may be wrong for even (see channelingest.py)
-      xlimit = ximagesz / xcubedim
-      ylimit = yimagesz / ycubedim
-      #  Round up the zlimit to the next larger
-      zlimit = (((slices-1)/zcubedim+1)*zcubedim)/zcubedim 
-
-      cursor = self.imgDB.conn.cursor()
+      xlimit = (ximagesz-1) / xcubedim + 1
+      ylimit = (yimagesz-1) / ycubedim + 1
+      zlimit = (zimagesz-1) / zcubedim + 1
 
       for z in range(zlimit):
         for y in range(ylimit):
-          self.imgDB.conn.commit()
           for x in range(xlimit):
 
             # cutout the data at the -1 resolution
-            olddata = self.imgDB.cutout ( [ x*2*xcubedim, y*2*ycubedim, z*zcubedim ], biggercubedim, l-1 ).data
+            olddata = db.cutout(ch, [ x*2*xcubedim, y*2*ycubedim, z*zcubedim], biggercubedim, cur_res-1 ).data
             # target array for the new data (z,y,x) order
             newdata = np.zeros([zcubedim,ycubedim,xcubedim], dtype=np.uint16)
 
@@ -92,40 +82,26 @@ class ImgStack:
               # Put to a new cube
               newdata[sl,:,:] = np.asarray ( newimage )
 
-              # Compress the data
-              outfobj = cStringIO.StringIO ()
-              np.save ( outfobj, newdata )
-              zdataout = zlib.compress (outfobj.getvalue())
-              outfobj.close()
+            zidx = ocplib.XYZMorton ( [x,y,z] )
+            cube = Cube.getCube(cubedim, ch.getChannelType(), ch.getDataType())
+            cube.zeros()
 
-            key = zindex.XYZMorton ( [x,y,z] )
+            cube.data = newdata
+            print "Inserting Cube {} at res {}".format(zidx, cur_res)
+            db.putCube(ch, zidx, cur_res, cube, update=True)
             
-            # put in the database
-            sql = "INSERT INTO res" + str(l) + "(zindex, cube) VALUES (%s, %s)"
-            print sql % (key,"x,y,z=%s,%s,%s"%(x,y,z))
-            try:
-              cursor.execute ( sql, (key,zdataout))
-            except MySQLdb.Error, e:
-              print "Failed insert %d: %s. sql=%s" % (e.args[0], e.args[1], sql)
-
-      self.imgDB.conn.commit()
 
 def main():
 
   parser = argparse.ArgumentParser(description='Build an image stack')
   parser.add_argument('token', action="store", help='Token for the project.')
+  parser.add_argument('channel', action="store", help='Channel for the project.')
   parser.add_argument('resolution', action="store", type=int, help='Start (highest) resolution to build')
   
   result = parser.parse_args()
 
-  # Create the annotation stack
-  imgstack = ImgStack ( result.token )
+  buildStack(result.token, result.channel, result.resolution)
 
-  # Iterate over the database creating the hierarchy
-  imgstack.buildStack ( result.resolution )
   
-
-
 if __name__ == "__main__":
   main()
-

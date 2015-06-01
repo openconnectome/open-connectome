@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import numpy as np
-
 import urllib2
 import tempfile
 import h5py
@@ -22,12 +21,9 @@ import cStringIO
 import collections
 import re
 
-import sys
-
 import annotation
 
 from ocpcaerror import OCPCAError
-
 import logging
 logger=logging.getLogger("ocp")
 

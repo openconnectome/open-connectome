@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% comment %}
+Create Token Template
+{% endcomment %}
+
+{% block title %}
+Update Token
+{% endblock %}
+
+<head>
+  <style>
+    .blue { background-color:#00F; }
+    div { height: 100px; }
+  </style>
+</head>
+{% block content %}
+ <div class="container-fluid">
+   <div class = "row-fluid">
+        <div class ="span12">
+       
+       <div id="header" style="background-color:#4682B4;" align="center">
+	 <h2 style="margin-bottom:0;">UPDATE TOKEN</div>
+     </div>
+   </div>
+ </div>
+
+   {{ form.errors }} 
+   {{ form.non_field_errors }} 
+
+ <br>
+
+ <div id="form" >
+     <form action="" method="post">
+       {{ form.non_field_errors }}
+
+       <div class="container-fluid">
+	 <div class = "row-fluid"> <div class ="span12"></div></div>
+	 
+	 <div class = "row">
+	   <div class ="col-md-4"></div>
+	   <div class ="col-md-2 blue">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="token">Token Name:</label>
+	     </div>
+	   </div>
+	   <div class ="col-md-2">
+	     {{ form.token_name }}
+	   </div>
+	   <div class ="col-md-4"></div>
+	 </div>
+       
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="token_description">Token Description:</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.token_description }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+    {{ form.project.ashidden }}
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="public">Public</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.public }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+	  
+    <br>
+
+	  <div class = "row">
+            <div class ="col-md-5"></div>
+            <div class ="col-md-3">
+
+	      <button class="btn btn-primary" name = "UpdateToken" type="submit">Update Token</button>
+	      <button class="btn btn-primary" name = "backtotokens" type="submit">Back to Tokens</button>
+
+	    </div>
+            <div class ="col-md-4"></div>
+
+     </form>  
+
+  
+ </div>
+
+{% endblock %}
+
+

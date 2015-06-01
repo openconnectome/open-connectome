@@ -12,5 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-site='localhost/ocp'
-#site='localhost:8000'
+#site='localhost/ocp'
+site='localhost:8000'

@@ -1,9 +1,0 @@
-You recently changed your email address at www.example.com. In order to 
-complete this change, please open the following address in your web
-browser:
-
-%(validation_url)s
-
-Once you have visited this address, your email change will be complete.
-
-Thank you.

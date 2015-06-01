@@ -1,28 +1,124 @@
 {% extends "base.html" %}
 {% comment %}
-Update Project Template
+Create Project Template
 {% endcomment %}
 
 {% block title %}
-    <section>
-        <h2> Update Project Token </h2>
-
-{% endblock %}
+        Update Project
+{% endblock title%}
 {% block content %}
+ <div class="container-fluid">
+   <div class = "row-fluid">
+        <div class ="span12">
 
-       <form action="" method="post" enctype="multipart/form-data">
-         {% csrf_token %}
-         <div align=left>
+	  <div id="header" style="background-color:#4682B4;" align="center">
+	    <h2 style="margin-bottom:0;">UPDATE PROJECT</h2></div>
+	</div>
+   </div>
+ </div>
 
-           <p>{{form.as_p}}</p>
+   {{ form.errors }} 
+   {{ form.non_field_errors }} 
+
+<form method="post" action="" enctype="multipart/form-data">
+   
+  {{ form.non_field_errors }}
+  <div class="container-fluid">
+    
+
+     <p> <font color="red"> NOTICE: Many project fields cannot be updated!!!</font> Changing these fields would modify 
+physical properties of the database.  If you need to change these fields, please create a new project. 
+  You are allowed to change the key/value server and the host server, although this is not recommended.  
+This would be necessary when changing a hostname. </p>  
+      
+     <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="project">Project:</label>
          </div>
-         <div align=left>
-           <p><input name = "UpdateProject" type="submit" value="Update Project"></p>
+       </div>
+       <div class ="col-md-2">
+         {{ form.project_name }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
 
-           <div>
-       </form>
+      <div class = "row">
+      <div class ="col-md-4"></div>
+      <div class ="col-md-2">
+        <div class="fieldWrapper">
+          {{ form.subject.errors }}
+          <label for="description">Description</label>
+        </div>
+      </div>
+      <div class ="col-md-2">
+        {{ form.project_description }}
+      </div>
+      <div class ="col-md-4"></div>
+    </div>
 
-    </section>
+     <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="exceptions">Public:</label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.public }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+     {{ form.dataset.ashidden }}
+
+     <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="exceptions"><font color="red"> Database Host</font></label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.host }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+     {{ form.kvengine.ashidden }}
+
+      <div class = "row">
+       <div class ="col-md-4"></div>
+       <div class ="col-md-2">
+         <div class="fieldWrapper">
+           {{ form.subject.errors }}
+           <label for="kvserverlabel"> <font color="red">KV Server</font></label>
+         </div>
+       </div>
+       <div class ="col-md-2">
+         {{ form.kvserver }}
+       </div>
+       <div class ="col-md-4"></div>
+     </div>
+
+    <br> 
+
+    <div class = "row">
+      <div class ="col-md-5"></div>
+      <div class ="col-md-3">
+
+	<button class="btn btn-primary" name = "UpdateProject" type="submit">Update Project</button>
+	<button class="btn btn-primary" name = "backtoprojects" type="submit">Back to Projects</button>
+        
+      </div>
+      <div class ="col-md-4"></div>
+      
+ </form>
+       
 {% endblock %}
 
 

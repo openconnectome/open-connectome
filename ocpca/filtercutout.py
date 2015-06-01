@@ -14,9 +14,6 @@
 
 import numpy as np
 
-#
-#  filterCutout
-#
 def filterCutout ( cutout, filterlist ):
   """Remove all annotations in a cutout that do not match the filterlist"""
 

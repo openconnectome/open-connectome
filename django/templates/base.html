@@ -1,84 +1,79 @@
 {% load i18n %}
 {% load static %}
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE html >
+<html>
 
 
 <head>
     <link rel="stylesheet" type ="text/css" href="{% static 'default.css' %}" />
     <link rel="stylesheet" type ="text/css" href="{% static 'css/bootstrap.css' %}" />
-    <title>{% block title %}User test{% endblock %}</title>
+    <title>{% block title %}Open Connectome Project Admin {% endblock %}</title>
+
+    <a href="http://openconnecto.me" target="_blank" align="center"><img src="{% static 'images/ocplogo.png' %}" border="0" /></a>
+
 </head>
 
 
 <body>
-<a href="http://openconnecto.me" target="_blank" align="center"><img src="{% static 'images/ocplogo.png' %}" border="0" /></a>
 
 
-<div id="header" align ="right">
-  {% block header %}
-  {% if user.is_authenticated %}
-        {% trans "Logged in" %}: {{ user.username }} 
-        (<a href="{% url "auth_logout" %}">{% trans "Log out" %}</a> | 
-        <a href="{% url "auth_password_change" %}">{% trans "Change password" %}</a>)
+  <div id="header" align ="right">
+    {% block header %}
+    {% if user.is_authenticated %}
+    {% trans "Logged in" %}: {{ user.username }} 
+    (<a href="{% url "auth_logout" %}">{% trans "Log out" %}</a> | 
+    <a href="{% url "auth_password_change" %}">{% trans "Change password" %}</a>)
+   
+    <nav class="navbar navbar-default">
+    <div class="container-fluid">
+	
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+        <ul class="nav nav-pills navbar-nav">
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Datasets <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/ocp/ocpuser/datasets/">View Datasets</a></li>
+              <li><a href="/ocp/ocpuser/createdataset/">Create dataset</a></li>
+            </ul>
+          </li>
+        </ul>
+
+        <ul class="nav nav-pills navbar-nav">
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Projects <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="/ocp/ocpuser/profile/">View Projects</a></li>
+              <li><a href="/ocp/ocpuser/createproject/">Create Project</a></li>
+	            <li><a href="/ocp/ocpuser/restoreproject/">Restore Project</a></li>
+            </ul>
+          </li>
+        </ul>
+      
+      </div><!-- nav links -->
+    </div><!-- /.container-fluid -->
+    </nav>
+
+    {% else %}
+    <a href="{% url "auth_login" %}">{% trans "Log in" %}</a>
+    {% endif %}
+    <hr />
+    {% endblock %}
+  </div>
+	
+  <div id="content">
+    {% block content %}{% endblock %}
+  </div>
   
-        <!-- Navigation pane -->
-        <div class="navbar">  
-	  <div class="navbar-inner"> 
-	    <div class="container" >
-	      <ul class="nav nav-pills nav-tabs">  
-		
-		<li class="dropdown active">
-		  <a class="dropdown-toggle" data-toggle="dropdown" href="/ocp/ocpuser/profile/">
-		    PROJECTS <b class="caret"></b>
-		  </a>
-		  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-		    <li><a href="/ocp/ocpuser/profile/">Projects</a></li>
-		    <li><a href="/ocp/ocpuser/createproject/">Create Project</a></li>
-                    <li><a href="/ocp/ocpuser/restore/">Restore Project</a></li>
-		  </ul>
-		</li>
-
-		<li class="dropdown">                                                                                                                   
-                  <a class="dropdown-toggle" data-toggle="dropdown" href="/ocp/ocpuser/profile/">
-		    DATASETS <b class="caret"></b>                                                                                                             
-                  </a>                                                                                                                                         
-		  <ul class="dropdown-menu">
-		    <li><a href="/ocp/ocpuser/datasets/">Datasets</a></li>
-		    <li><a href="/ocp/ocpuser/createdataset/">Create Dataset</a></li>
-		
-		  </ul>
-		</li> 		 
-		<li><a href="">CATMAID</a></li>
-              </div>
-            </div>
-	  </div>
+  <div id="footer">
+    {% block footer %}
+    <hr />
+    {% endblock %}
 	  
-   {% else %}
-	  <a href="{% url "auth_login" %}">{% trans "Log in" %}</a>
-	  {% endif %}
-	  <hr />
-	  {% endblock %}
-	</div>
-	
-	<div id="content">
-          {% block content %}{% endblock %}
-	</div>
-	
-	<div id="footer">
-          {% block footer %}
-          <hr />
-          {% endblock %}
-	  
-	  
-          <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-	  
-	  
-	  <script type="text/javascript" src="/static/js/bootstrap.js"></script>
-	  
-	  
-	  
+	  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	  <script src = "/static/js/bootstrap.js"></script>  
 	  
 	</body>
 

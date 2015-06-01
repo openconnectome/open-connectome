@@ -20,11 +20,8 @@
  * Naive implementation 
  */
 
-#include<stdio.h>
 #include<stdint.h>
-#include<stdbool.h>
-#include<stdlib.h>
-#include<string.h>
+#include<ocplib.h>
 
 int annotateCube( uint32_t * data, int dataSize, int * dims, int annid, uint32_t * offset,  uint32_t locations[][3], int locationsSize, char conflictopt, uint32_t exceptions[][3] )
 {
@@ -45,8 +42,6 @@ int annotateCube( uint32_t * data, int dataSize, int * dims, int annid, uint32_t
       index = (locations[i][2]-zoffset)*(ydim*zdim) + (locations[i][1]-yoffset)*(zdim) + (locations[i][0]-xoffset);
 
       // Label unlabeled voxels
-      //printf("%d\n", index);
-      
       if ( data [ index ] == 0 )
       {
         data [ index ] = annid;
@@ -63,13 +58,11 @@ int annotateCube( uint32_t * data, int dataSize, int * dims, int annid, uint32_t
         // P preserves the existing content
         else if ( conflictopt == 'P' )
         {
-          //printf ("Cannot overwrite. Read-Only");
           continue;
         }
         // E creates exceptions
         else if ( conflictopt == 'E' )
         {
-          //printf ( "Append exceptions" );
           exceptionIndex += 1;
           exceptions [exceptionIndex][0] = locations[i][0]-xoffset;
           exceptions [exceptionIndex][1] = locations[i][1]-yoffset;
@@ -78,11 +71,9 @@ int annotateCube( uint32_t * data, int dataSize, int * dims, int annid, uint32_t
       }
       else
       {
-        printf ( "Improper conflict option selected. Option = %c", conflictopt );
-        //assert(0);
+        continue;
       }
       
 		}
-    
     return exceptionIndex;
 }

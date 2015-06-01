@@ -23,68 +23,71 @@ import logging
 logger=logging.getLogger("ocp")
 
 
-#
-# 
-#
-#  part of the projinfo interface. put channel information into a H5 file
-
-
 def projdict ( proj ):
 
   projdict = {}
-  projdict['dbname'] = proj._dbname
-  projdict['host'] = proj._dbhost
-  projdict['projecttype'] = proj._dbtype
-  projdict['dataset'] = proj._dataset
-  projdict['dataurl'] = proj._dataurl
-  projdict['readonly'] = (False if proj._readonly==0 else True)
-  projdict['exceptions'] = (False if proj._exceptions==0 else True)
-  projdict['resolution'] = proj._resolution
-  projdict['kvengine'] = proj._kvengine
-  projdict['kvserver'] = proj._kvserver
-  projdict['propagate'] = proj._propagate
+  projdict['name'] = proj.getProjectName()
+  projdict['description'] = proj.getProjectDescription()
+  projdict['version'] = proj.getOCPVersion()
+
+  # These fields are internal
+  #projdict['dbname'] = proj._dbname
+  #projdict['host'] = proj._dbhost
+  #projdict['schemaversion'] = proj.getSchemaVersion()
+  #projdict['kvengine'] = proj._kvengine
+  #projdict['kvserver'] = proj._kvserver
 
   return projdict
 
 def datasetdict ( dataset ):
 
   dsdict = {}
+  dsdict['scalinglevels'] = dataset.scalinglevels
+  if dataset.scalingoption == ocpcaproj.ZSLICES:
+    dsdict['scaling'] = 'zslices'
+  else:
+    dsdict['scaling'] = 'xyz'
   dsdict['resolutions'] = dataset.resolutions
-  dsdict['slicerange'] = dataset.slicerange
   dsdict['imagesize'] = dataset.imagesz
-  dsdict['zscale'] = dataset.zscale
+  dsdict['offset'] = dataset.offset
+  dsdict['voxelres'] = dataset.voxelres
   dsdict['cube_dimension'] = dataset.cubedim
-  dsdict['isotropic_slicerange'] = dataset.isoslicerange
-  dsdict['neariso_scaledown'] = dataset.nearisoscaledown
-  dsdict['windowrange'] = dataset.windowrange
+  # dsdict['neariso_scaledown'] = dataset.nearisoscaledown
+  # Figure out neariso in new design
   dsdict['timerange'] = dataset.timerange
+  dsdict['description'] = dataset.getDatasetDescription()
 
   return dsdict
 
-def version ():
+def chandict ( channel ):
+  chandict = {}
+  chandict['channel_type'] = channel.getChannelType()
+  chandict['datatype'] = channel.getDataType()
+  chandict['exceptions'] = channel.getExceptions()
+  chandict['readonly'] = channel.getReadOnly()
+  chandict['resolution'] = channel.getResolution()
+  chandict['propagate'] = channel.getPropagate()
+  chandict['windowrange'] = channel.getWindowRange()
 
-  verdict = {}
-  verdict['ocp'] = ocpcaproj.OCP_VERSION_NUMBER 
-  verdict['schema'] = ocpcaproj.SCHEMA_VERSION_NUMBER
+  return chandict
 
-  return verdict
-
-def jsonInfo ( proj, db ):
+def jsonInfo ( proj ):
   """All Project Info"""
 
   jsonprojinfo = {}
-  jsonprojinfo['version'] = version()  
   jsonprojinfo['dataset'] = datasetdict ( proj.datasetcfg )
   jsonprojinfo['project'] = projdict ( proj )
-  if proj.getDBType() == ocpcaproj.CHANNELS_16bit or proj.getDBType() == ocpcaproj.CHANNELS_8bit:
-    jsonprojinfo['channels'] = db.getChannels()
+  jsonprojinfo['channels'] = {}
+  for ch in proj.projectChannels():
+    jsonprojinfo['channels'][ch.getChannelName()] = chandict ( ch ) 
+
   return json.dumps ( jsonprojinfo, sort_keys=True, indent=4 )
 
 
 def jsonChanInfo ( proj, db ):
   """List of Channels"""
 
-  if proj.getDBType() == ocpcaproj.CHANNELS_16bit or proj.getDBType() == ocpcaproj.CHANNELS_8bit:
+  if proj.getProjectType() in ocpcaproj.CHANNEL_PROJECTS:
     return json.dumps ( db.getChannels(), sort_keys=True, indent=4 )
   else:
     return json.dumps ({})
@@ -92,6 +95,6 @@ def jsonChanInfo ( proj, db ):
 
 def publicTokens ( projdb ):
   """List of Public Tokens"""
-
+  
   tokens = projdb.getPublic ()
   return json.dumps (tokens, sort_keys=True, indent=4)

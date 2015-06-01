@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}
+     CHANNELS 
+{% endblock title %}
+
+{% block content %}
+
+{% if messages %}
+<ul>
+  {% for message in messages %}
+  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<form class="form-inline" method="post" action="">
+  <div class="container-fluid">
+    <div class = "row-fluid">
+      <div class ="span12">
+        <div id="header" style="background-color:#4682B4;" align="center">  
+          <h2 style="margin-bottom:0;">CHANNELS</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!---  <div class="container-fluid">
+    <div class = "row-fluid">
+      <div class ="span3"></div>
+        <div class ="span6">
+      .  <div id="content" style="background-color:#F5F6CE;float:left;">
+          Search by:
+          <select name="filteroption">
+            <option value="Channel">Channel</option>
+          select>
+          <input type="text"  name="filtervalue" placeholder="Enter Channel Value">
+          <button type="submit" class= "btn" name ="filter">Search Channels</button>
+  	    </div>
+      	<div class ="span3"></div>
+      </div>
+    </div>
+  </div>
+</form>
+--->
+
+<body>
+  <form method="post" action="">
+    <div class="container-fluid">
+      <div class = "row-fluid">
+      <div class ="span1"></div>
+        <div class ="span11">  
+
+          <table class ="table">
+          <thead>
+            <tr class="success"><th>Project</th> <th>{{project}}</th></tr>
+          </thead>
+
+          <tr>
+            <td></td>
+            <td>
+
+            {% if not channels %}
+ 
+              <b>No Channels defined! </b>
+            
+            {% else %}
+
+              <table class="table table-bordered">
+
+              <tr class ="error">
+                <th>Name</th>
+                <th>Channel Type</th>
+                <th>Datatype</th>
+                <th>Description</th>
+                <th>Read Only</th>
+                <th>Resolution</th>
+                <th>Exceptions</th>
+                <th>Propagate</th>
+                <th>Start Window</th>
+                <th>End Window</th>
+                <th>Default</th>
+              </tr>	   
+
+              {% for channel in channels %}
+
+              <form method="post" action = "">
+              <tr>
+                <td style="width:15%;">{{ channel.channel_name }}</td>
+                <td>{{ channel.channel_type }}</td>
+                <td>{{ channel.channel_datatype }}</td>
+                <td>{{ channel.channel_description }}</td>
+		            {% if channel.readonly == 1 %}
+                    <td>Yes</td>
+                    {% else %}
+                    <td>No</td>
+                    {% endif %}
+                <td>{{ channel.resolution }}</td>
+                {% if channel.exceptions == 0%}
+                            <td>NO</td>
+                {% else %}
+                <td>YES</td>
+                {% endif %}
+
+                {% if proj.propagate == 0%}
+                            <td>NO</td>
+                {% elif proj.propagate == 1%}
+                <td>IN PROG</td>
+                 {% else %}
+                <td>YES</td>
+                {% endif %}
+
+                <td>{{ channel.startwindow }}</td>
+                <td>{{ channel.endwindow }}</td>
+                <td>{{ channel.default }}</td>
+
+                <input type="hidden" name="project" value={{project}}>
+                <input type="hidden" name="channel" value={{channel.channel_name}}>
+
+                <td><button class="btn" id="delete" type="submit" name="delete" onclick="return confirm('Are you sure you want to delete?')"> <i class ="icon-trash icon-black"></i>Delete</button></td>
+                <td><button class="btn" id="update" type="submit" name="update"> <i class ="icon-inbox icon-black"></i>Update</button></td>
+              </tr>
+              </form>
+
+              {% endfor %}
+
+              </table>
+            
+            {% endif %}
+
+            </td>
+          </tr>
+          </table>
+           <div align=center>
+            <button class="btn btn-primary" id="add" type="submit" name="add"> <i class ="icon-inbox icon-black"></i>Add Channel</button>
+            <button class="btn btn-primary" id="backtoprojects" type="submit" name="backtoprojects"> <i class ="icon-inbox icon-black"></i>Back to Projects</button>
+           </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</body>
+
+{% endblock content %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

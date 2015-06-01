@@ -27,29 +27,16 @@ import pytest
 from contextlib import closing
 
 from pytesthelpers import makeAnno
-
-sys.path += [os.path.abspath('../django')]
-import OCP.settings
-os.environ['DJANGO_SETTINGS_MODULE'] = 'OCP.settings'
-from django.conf import settings
-
-import ocpcaproj
-
+import makeunitdb
 import kvengine_to_test
 import site_to_test
 SITE_HOST = site_to_test.site
 
 
-# Module level setup/teardown
-def setup_module(module):
-  pass
-def teardown_module(module):
-  pass
-
-
 class ReadParms:
   baseurl = ""
   token = ""
+  channel = 'unit_anno'
   resolution = None
   annids = None
   voxels = False
@@ -71,18 +58,18 @@ def readAnno ( params ):
    """
 
   if params.voxels:
-    url = "http://%s/ca/%s/%s/voxels/%s/" % (params.baseurl,params.token,params.annids, params.resolution)
+    url = "http://{}/ca/{}/{}/{}/voxels/{}/".format(params.baseurl, params.token, params.channel, params.annids,  params.resolution)
     print url
   elif params.cutout != None:
-    url = "http://%s/ca/%s/%s/cutout/%s/" % (params.baseurl,params.token,params.annids, params.cutout)
+    url = "http://{}/ca/{}/{}/cutout/{}/".format(params.baseurl, params.token, params.channel, params.annids, params.cutout)
   elif params.tightcutout: 
-    url = "http://%s/ca/%s/%s/cutout/%s/" % (params.baseurl,params.token,params.annids, params.resolution)
+    url = "http://{}/ca/{}/{}/{}/cutout/{}/".format(params.baseurl, params.token, params.channel, params.annids, params.resolution)
   elif params.boundingbox: 
-    url = "http://%s/ca/%s/%s/boundingbox/%s/" % (params.baseurl,params.token,params.annids, params.resolution)
+    url = "http://{}/ca/{}/{}/{}/boundingbox/{}/".format(params.baseurl, params.token, params.channel, params.annids, params.resolution)
   elif params.cuboids: 
-    url = "http://%s/ca/%s/%s/cuboids/%s/" % (params.baseurl,params.token,params.annids, params.resolution)
+    url = "http://{}/ca/{}/{}?{}/cuboids/{}/".format(params.baseurl, params.token, params.channel, params.annids, params.resolution)
   else:
-    url = "http://%s/ca/%s/%s/" % (params.baseurl,params.token,params.annids)
+    url = "http://{}/ca/{}/{}/{}/".format(params.baseurl, params.token, params.channel, params.annids)
 
   # Get annotation in question
   f = urllib2.urlopen ( url )
@@ -277,6 +264,7 @@ class WriteParms:
   baseurl = ""
   numobjects = 1
   annid = 0
+  channel = 'unit_anno'
   voxels = False
   cutout = None
   anntype = 1
@@ -327,11 +315,11 @@ def writeAnno ( params ):
 
   # Build the put URL
   if params.update:
-    url = "http://%s/ca/%s/update/" % ( params.baseurl, params.token)
+    url = "http://{}/ca/{}/{}/update/".format(params.baseurl, params.token, params.channel)
   elif params.dataonly:
-    url = "http://%s/ca/%s/dataonly/" % ( params.baseurl, params.token)
+    url = "http://{}/ca/{}/{}/dataonly/".format(params.baseurl, params.token, params.channel)
   else:
-    url = "http://%s/ca/%s/" % ( params.baseurl, params.token)
+    url = "http://{}/ca/{}/{}/".format( params.baseurl, params.token, params.channel)
 
   if params.preserve:  
     url += 'preserve/'
@@ -389,16 +377,11 @@ class TestRW:
   def setup_class(self):
     """Create the unittest database"""
 
-    with closing ( ocpcaproj.OCPCAProjectsDB() ) as pd:
-      try: 
-        pd.newOCPCAProj ( 'unittest_rw', 'test', 'localhost', 'unittest_rw', 2, 'kasthuri11', None, False, True, False, 0, 0, kvengine_to_test.kvserver, kvengine_to_test.kvengine, 0 )
-      except:
-        pd.deleteOCPCADB ('unittest_rw')
+    makeunitdb.createTestDB('unittest_rw')
 
   def teardown_class (self):
     """Destroy the unittest database"""
-    with closing ( ocpcaproj.OCPCAProjectsDB() ) as pd:
-      pd.deleteOCPCADB ('unittest_rw')
+    makeunitdb.deleteTestDB('unittest_rw')
 
 
   def test_raw(self):
@@ -427,9 +410,9 @@ class TestRW:
 
     # upload an npz dense
 #    annodata = np.random.random_integers ( 0, 65535, [ 2, 50, 50 ] )
-    annodata = np.ones ( [ 2, 50, 50 ] ) * random.randint(0,65535)
+    annodata = np.ones ( [1, 2, 50, 50], dtype=np.uint32 ) * random.randint(0,65535)
 
-    url = 'http://%s/ca/%s/npz/%s/%s,%s/%s,%s/%s,%s/' % ( wp.baseurl, wp.token, wp.resolution, 200, 250, 200, 250, 200, 202 )
+    url = 'http://{}/ca/{}/{}/npz/{}/{},{}/{},{}/{},{}/'.format( wp.baseurl, wp.token, wp.channel, wp.resolution, 200, 250, 200, 250, 200, 202 )
 
     # Encode the voxelist as a pickle
     fileobj = cStringIO.StringIO ()
@@ -451,13 +434,14 @@ class TestRW:
     assert ( np.array_equal(voxarray, annodata) )
 
     # now as an HDF5 file
-    url = 'http://%s/ca/%s/hdf5/%s/%s,%s/%s,%s/%s,%s/' % ( wp.baseurl, wp.token, wp.resolution, 200, 250, 200, 250, 300, 302 )
+    annodata = np.ones ( [2, 50, 50], dtype=np.uint32 ) * random.randint(0,65535)
+    url = 'http://{}/ca/{}/{}/hdf5/{}/{},{}/{},{}/{},{}/'.format( wp.baseurl, wp.token, wp.channel, wp.resolution, 200, 250, 200, 250, 300, 302 )
 
     # Create an in-memory HDF5 file
     tmpfile = tempfile.NamedTemporaryFile ()
     fh5out = h5py.File ( tmpfile.name )
 
-    ds = fh5out.create_dataset ( "CUTOUT", tuple(annodata.shape), annodata.dtype, compression='gzip', data=annodata )
+    ds = fh5out.create_dataset ( wp.channel, tuple(annodata.shape), annodata.dtype, compression='gzip', data=annodata )
 
     fh5out.close()
     tmpfile.seek(0)
@@ -475,7 +459,7 @@ class TestRW:
     h5f = h5py.File ( tmpfile.name, driver='core', backing_store=False )
   
     # check that the return matches the post
-    assert ( np.array_equal(np.array(h5f['CUTOUT']), annodata))
+    assert ( np.array_equal(np.array(h5f[wp.channel]['CUTOUT'].value), annodata))
 
   def test_batch(self):
     """Batch interface"""
@@ -754,9 +738,9 @@ class TestRW:
     conn = httplib.HTTPConnection ( base )
 
     if suffix:
-      conn.request ( 'DELETE', '/%s/ca/%s/%s/' % ( suffix, rp.token, rp.annids ))
+      conn.request ( 'DELETE', '/{}/ca/{}/{}/{}/'.format( suffix, rp.token, rp.channel, rp.annids ))
     else:
-      conn.request ( 'DELETE', '/ca/%s/%s/' % ( rp.token, rp.annids ))
+      conn.request ( 'DELETE', '/ca/{}/{}/{}/'.format( rp.token, rp.channel, rp.annids ))
     resp = conn.getresponse()
     content=resp.read()
     assert content == "Success"
@@ -806,5 +790,4 @@ class TestRW:
     rp.voxels = True
     h5r = readAnno(rp)
     assert countVoxels ( retval, h5r ) == 2*50*50*2
-
 

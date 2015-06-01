@@ -15,43 +15,54 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.forms import ModelForm
-from models import ocpProject
-from models import ocpDataset
+from django.forms.models import inlineformset_factory
+from models import Project
+from models import Dataset
+from models import Token
+from models import Channel
 
 
-class CreateProjectForm(ModelForm):
+class ProjectForm(ModelForm):
 
     class Meta:
-        model = ocpProject
+        model = Project
+        exclude = ('user','ocp_version','schema_version')
         def clean_project(self):
             if 'project' in self.cleaned_data:
                 project = self.cleaned_data['project']
                 return project
             raise forms.ValidationError('Please enter a valid project')
 
-class CreateDatasetForm(ModelForm):
+class DatasetForm(ModelForm):
 
     class Meta:
-        model = ocpDataset
-             
-class UpdateProjectForm(forms.Form):
-    currentToken = forms.CharField(label=(u' Current Token'), widget = forms.TextInput(attrs={'readonly':'readonly'}))
-    newToken = forms.CharField(label=(u' New Token'))
-    description = forms.CharField(label=(u' Description'))
-#    host = forms.CharField(label=(u'Host'))
-#    project = forms.CharField(label=(u'Project'))
-#    dataset = forms.CharField(label=(u'Dataset'))
-#    dataurl = forms.CharField(initial='http://',label=(u'Data url'))
-#    resolution = forms.IntegerField(label=(u'Resolution') ,error_messages=\
-#{
-#        "required": "This value cannot be empty.",
-#        "invalid": "Please enter a valid Resolution",
-#    })
-#    readonly = forms.ChoiceField(choices=[(x, x) for x in range(0, 2)])
-#    exceptions = forms.ChoiceField(choices=[(x, x) for x in range(0, 2)])
+        model = Dataset
+        exclude = ('user',)
 
+class TokenForm(ModelForm):
+
+    class Meta:
+        model = Token
+        exclude = ('user',)
+        def clean_token(self):
+            if 'token_name' in self.cleaned_data:
+                token = self.cleaned_data['token_name']
+                return token 
+            raise forms.ValidationError('Please enter a valid token')
+
+class ChannelForm(ModelForm):
+
+    class Meta:
+        model = Channel
+        exclude = ('user', 'channel_type', 'channel_datatype')
+        def clean_channel(self):
+            if 'channel_name' in self.cleaned_data:
+                token = self.cleaned_data['channel_name']
+                return token 
+            raise forms.ValidationError('Please enter a valid token')
 
 class dataUserForm( forms.Form):
+
      firstname = forms.CharField(max_length=200)
      lastname = forms.CharField(max_length=200)
      email = forms.CharField(max_length=800)
@@ -68,3 +79,4 @@ class dataUserForm( forms.Form):
      ymax=forms.IntegerField()
      zmin=forms.IntegerField()
      zmax=forms.IntegerField()
+

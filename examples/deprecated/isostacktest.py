@@ -45,14 +45,14 @@ def cubeToPNGs ( nparray, prefix ):
 # Get cube in question
 try:
 
-#  url = "http://localhost/emca/bock11/npz/7/0,1088/0,960/2917,3013/neariso/"
-#  url = "http://rio.cs.jhu.edu/ocp/ocpca/kasthuri11/npz/7/0,192/0,256/1,142/neariso/"
 #  url = "http://openconnecto.me/ocp/ocpca/kasthuri11/npz/5/100,300/200,448/1,400/neariso/"
 #  url = "http://openconnecto.me/ocp/ocpca/kasthuri11/npz/5/100,700/200,500/1,500/neariso/"
-#  url = "http://openconnecto.me/ocp/ocpca/bock11/npz/7/0,1088/0,960/2917,3013/neariso/"
-#  url = "http://openconnecto.me/emca/bock11/npz/4/4000,5000/4000,4050/2917,3413/neariso/"
+#  url = "http://openconnecto.me:8000/ocpca/kasthuri11/npz/5/0,672/0,832/1,500/neariso/"
+  url = "http://openconnecto.me/ocp/ocpca/kasthuri11/npz/5/0,672/0,832/1,500/neariso/"
+#  url = "http://openconnecto.me/ocp/ocpca/bock11/npz/7/0,1058/0,936/2917,3013/neariso/"
+#  url = "http://openconnecto.me:8000/ocpca/bock11/npz/7/0,1058/0,936/2917,3013/neariso/"
 #  url = "http://localhost/ocp/ocpca/bock11/npz/0/18000,19000/18000,19000/2917,2920/neariso/"
-  url = "http://openconnecto.me/ocp/ocpca/bock11/npz/0/18000,19000/18000,19000/2917,2920/neariso/"
+#  url = "http://openconnecto.me/ocp/ocpca/bock11/npz/0/18000,19000/18000,19000/2917,2920/neariso/"
   f = urllib2.urlopen ( url )
 except urllib2.URLError, e:
   print "Failed to open url ", url, e

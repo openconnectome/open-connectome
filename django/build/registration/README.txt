@@ -1,1 +1,0 @@
-The registration package is a set of templates for TurboGears applications designed to make common tasks associated with new user registration and maintenance easier. It is intended to interface with the TurboGears identity framework.

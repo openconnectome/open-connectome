@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% comment %}
+Create Dataset Template
+{% endcomment %}
+
+{% block title %}
+Create New Dataset 
+{% endblock %}
+
+<head>
+  <style>
+    .blue { background-color:#00F; }
+    div { height: 100px; }
+  </style>
+</head>
+{% block content %}
+ <div class="container-fluid">
+   <div class = "row-fluid">
+        <div class ="span12">
+       
+       <div id="header" style="background-color:#4682B4;" align="center">
+	 <h2 style="margin-bottom:0;">UPDATE DATASET </div>
+     </div>
+   </div>
+ </div>
+
+   {{ form.errors }} 
+   {{ form.non_field_errors }} 
+
+<p><font color='red'> WARNING Editing some fields may be dangerous!! </font>  Specifically, if you change the scaling option or voxel resolution, you may render existing data unusable.  The physical layout of the databases depends upon these factors.  It is generally safe to change the voxel resolution in minor ways or if you keep the ratio of values the same.   If you change the image size or start/end time, you may have existing data that you can no longer access.  It is safe to change all fields if you have not created projects that use this dataset. </p>
+
+ <div id="form" >
+     <form action="" method="post">
+       {{ form.non_field_errors }}
+
+       <div class="container-fluid">
+	 <div class = "row-fluid"> <div class ="span12"></div></div>
+	 
+   <br> 
+
+	 <div class = "row">
+	   <div class ="col-md-4"></div>
+	   <div class ="col-md-2 blue">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="dataset">Dataset Name:</label>
+	     </div>
+	   </div>
+	   <div class ="col-md-2">
+	     {{ form.dataset_name }}
+	   </div>
+	   <div class ="col-md-4"></div>
+	 </div>
+
+       	  <div class = "row">
+            <div class ="col-md-4"></div>
+            <div class ="col-md-2">
+	      <div class="fieldWrapper">
+		{{ form.subject.errors }}
+		<label for="description">Description:</label>
+	      </div>
+            </div>
+	    <div class ="col-md-2">
+	      {{ form.dataset_description}}
+	    </div>
+            <div class ="col-md-4"></div>
+	  </div>
+
+	  <div class = "row">
+      <div class ="col-md-4"></div>
+      <div class ="col-md-2">
+        <div class="fieldWrapper">
+    		{{ form.subject.errors }}
+		    <label for="public">Public:</label>
+	      </div>
+      </div>
+      <div class ="col-md-2">
+	      {{ form.public }}
+	    </div>
+	    <div class ="col-md-4"></div>
+    </div>
+	  
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="ximagesize">X Image Size:</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.ximagesize }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="yimagesize">Y Image Size:</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.yimagesize }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+       	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="zimagesize">Z Image Size:</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.zimagesize }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="xoffset">X Offset:</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.xoffset }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="yoffset">Y Offset:</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.yoffset }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+       	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="zoffset">Z Offset:</label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.zoffset }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="xvoxelres"><font color="red">X Voxel Resolution:</font></label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.xvoxelres }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+       	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="yvoxelres"><font color="red">Y Voxel Resolution:</font></label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.yvoxelres }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	 <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+       	     <div class="fieldWrapper">
+	       {{ form.subject.errors }}
+	       <label for="zvoxelres"><font color="red">Z Voxel Resolution:</font></label>
+	     </div>
+           </div>
+           <div class ="col-md-2">
+	     {{ form.zvoxelres }}
+	   </div>
+	   <div class ="col-md-4"></div>
+         </div>
+
+	  <div class = "row">
+            <div class ="col-md-4"></div>
+            <div class ="col-md-2">
+       	      <div class="fieldWrapper">
+		{{ form.subject.errors }}
+		<label for="scalinglevels">Scaling Levels:</label>
+	      </div>
+            </div>
+            <div class ="col-md-2">
+	      {{ form.scalinglevels }}
+	    </div>
+	    <div class ="col-md-4"></div>
+          </div>
+	  
+	  <div class = "row">
+            <div class ="col-md-4"></div>
+            <div class ="col-md-2">
+       	      <div class="fieldWrapper">
+		{{ form.subject.errors }}
+		<label for="scalingoption"><font color="red">Scaling Option:</font></label>
+	      </div>
+            </div>
+            <div class ="col-md-2">
+	      {{ form.scalingoption }}
+	    </div>
+	    <div class ="col-md-4"></div>
+          </div>
+	  
+	  <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+             <div class="fieldWrapper">
+	              {{ form.subject.errors }}
+               <label for="starttime">Start Time:</label>
+             </div>
+           </div>
+           <div class ="col-md-2">
+	          {{ form.starttime }}
+           </div>
+           <div class ="col-md-4"></div>
+         </div>
+
+	    <div class = "row">
+           <div class ="col-md-4"></div>
+           <div class ="col-md-2">
+             <div class="fieldWrapper">
+	              {{ form.subject.errors }}
+               <label for="endtime">End Time:</label>
+             </div>
+           </div>
+           <div class ="col-md-2">
+	          {{ form.endtime }}
+		     </div>
+           <div class ="col-md-4"></div>
+         </div>
+
+	  <div class = "row">
+            <div class ="col-md-5"></div>
+            <div class ="col-md-3">
+
+        <br>
+
+	      <button class="btn btn-primary" name = "UpdateDataset" type="submit">Update Dataset</button>
+	      <button class="btn btn-primary" name = "backtodatasets" type="submit">Back to Datasets</button>
+
+	    </div>
+            <div class ="col-md-4"></div>
+
+     </form>  
+
+  
+ </div>
+
+{% endblock %}
+
+

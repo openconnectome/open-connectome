@@ -18,24 +18,20 @@ import cStringIO
 import tempfile
 import h5py
 
-import zindex
 import ocpcaproj
 
 import logging
 logger=logging.getLogger("ocp")
 
 #
-#  AnnotateIndex: Maintain the index in the database
+# AnnotateIndex: Maintain the index in the database
 # AUTHOR: Priya Manavalan
+#
 
 class AnnotateIndex:
 
-
-  #
-  # Constructor 
-  #
   def __init__(self,kvio,proj):
-    """Give an active connection.  This puts all index operations in the same transation as the calling db."""
+    """Give an active connection.This puts all index operations in the same transation as the calling db."""
 
     self.proj = proj
     self.kvio = kvio
@@ -46,12 +42,10 @@ class AnnotateIndex:
       self.NPZ = False
    
 
-  #
-  # getIndex -- Retrieve the index for the annotation with id
-  #
-  def getIndex ( self, entityid, resolution, update=False ):
+  def getIndex ( self, ch, entityid, resolution, update=False ):
+    """Retrieve the index for the annotation with id"""  
     
-    idxstr = self.kvio.getIndex ( entityid, resolution, update )
+    idxstr = self.kvio.getIndex(ch, entityid, resolution, update)
     if idxstr:
       if self.NPZ:
         fobj = cStringIO.StringIO ( idxstr )
@@ -68,15 +62,14 @@ class AnnotateIndex:
     else:
       return []
        
-  #
-  # putIndex -- Write the index for the annotation with id
-  #
-  def putIndex ( self, entityid, resolution, index, update=False ):
+  
+  def putIndex ( self, ch, entityid, resolution, index, update=False ):
+    """Write the index for the annotation with id"""
 
     if self.NPZ:
       fileobj = cStringIO.StringIO ()
       np.save ( fileobj, index )
-      self.kvio.putIndex ( entityid, resolution, fileobj.getvalue(), update )
+      self.kvio.putIndex(ch, entityid, resolution, fileobj.getvalue(), update)
     else:
 
       with closing ( tempfile.NamedTemporaryFile () ) as tmpfile:
@@ -84,71 +77,53 @@ class AnnotateIndex:
         h5.create_dataset ( "index", tuple(index.shape), index.dtype,compression='gzip',  data=index )
         h5.close()
         tmpfile.seek(0)
-        self.kvio.putIndex ( entityid, resolution, tmpfile.read(), update )
+        self.kvio.putIndex(ch, entityid, resolution, tmpfile.read(), update)
 
-  #
-  # Update Index Dense - Updated the annotation database with the given hash index table
-  #
-  def updateIndexDense(self,index,resolution):
+
+  def updateIndexDense(self, ch, index,resolution):
     """Updated the database index table with the input index hash table"""
 
     for key, value in index.iteritems():
       cubelist = list(value)
       cubeindex=np.array(cubelist, dtype=np.uint64)
           
-      curindex = self.getIndex(key,resolution,True)
+      curindex = self.getIndex(ch, key,resolution,True)
          
       if curindex==[]:
-        self.putIndex ( key, resolution, cubeindex, False )
+        self.putIndex(ch, key, resolution, cubeindex, False)
             
       else:
         # Update index to the union of the currentIndex and the updated index
         newIndex=np.union1d(curindex,cubeindex)
-        self.putIndex ( key, resolution, newIndex, True )
+        self.putIndex(ch, key, resolution, newIndex, True)
 
-  #
-  #  deleteIndexResolution - Delete the index for a given annotation id for current resolution
-  #
-  def deleteIndexResolution ( self, annid, res ):
+  
+  def deleteIndexResolution ( self, ch, annid, res ):
     """delete the index for a given annid at the given resolution"""
     
     # delete Index table for each resolution
-    self.kvio.deleteIndex(annid,res)
-  #  sql = "DELETE FROM " +  self.proj.getIdxTable(resolution)  +  " WHERE annid=" + str(annid)
-  #  try:
-  #    self.cursor.execute ( sql )
-  #    except MySQLdb.Error, e:
-  #      logger.error("Error deleting the index %d: %s. sql=%s" % (e.args[0], e.args[1], sql))
-  #      raise
-  #    except:
-  #      logger.exception("Unknown exception In deleteIndexResolution")
-  #      raise
+    self.kvio.deleteIndex(ch, annid, res)
   
-  #  
-  # Delete the index for a given annotation id
-  #
-  def deleteIndex ( self, annid, resolutions ):
+  
+  def deleteIndex ( self, ch, annid, resolutions ):
     """delete the index for a given annid"""
     
     #delete Index table for each resolution
     for res in resolutions:
-      self.kvio.deleteIndex(annid,res)
+      self.kvio.deleteIndex(ch, annid,res)
 
 
-  #
-  # Update Index - Updated the annotation object with the given index
-  #
-  def updateIndex ( self, entityid, index, resolution ):
+  def updateIndex ( self, ch, entityid, index, resolution ):
     """Updated the database index table with the input index hash table"""
 
-    curindex = self.getIndex ( entityid, resolution, True )
+    curindex = self.getIndex(ch, entityid, resolution, True)
 
     if curindex == []:
         
         if self.NPZ:
           fileobj = cStringIO.StringIO ()
           np.save ( fileobj, index )
-          self.kvio.putIndex ( entityid, resolution, fileobj.getvalue() )
+          self.kvio.putIndex(ch, entityid, resolution, fileobj.getvalue())
         else:
 
           with closing ( tempfile.NamedTemporaryFile () ) as tmpfile:
@@ -156,18 +131,18 @@ class AnnotateIndex:
             h5.create_dataset ( "index", tuple(index.shape), index.dtype, compression='gzip',  data=index )
             h5.close()
             tmpfile.seek(0)
-            self.kvio.putIndex ( entityid, resolution, tmpfile.read() )
+            self.kvio.putIndex(ch, entityid, resolution, tmpfile.read())
 
     else :
         
         # Update Index to the union of the currentIndex and the updated index
-        newIndex = np.union1d ( curindex, index )
+        newIndex = np.union1d(curindex, index)
 
         # Update the index in the database
         if self.NPZ:
           fileobj = cStringIO.StringIO ()
           np.save ( fileobj, newIndex )
-          self.kvio.putIndex ( entityid, resolution, fileobj.getvalue(), True )
+          self.kvio.putIndex(ch, entityid, resolution, fileobj.getvalue(), True)
         else:
 
           with closing ( tempfile.NamedTemporaryFile () ) as tmpfile:
@@ -175,4 +150,4 @@ class AnnotateIndex:
             h5.create_dataset ( "index", tuple(index.shape), index.dtype, compression='gzip',  data=index )
             h5.close()
             tmpfile.seek(0)
-            self.kvio.putIndex ( entityid, resolution, tmpfile.read(), True )
+            self.kvio.putIndex(ch, entityid, resolution, tmpfile.read(), True)
