@@ -198,7 +198,7 @@ CELERYD_PREFETCH_MULTIPLIER = 1
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 
 # LIMS Server Settings
-LIMS_SERVER = 'lims.neurodata.io/metadata/ocp/get'
+LIMS_SERVER = 'lims.neurodata.io'
 
 # Automated Ingest
 TEMP_INGEST_PATH = '/data/scratch/'
