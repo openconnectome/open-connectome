@@ -28,6 +28,7 @@ from ndtype import ANNOTATION_CHANNELS, TIMESERIES_CHANNELS, EXCEPTION_TRUE, PRO
 
 import annotation
 
+from ndwserror import NDWSError
 import logging
 logger=logging.getLogger("neurodata")
 
@@ -231,7 +232,11 @@ class MySQLRamonDB:
     except MySQLdb.Error, e:
       logger.error ( "Failed to fetch annotation: {}: {}. sql={}".format(e.args[0], e.args[1], sql))
       raise
-
+    
+    if len(pairs) == 0:
+      logger.error( "Failed to fetch annotation: {}: No annotation object found. sql={}".format( annid, sql ) )
+      raise NDWSError( "Failed to fetch annotation: {}: No annotation object found. sql={}".format( annid, sql ) )
+    
     # convert answer into a dictionary
     kvdict = defaultdict(list)
     for (k,v) in pairs:

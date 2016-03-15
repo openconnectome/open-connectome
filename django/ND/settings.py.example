@@ -55,9 +55,9 @@ INSTALLED_APPS = (
     'catmaid',
     'registration',
     'djcelery',
-    #'ndviz',
+    'ndviz',
     #'ndgraph',
-    #'stats',
+    'stats',
 )
 
 MIDDLEWARE_CLASSES = (

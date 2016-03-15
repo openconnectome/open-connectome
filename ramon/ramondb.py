@@ -29,6 +29,7 @@ from ndtype import ANNOTATION_CHANNELS, TIMESERIES_CHANNELS, EXCEPTION_TRUE, PRO
 import annotation
 import mysqlramondb
 
+from ndwserror import NDWSError
 import logging
 logger=logging.getLogger("neurodata")
 

@@ -880,7 +880,7 @@ AR_TIGHTCUTOUT = 3
 AR_BOUNDINGBOX = 4
 AR_CUBOIDS = 5
 
-def getAnnoDictById ( ch, annoid, proj, db ):
+def getAnnoDictById ( ch, annoid, proj, rdb ):
   """Retrieve the annotation and return it as a Python dictionary"""
 
   # retrieve the annotation
@@ -889,11 +889,13 @@ def getAnnoDictById ( ch, annoid, proj, db ):
     logger.error("No annotation found at identifier = %s" % (annoid))
     raise NDWSError ("No annotation found at identifier = %s" % (annoid))
 
-  # create the annotation obj
-  annobj = jsonann.AnnotationtoJSON ( anno )
+  # the json interface returns anno_id -> dictionary containing annotation info 
+  tmpdict = { 
+    annoid: anno.toDict()
+  } 
 
-  # return data
-  return annobj.toDictionary()
+  # return dictionary
+  return tmpdict 
 
 def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution=None, corner=None, dim=None ): 
   """Retrieve the annotation and put it in the HDF5 file."""
@@ -1041,13 +1043,13 @@ def getAnnotation ( webargs ):
         if re.match ( '^[\d,]+$', option_args[0] ): 
           annoids = map(int, option_args[0].split(','))
           for annoid in annoids: 
-            annobjs.update(getAnnoDictById ( ch, annoid, proj, db ))
+            annobjs.update(getAnnoDictById ( ch, annoid, proj, rdb ))
 
         jsonstr = json.dumps( annobjs )
 
-      except: 
-        logger.error("Error")
-        raise NDWSError("Error")
+      except Exception, e: 
+        logger.error("Error: {}".format(e))
+        raise NDWSError("Error: {}".format(e))
 
       return jsonstr 
 
@@ -1320,10 +1322,10 @@ def getAnnotations ( webargs, postdata ):
 
 
 def putAnnotation ( webargs, postdata ):
-  """Put a RAMON object as HDF5 by object identifier"""
+  """Put a RAMON object as HDF5 (or JSON) by object identifier"""
 
   [token, channel, optionsargs] = webargs.split('/',2)
-
+  
   with closing ( ndproj.NDProjectsDB() ) as projdb:
     proj = projdb.loadToken ( token )
   
@@ -1343,156 +1345,211 @@ def putAnnotation ( webargs, postdata ):
     # return string of id values
     retvals = [] 
 
-    # Make a named temporary file for the HDF5
-    with closing (tempfile.NamedTemporaryFile()) as tmpfile:
-      tmpfile.write ( postdata )
-      tmpfile.seek(0)
-      h5f = h5py.File ( tmpfile.name, driver='core', backing_store=False )
+  
+    # check to see if we're doing a JSON post or HDF5 post 
+    if 'json' in optionsargs.split('/'):
+    
+      annobjdict = json.loads(postdata)
 
-      # get the conflict option if it exists
-      options = optionsargs.split('/')
-      if 'preserve' in options:
-        conflictopt = 'P'
-      elif 'exception' in options:
-        conflictopt = 'E'
+      if len(annobjdict.keys()) != 1:
+        # for now we just accept a single annotation
+        logger.error("Error: Can only accept one annotation. Tried to post {}.".format(len(annobjdict.keys())))
+        raise NDWSError("Error: Can only accept one annotation. Tried to post {}.".format(len(annobjdict.keys())))
+
+  
+      # create annotation object by type 
+      annotype = annobjdict[ annobjdict.keys()[0] ]['ann_type'] 
+
+      if annotype == annotation.ANNO_ANNOTATION:
+        anno = annotation.Annotation( rdb, ch ) 
+      elif annotype == annotation.ANNO_SYNAPSE:
+        anno = annotation.AnnSynapse( rdb, ch ) 
+      elif annotype == annotation.ANNO_SEED:
+        anno = annotation.AnnSeed( rdb, ch ) 
+      elif annotype == annotation.ANNO_SEGMENT:
+        anno = annotation.AnnSegment( rdb, ch )
+      elif annotype == annotation.ANNO_NEURON:
+        anno = annotation.AnnNeuron( rdb, ch )
+      elif annotype == annotation.ANNO_ORGANELLE:
+        anno = annotation.AnnOrganelle( rdb, ch )
+      elif annotype == annotation.ANNO_NODE:
+        anno = annotation.AnnNode( rdb, ch )
+      elif annotype == annotation.ANNO_SKELETON:
+        anno = annotation.AnnSkeleton( rdb, ch )
+      elif annotype == annotation.ANNO_ROI:
+        anno = annotation.AnnROI( rdb, ch )
+      
+      anno.fromDict( annobjdict[ annobjdict.keys()[0] ] )
+
+      # is this an update?
+      if 'update' in optionsargs.split('/'):
+        rdb.putAnnotation(ch, anno, 'update')
+
       else:
-        conflictopt = 'O'
-  
-      try:
-  
-        for k in h5f.keys():
-          
-          idgrp = h5f.get(k)
-  
-          # Convert HDF5 to annotation
-          anno = h5ann.H5toAnnotation(k, idgrp, rdb, ch)
-  
-          # set the identifier (separate transaction)
-          if not ('update' in options or 'dataonly' in options or 'reduce' in options):
-            anno.setField('annid',(rdb.assignID(ch,anno.annid)))
-  
-          # start a transaction: get mysql out of line at a time mode
-  
-          tries = 0 
-          done = False
-          while not done and tries < 5:
-  
-            try:
-  
-              if anno.__class__ in [ annotation.AnnNeuron, annotation.AnnSeed ] and ( idgrp.get('VOXELS') or idgrp.get('CUTOUT')):
-                logger.error ("Cannot write to annotation type {}".format(anno.__class__))
-                raise NDWSError ("Cannot write to annotation type {}".format(anno.__class__))
-  
-              if 'update' in options and 'dataonly' in options:
-                logger.error ("Illegal combination of options. Cannot use udpate and dataonly together")
-                raise NDWSError ("Illegal combination of options. Cannot use udpate and dataonly together")
-  
-              elif not 'dataonly' in options and not 'reduce' in options:
-                # Put into the database
-                rdb.putAnnotation(ch, anno, options)
-  
-              #  Get the resolution if it's specified
-              if 'RESOLUTION' in idgrp:
-                resolution = int(idgrp.get('RESOLUTION')[0])
-  
-              # Load the data associated with this annotation
-              #  Is it voxel data?
-              if 'VOXELS' in idgrp:
-                voxels = np.array(idgrp.get('VOXELS'),dtype=np.uint32)
-                voxels = voxels - proj.datasetcfg.offset[resolution]
-              else: 
-                voxels = None
-  
-              if voxels!=None and 'reduce' not in options:
-  
-                if 'preserve' in options:
-                  conflictopt = 'P'
-                elif 'exception' in options:
-                  conflictopt = 'E'
-                else:
-                  conflictopt = 'O'
-  
-                # Check that the voxels have a conforming size:
-                if voxels.shape[1] != 3:
-                  logger.error ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
-                  raise NDWSError ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
-  
-                exceptions = db.annotate ( ch, anno.annid, resolution, voxels, conflictopt )
-  
-              # Otherwise this is a shave operation
-              elif voxels != None and 'reduce' in options:
+        # set the ID (if provided) 
+        anno.setField('annid', (rdb.assignID(ch,anno.annid)))
+      
+        # Put into the database
+        rdb.putAnnotation(ch, anno, options)
+        
+      retvals.append(anno.annid)
 
-                # Check that the voxels have a conforming size:
-                if voxels.shape[1] != 3:
-                  logger.error ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
-                  raise NDWSError ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
-                db.shave ( ch, anno.annid, resolution, voxels )
-  
-              # Is it dense data?
-              if 'CUTOUT' in idgrp:
-                cutout = np.array(idgrp.get('CUTOUT'),dtype=np.uint32)
-              else:
-                cutout = None
-              if 'XYZOFFSET' in idgrp:
-                h5xyzoffset = idgrp.get('XYZOFFSET')
-              else:
-                h5xyzoffset = None
-  
-              if cutout != None and h5xyzoffset != None and 'reduce' not in options:
-  
-                #  the zstart in datasetcfg is sometimes offset to make it aligned.
-                #   Probably remove the offset is the best idea.  and align data
-                #    to zero regardless of where it starts.  For now.
-                offset = proj.datasetcfg.offset[resolution]
-                corner = map(sub, h5xyzoffset, offset)
-                
-                db.annotateEntityDense ( ch, anno.annid, corner, resolution, np.array(cutout), conflictopt )
-  
-              elif cutout != None and h5xyzoffset != None and 'reduce' in options:
-
-                offset = proj.datasetcfg.offset[resolution]
-                corner = map(sub, h5xyzoffset,offset)
-  
-                db.shaveEntityDense ( ch, anno.annid, corner, resolution, np.array(cutout))
-  
-              elif cutout != None or h5xyzoffset != None:
-                #TODO this is a loggable error
-                pass
-  
-              # Is it dense data?
-              if 'CUBOIDS' in idgrp:
-                cuboids = h5ann.H5getCuboids(idgrp)
-                for (corner, cuboiddata) in cuboids:
-                  db.annotateEntityDense ( anno.annid, corner, resolution, cuboiddata, conflictopt ) 
-  
-              # only add the identifier if you commit
-              if not 'dataonly' in options and not 'reduce' in options:
-                retvals.append(anno.annid)
-  
-              # Here with no error is successful
-              done = True
-  
-            # rollback if you catch an error
-            except MySQLdb.OperationalError, e:
-              logger.warning("Put Anntotation: Transaction did not complete. {}".format(e))
-              tries += 1
-              continue
-            except MySQLdb.Error, e:
-              logger.error("Put Annotation: Put transaction rollback. {}".format(e))
-              raise NDWSError("Put Annotation: Put transaction rollback. {}".format(e))
-            except Exception, e:
-              logger.exception("Put Annotation:Put transaction rollback. {}".format(e))
-              raise NDWSError("Put Annotation:Put transaction rollback. {}".format(e))
-  
-            # Commit if there is no error
-  
-      finally:
-        h5f.close()
-  
       retstr = ','.join(map(str, retvals))
-  
+
       # return the identifier
       return retstr
+
+    else:
+      # Make a named temporary file for the HDF5
+      with closing (tempfile.NamedTemporaryFile()) as tmpfile:
+        tmpfile.write ( postdata )
+        tmpfile.seek(0)
+        h5f = h5py.File ( tmpfile.name, driver='core', backing_store=False )
+
+        # get the conflict option if it exists
+        options = optionsargs.split('/')
+        if 'preserve' in options:
+          conflictopt = 'P'
+        elif 'exception' in options:
+          conflictopt = 'E'
+        else:
+          conflictopt = 'O'
+
+        try:
+    
+          for k in h5f.keys():
+            
+            idgrp = h5f.get(k)
+    
+            # Convert HDF5 to annotation
+            anno = h5ann.H5toAnnotation(k, idgrp, rdb, ch)
+    
+            # set the identifier (separate transaction)
+            if not ('update' in options or 'dataonly' in options or 'reduce' in options):
+              anno.setField('annid',(rdb.assignID(ch,anno.annid)))
+    
+            # start a transaction: get mysql out of line at a time mode
+    
+            tries = 0 
+            done = False
+            while not done and tries < 5:
+    
+              try:
+    
+                if anno.__class__ in [ annotation.AnnNeuron, annotation.AnnSeed ] and ( idgrp.get('VOXELS') or idgrp.get('CUTOUT')):
+                  logger.error ("Cannot write to annotation type {}".format(anno.__class__))
+                  raise NDWSError ("Cannot write to annotation type {}".format(anno.__class__))
+    
+                if 'update' in options and 'dataonly' in options:
+                  logger.error ("Illegal combination of options. Cannot use udpate and dataonly together")
+                  raise NDWSError ("Illegal combination of options. Cannot use udpate and dataonly together")
+    
+                elif not 'dataonly' in options and not 'reduce' in options:
+                  # Put into the database
+                  rdb.putAnnotation(ch, anno, options)
+    
+                #  Get the resolution if it's specified
+                if 'RESOLUTION' in idgrp:
+                  resolution = int(idgrp.get('RESOLUTION')[0])
+    
+                # Load the data associated with this annotation
+                #  Is it voxel data?
+                if 'VOXELS' in idgrp:
+                  voxels = np.array(idgrp.get('VOXELS'),dtype=np.uint32)
+                  voxels = voxels - proj.datasetcfg.offset[resolution]
+                else: 
+                  voxels = None
+    
+                if voxels!=None and 'reduce' not in options:
+    
+                  if 'preserve' in options:
+                    conflictopt = 'P'
+                  elif 'exception' in options:
+                    conflictopt = 'E'
+                  else:
+                    conflictopt = 'O'
+    
+                  # Check that the voxels have a conforming size:
+                  if voxels.shape[1] != 3:
+                    logger.error ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
+                    raise NDWSError ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
+    
+                  exceptions = db.annotate ( ch, anno.annid, resolution, voxels, conflictopt )
+    
+                # Otherwise this is a shave operation
+                elif voxels != None and 'reduce' in options:
+
+                  # Check that the voxels have a conforming size:
+                  if voxels.shape[1] != 3:
+                    logger.error ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
+                    raise NDWSError ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
+                  db.shave ( ch, anno.annid, resolution, voxels )
+    
+                # Is it dense data?
+                if 'CUTOUT' in idgrp:
+                  cutout = np.array(idgrp.get('CUTOUT'),dtype=np.uint32)
+                else:
+                  cutout = None
+                if 'XYZOFFSET' in idgrp:
+                  h5xyzoffset = idgrp.get('XYZOFFSET')
+                else:
+                  h5xyzoffset = None
+    
+                if cutout != None and h5xyzoffset != None and 'reduce' not in options:
+    
+                  #  the zstart in datasetcfg is sometimes offset to make it aligned.
+                  #   Probably remove the offset is the best idea.  and align data
+                  #    to zero regardless of where it starts.  For now.
+                  offset = proj.datasetcfg.offset[resolution]
+                  corner = map(sub, h5xyzoffset, offset)
+                  
+                  db.annotateEntityDense ( ch, anno.annid, corner, resolution, np.array(cutout), conflictopt )
+    
+                elif cutout != None and h5xyzoffset != None and 'reduce' in options:
+
+                  offset = proj.datasetcfg.offset[resolution]
+                  corner = map(sub, h5xyzoffset,offset)
+    
+                  db.shaveEntityDense ( ch, anno.annid, corner, resolution, np.array(cutout))
+    
+                elif cutout != None or h5xyzoffset != None:
+                  #TODO this is a loggable error
+                  pass
+    
+                # Is it dense data?
+                if 'CUBOIDS' in idgrp:
+                  cuboids = h5ann.H5getCuboids(idgrp)
+                  for (corner, cuboiddata) in cuboids:
+                    db.annotateEntityDense ( anno.annid, corner, resolution, cuboiddata, conflictopt ) 
+    
+                # only add the identifier if you commit
+                if not 'dataonly' in options and not 'reduce' in options:
+                  retvals.append(anno.annid)
+    
+                # Here with no error is successful
+                done = True
+    
+              # rollback if you catch an error
+              except MySQLdb.OperationalError, e:
+                logger.warning("Put Anntotation: Transaction did not complete. {}".format(e))
+                tries += 1
+                continue
+              except MySQLdb.Error, e:
+                logger.error("Put Annotation: Put transaction rollback. {}".format(e))
+                raise NDWSError("Put Annotation: Put transaction rollback. {}".format(e))
+              except Exception, e:
+                logger.exception("Put Annotation:Put transaction rollback. {}".format(e))
+                raise NDWSError("Put Annotation:Put transaction rollback. {}".format(e))
+    
+              # Commit if there is no error
+    
+        finally:
+          h5f.close()
+    
+        retstr = ','.join(map(str, retvals))
+    
+        # return the identifier
+        return retstr
 
 def getNIFTI ( webargs ):
   """Return the entire channel as a NIFTI file.

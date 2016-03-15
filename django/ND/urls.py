@@ -29,12 +29,13 @@ base_urlpatterns = patterns('',
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^ocpuser/', include('nduser.urls')),  # legacy RB
     url(r'^nduser/', include('nduser.urls')),  
-    # url(r'^viz/', include('ocpviz.urls')),  # AB TODO
+    url(r'^viz/', include('ndviz.urls')), # legacy AB / viz redirect  
     # url(r'^ocpgraph/', include('ndgraph.urls')), # UA TODO
-    # url(r'^stats/', include('stats.urls')), # AB TODO
+    url(r'^stats/', include('stats.urls')), 
 )
 
 urlpatterns = patterns('', 
     url('^', include(base_urlpatterns)), # maintains unprefixed URLs
     url('^nd/', include(base_urlpatterns)),
+    url('^ocp/', include(base_urlpatterns)),
 )

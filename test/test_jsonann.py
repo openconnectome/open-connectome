@@ -82,9 +82,9 @@ class Test_Annotation_Json():
     # read the JSON file
     ann_info = json.loads(f.read())
     assert( ann_info.keys()[0] == str(ann_annoid) )
-    assert( str(ann_info[str(ann_annoid)]['metadata']['status']) == str(ann_status) )
-    assert( str(ann_info[str(ann_annoid)]['metadata']['confidence'])[:5] == str(ann_confidence)[:5] )
-    assert( ann_info[str(ann_annoid)]['metadata']['author'] == str(ann_author) )
+    assert( str(ann_info[str(ann_annoid)]['ann_status']) == str(ann_status) )
+    assert( str(ann_info[str(ann_annoid)]['ann_confidence'])[:5] == str(ann_confidence)[:5] )
+    assert( ann_info[str(ann_annoid)]['ann_author'] == str(ann_author) )
   
   def test_bigint_json(self):
     """Test the annotation (RAMON) JSON interface with a large ID"""
@@ -121,10 +121,9 @@ class Test_Annotation_Json():
     # read the JSON file
     ann_info = json.loads(f.read())
     assert( ann_info.keys()[0] == str(ann_annoid) )
-    assert( str(ann_info[str(ann_annoid)]['metadata']['status']) == str(ann_status) )
-    assert( str(ann_info[str(ann_annoid)]['metadata']['confidence'])[:5] == str(ann_confidence)[:5] )
-    assert( ann_info[str(ann_annoid)]['metadata']['author'] == str(ann_author) )
-
+    assert( str(ann_info[str(ann_annoid)]['ann_status']) == str(ann_status) )
+    assert( str(ann_info[str(ann_annoid)]['ann_confidence'])[:5] == str(ann_confidence)[:5] )
+    assert( ann_info[str(ann_annoid)]['ann_author'] == str(ann_author) )
 
   def test_multiple_json(self):
     """Test the annotation (RAMON) JSON interface with multiple objects"""
@@ -181,18 +180,21 @@ class Test_Annotation_Json():
       assert( str( (i + 1)*10 ) in ann_info.keys() )
       chosen_id = (i + 1)*10
       chosen_obj = anno_objs[str( chosen_id )]
-      assert( str(ann_info[str(chosen_id)]['metadata']['status']) == str(chosen_obj['ann_status']) )
-      assert( str(ann_info[str(chosen_id)]['metadata']['confidence'])[:5] == str(chosen_obj['ann_confidence'])[:5] )
-      assert( ann_info[str(chosen_id)]['metadata']['author'] == str(chosen_obj['ann_author']) )
-
+      
+      assert( str(ann_info[str(chosen_id)]['ann_status']) == str(chosen_obj['ann_status']) )
+      assert( str(ann_info[str(chosen_id)]['ann_confidence'])[:5] == str(chosen_obj['ann_confidence'])[:5] )
+      assert( ann_info[str(chosen_id)]['ann_author'] == str(chosen_obj['ann_author']) )
+      
     # pick an annotation object at random and check its properties 
     chosen_id = random.randint(1,number_of_annotations)*10 
     chosen_obj = anno_objs[str(chosen_id)]
-    assert( str(ann_info[str(chosen_id)]['metadata']['status']) == str(chosen_obj['ann_status']) )
-    assert( str(ann_info[str(chosen_id)]['metadata']['confidence'])[:5] == str(chosen_obj['ann_confidence'])[:5] )
-    assert( ann_info[str(chosen_id)]['metadata']['author'] == str(chosen_obj['ann_author']) )
-  
-
+      
+    assert( str(ann_info[str(chosen_id)]['ann_status']) == str(chosen_obj['ann_status']) )
+    assert( str(ann_info[str(chosen_id)]['ann_confidence'])[:5] == str(chosen_obj['ann_confidence'])[:5] )
+    assert( ann_info[str(chosen_id)]['ann_author'] == str(chosen_obj['ann_author']) )
+      
+    
+    
   def test_error_json(self):
     """ Request an annotation Id that doesn't exist """
 

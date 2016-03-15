@@ -13,11 +13,10 @@
 # limitations under the License.
 
 from django.conf.urls import *
-from ocpuser.views import *
 import django.contrib.auth
 
 # redirect everything to the new ocpviz server 
-urlpatterns = patterns('ocpviz.views',
+urlpatterns = patterns('ndviz.views',
     # data views
     url(r'(?P<webargs>[\w:,/-]+)$', 'default'),
 )

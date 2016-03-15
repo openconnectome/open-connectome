@@ -16,13 +16,13 @@ import os
 import sys 
 import numpy as np 
 
-# sys.path += [os.path.abspath('../django')]
-# import ND.settings
-# os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
-# from django.conf import settings
+sys.path += [os.path.abspath('../django')]
+import ND.settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
+from django.conf import settings
 
-# import django
-# django.setup()
+import django
+django.setup()
 
 import logging
 logger = logging.getLogger("neurodata")
@@ -68,7 +68,7 @@ class HistStats():
     # normalize the histogram
     hist_norm = np.zeros(histogram.shape)
     
-    hist_sum = 0
+    hist_sum = 0.0 # dividing by a float ensures we get a float for normalized histograms
     for binval in histogram:
       hist_sum += binval
     
@@ -76,10 +76,10 @@ class HistStats():
       hist_norm[i] = histogram[i] / hist_sum
 
     # compute the percentile using the normalized histogram
-    bin_sum = 0
+    bin_sum = 0.0 # the normalized histogram is floating point 
     i = 0
     pfloat = float(percent) * 0.01 
-    while bin_sum < pfloat and i < hist_norm.shape[0] + 1:
+    while bin_sum < pfloat and i < hist_norm.shape[0]:
       bin_sum += hist_norm[i]
       i += 1
 

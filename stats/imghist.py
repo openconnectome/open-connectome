@@ -15,20 +15,22 @@
 import sys
 import os
 import numpy as np
+import urllib, urllib2
+import cStringIO
+from contextlib import closing
+import zlib
 
-# sys.path += [os.path.abspath('../django')]
-# import OCP.settings
-# os.environ['DJANGO_SETTINGS_MODULE'] = 'OCP.settings'
-# from django.conf import settings
+sys.path += [os.path.abspath('../django')]
+import ND.settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
+from django.conf import settings
 
-# import django
-# django.setup()
+import django
+django.setup()
 
 from cube import Cube
-import ocpcarest
-import ocplib
-import ocpcaproj
-import ocpcadb
+from ndproj import NDProjectsDB
+from spatialdb import SpatialDB
 
 """ Determine a histogram from an image stack """
 
@@ -43,10 +45,10 @@ class ImgHist():
 
   def getHist(self):
 
-    with closing (ocpcaproj.OCPCAProjectsDB()) as projdb:
+    with closing (NDProjectsDB()) as projdb:
       proj = projdb.loadToken(self.token)
     
-    with closing (ocpcadb.OCPCADB(proj)) as db:
+    with closing (SpatialDB(proj)) as db:
       ch = proj.getChannelObj(self.channel)
 
       # Get the source database sizes
