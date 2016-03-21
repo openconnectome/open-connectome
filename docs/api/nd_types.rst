@@ -1,7 +1,7 @@
 NeuroData Types
 ***************
 
-.. _ocp-channeltype:
+.. _nd-channeltype:
 
 Channel Types
 =============
@@ -16,7 +16,7 @@ Timeseries          timseries
 Annotation          annnotation
 =================   ===============
 
-.. _ocp-datatype:
+.. _nd-datatype:
 
 Data Types
 ==========
@@ -33,7 +33,7 @@ Data Type           NeuroData Value
 32-bit Float        float32
 ===============     ===============
 
-.. _ocp-combo:
+.. _nd-combo:
 
 Possible Combination of Channel Types and Data Types
 =====================================================

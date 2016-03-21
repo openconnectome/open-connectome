@@ -35,11 +35,11 @@ This project is under active development.  To contribute new functionality or ex
 
 **How do I put in a new feature request or propose an idea?**
 
-You can open an issue on our github `repository <https://github.com/openconnectome/open-connectome/issues>`_ and tag it as a feature. Prior to opening a new feature request, please checout our other feature issues to see if some of your suggestions or features have not been discussed before.
+You can open an issue on our github `repository <https://github.com/neurodata/ndstore/issues>`_ and tag it as a feature. Prior to opening a new feature request, please checout our other feature issues to see if some of your suggestions or features have not been discussed before.
 
 **How do I report code bugs?**
 
-You can open an issue on our github `repository <https://github.com/openconnectome/open-connectome/issues>`_ and tag it as a bug. Prior to reporting a bug, please checout our other bugs to see if your bug has been reported or not. Do also have a look at our support forums to identify if this is a bug or not.
+You can open an issue on our github `repository <https://github.com/neurodata/ndstore/issues>`_ and tag it as a bug. Prior to reporting a bug, please checout our other bugs to see if your bug has been reported or not. Do also have a look at our support forums to identify if this is a bug or not.
 
 **How do I view my data?**
 

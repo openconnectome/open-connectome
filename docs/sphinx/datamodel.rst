@@ -82,7 +82,7 @@ Dataset Attributes
 
 .. function:: Scaling Levels
 
-   Scaling levels is the number of levels the data is scalable to (how many zoom levels are present in the data). The highest resolution of the data is at scaling level 0, and for each level up the data is down sampled by 2x2 (per slice). To learn more about the sampling service used, visit the :ref:`the propagation <ocp-propagation>` service page.
+   Scaling levels is the number of levels the data is scalable to (how many zoom levels are present in the data). The highest resolution of the data is at scaling level 0, and for each level up the data is down sampled by 2x2 (per slice). To learn more about the sampling service used, visit the :ref:`the propagation <nd-propagation>` service page.
 
    :Type: INT
    :Default: 0
@@ -164,14 +164,14 @@ Channel Attributes
 
 .. function:: Data Type
 
-   The data type is the storage method of data in the channel. It can be uint8, uint16, uint32, uint64, or float32. If you wish to learn more about our supported data types visit :ref:`the NeuroData datatypes page. <ocp-datatype>`
+   The data type is the storage method of data in the channel. It can be uint8, uint16, uint32, uint64, or float32. If you wish to learn more about our supported data types visit :ref:`the NeuroData datatypes page. <nd-datatype>`
 
    :Type: {uint8, uint16, uint32, uint64, float32}
    :Default: None
 
 .. function:: Channel Type
 
-   The channel type is the kind of data being stored in the channel. It can be image, annotation, or timeseries. If you wish to learn more about our supported channel types visit :ref:`the NeuroData datatypes page. <ocp-channeltype>`
+   The channel type is the kind of data being stored in the channel. It can be image, annotation, or timeseries. If you wish to learn more about our supported channel types visit :ref:`the NeuroData datatypes page. <nd-channeltype>`
 
    :Type: {image, annotation, timeseries}
    :Default: None
@@ -207,7 +207,7 @@ Channel Attributes
 
 .. function:: Propagated Status
 
-   The propagation status enumerates to the user what the current state of the propagation service is for the current project. To learn more about the propagation service vist :ref:`the documentation. <ocp-propagation>`
+   The propagation status enumerates to the user what the current state of the propagation service is for the current project. To learn more about the propagation service vist :ref:`the documentation. <nd-propagation>`
 
    :Type: {PROPAGATED, NOT PROPAGATED}
    :Default: NOT PROPAGATED

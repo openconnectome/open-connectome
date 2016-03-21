@@ -3,7 +3,7 @@ Administrator Console
 
 How Do I Access the Console?
 ============================
-Navigate to http://openconnecto.me/ocp/ocp/accounts/login/ and if you do not have an account select the register option below the sign in box. Once you create an account log into the console and you will be taken to the main page.
+Navigate to http://openconnecto.me/ocp/accounts/login/ and if you do not have an account select the register option below the sign in box. Once you create an account log into the console and you will be taken to the main page.
 
 How Do I Create a Dataset?
 ==========================

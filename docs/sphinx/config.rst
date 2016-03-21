@@ -1,8 +1,8 @@
 Configuration
 *************
 
-You can install open-connectome and configure using the install script:
- 
+You can install ndstore and configure using the install script:
+
  * uAlex script
  * MySQL/Cassandra/Riak
  * Nginx Setting, Celery Setting, RabbitMq Server

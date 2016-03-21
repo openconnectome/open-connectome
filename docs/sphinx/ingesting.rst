@@ -66,7 +66,7 @@ Uploading
 Overview
 ++++++++
 
-This section will initially address how to upload one channels worth of material. Located in the auto-ingest folder in the ingest folder of open-connectome is a file named generatejson.py (https://github.com/openconnectome/open-connectome/blob/master/ingest/autoingest/generatejson.py). To upload your data edit the hard-coded values in the code to reflect your data, being sure to specify that you are trying to put data to http://openconnecto.me and your DataURL is http accessible (if it is not the script will fail). The editable portion of the script is below the "Edit the below values" and above the "Edit above here" comment. Once the script has run you do not need to maintain a connection to the script. The script can be run simply by calling "python2 generatejson.py" on the script (using python 2.7). In the event that more than one channels worth of data needs to be ingested at once, the service supports this operation as well. To add channels, add additional create channel calls to the AutoIngest object before posting the data. The AutoIngest object is part of NeuroData's python library, Ndio, which must be installed prior to using the script.
+This section will initially address how to upload one channels worth of material. Located in the auto-ingest folder in the ingest folder of ndstore is a file named generatejson.py (https://github.com/neurodata/ndstore/blob/master/ingest/autoingest/generatejson.py). To upload your data edit the hard-coded values in the code to reflect your data, being sure to specify that you are trying to put data to http://openconnecto.me and your DataURL is http accessible (if it is not the script will fail). The editable portion of the script is below the "Edit the below values" and above the "Edit above here" comment. Once the script has run you do not need to maintain a connection to the script. The script can be run simply by calling "python2 generatejson.py" on the script (using python 2.7). In the event that more than one channels worth of data needs to be ingested at once, the service supports this operation as well. To add channels, add additional create channel calls to the AutoIngest object before posting the data. The AutoIngest object is part of NeuroData's python library, Ndio, which must be installed prior to using the script.
 
 Explanation of Additional Terms
 +++++++++++++++++++++++++++++++
@@ -95,7 +95,7 @@ The :ref:`data model <datamodel>` holds an explanation of the majority of the te
 
 .. function:: Data URL
 
-   This url points to the root directory of the files, meaning the folder identified by the token name should be in the directory being pointed to. Dropbox (or any data requiring authentication to download such as non-HTTP s3) is not an acceptable HTTP Server. To make data in s3 available for ingest through out service, please see the instructions above. 
+   This url points to the root directory of the files, meaning the folder identified by the token name should be in the directory being pointed to. Dropbox (or any data requiring authentication to download such as non-HTTP s3) is not an acceptable HTTP Server. To make data in s3 available for ingest through out service, please see the instructions above.
 
    :Type: AlphaNumeric
    :Default: None
