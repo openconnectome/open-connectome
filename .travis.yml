@@ -63,6 +63,7 @@ install:
     # move the nginx config files and start service
   - sudo rm /etc/nginx/sites-enabled/default
   - sudo ln -s ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-enabled/default
+  - sudo ln -s ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
   #- sudo rm /etc/nginx/nginx.conf
   #- sudo ln -s ./setup/docker_config/nginx/nginx.conf /etc/nginx/nginx.conf
     # move uwsgi config files and start service
@@ -77,7 +78,8 @@ install:
   - sudo service uwsgi restart
   - sudo service supervisor restart
   - sudo service rabbitmq-server restart
-  - sudo service memcached restart
+  - sudo service memcached restart 
+  - 
 
 script:
   - wget localhost
