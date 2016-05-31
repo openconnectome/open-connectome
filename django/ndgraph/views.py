@@ -50,7 +50,7 @@ def getResponse( filename ):
         output.close()
 
     wrapper = FileWrapper(file("/tmp/GeneratedGraph.tar.gz"))
-    response     = HttpResponse(wrapper,'application/x-gzip')
+    response = HttpResponse(wrapper,'application/x-gzip')
     response['Content-Length'] = 5
     response['Content-Disposition'] = 'attachment; filename="GeneratedGraph.tar.gz"'
     return response
@@ -60,7 +60,7 @@ def getResponse( filename ):
 def buildGraph (request, webargs):
   #Indicated which type of arguements to return/send
   arguementType=0
-  
+
   try:
     # argument of format /token/channel/Arguments
     #Tries each of the possible 3 entries
