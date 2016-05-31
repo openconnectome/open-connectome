@@ -11,22 +11,22 @@
         "imagesize": {
             "type": "array",
             "description": "The image dimensions of the dataset",
-            "pattern": "^\([0-9]+,[0-9]+,[0-9]+\)$"
+            "pattern": "^\\([0-9]+,[0-9]+,[0-9]+\\)$"
         },
         "voxelres": {
             "type": "array",
             "description": "The voxel resolutoin of the data",
-            "pattern": "^\([0-9]+\.[0-9]+,[0-9]+\.[0-9]+,[0-9]+\.[0-9]+\)$"
+            "pattern": "^\\([0-9]+\\.[0-9]+,[0-9]+\\.[0-9]+,[0-9]+\\.[0-9]+\\)$"
         },
         "offset": {
             "type": "array",
             "description": "The dimensions offset from origin",
-            "pattern": "^\([0-9]+,[0-9]+,[0-9]+\)$"
+            "pattern": "^\\([0-9]+,[0-9]+,[0-9]+\\)$"
         },
         "timerange": {
             "description": "The timerange of the data",
             "type": "array",
-            "pattern": "^\([0-9]+,[0-9]+\)$"
+            "pattern": "^\\([0-9]+,[0-9]+\\)$"
         },
         "scalinglevels": {
             "description": "Required Scaling levels/ Zoom out levels",

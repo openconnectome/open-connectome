@@ -29,7 +29,7 @@
         "windowrange": {
             "description": "Window clamp function for 16-bit channels with low max value of pixels",
             "type": "array",
-            "pattern": "^\([0-9]+,[0-9]+\)$"
+            "pattern": "^\\([0-9]+,[0-9]+\\)$"
         },
         "readonly": {
             "description": "Read-only Channel(1) or Not(0). You can remotely post to channel if it is not readonly and overwrite data",

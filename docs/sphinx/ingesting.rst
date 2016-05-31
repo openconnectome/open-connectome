@@ -28,20 +28,32 @@ Some common mistakes you can make
 * Make sure your directory structure is accurate and correctly ordered.
 * Make sure your data is HTTP accessible, see below how to check this if you are unsure. 
 
+Unsupported Image Types
+=======================
+
+We currently do not support 3-D tiffs.
+
 Help Section
 ============
 
 How do I check the image size of my data?
 -----------------------------------------
+
 Use the 'tiffinfo' command in terminal to check datatype on tiff (or tif) images, or pnginfo for png images, to get a variety of data about a particular image file including image size.
+
 How do I check the datatype?
 ----------------------------
+
 Unfortunately there is no universally acceptable answer to this question, as everyone's data types vary based on how the image was saved. The most common answer to this is to use the 'tiffinfo' command in terminal to check datatype on tiff (or tif) images, or pnginfo for png images.
+
 How do I name my projects/datasets/token?
 -----------------------------------------
+
 Please see naming convections in the :ref:`data model <datamodel>`.
+
 How do I check if my data is publicly accessible?
 -------------------------------------------------
+
 The most common way of doing this is by doing a curl or wget on the data. For example, if you have your data stored on a server with a name space of MyServer on your network, with your publicly accessible folder named MyPublic containing the data, you would attempt to access http://MyServer/MyPublic/TokenName/ChannelName/###.tif where TokenName and ChannelName are replaced by the token and channel names used in your data and the pound signs are replaced with whichever slice number is desired. The command in terminal would be "curl http://MyServer/MyPublic/TokenName/ChannelName/###.tif" and if there is a response other than webpage not found the data is accessible.
 
 
@@ -69,12 +81,13 @@ Uploading
 =========
 
 Overview
-++++++++
+--------
 
 This section will initially address how to upload one channels worth of material. Located in the auto-ingest folder in the ingest folder of ndstore is a file named generatejson.py (https://github.com/neurodata/ndstore/blob/master/ingest/autoingest/generatejson.py). To upload your data edit the hard-coded values in the code to reflect your data, being sure to specify that you are trying to put data to http://openconnecto.me and your DataURL is http accessible (if it is not the script will fail). The editable portion of the script is below the "Edit the below values" and above the "Edit above here" comment. Once the script has run you do not need to maintain a connection to the script. The script can be run simply by calling "python2 generatejson.py" on the script (using python 2.7). In the event that more than one channels worth of data needs to be ingested at once, the service supports this operation as well. To add channels, add additional create channel calls to the AutoIngest object before posting the data. The AutoIngest object is part of NeuroData's python library, Ndio, which must be installed prior to using the script.
 
 Explanation of Additional Terms
-+++++++++++++++++++++++++++++++
+-------------------------------
+
 The :ref:`data model <datamodel>` holds an explanation of the majority of the terms encountered when editing the generatejson.py script, however some extra terms that are not enumerated in that explanation are included here.
 
 .. function:: Scaling
@@ -121,8 +134,3 @@ The :ref:`data model <datamodel>` holds an explanation of the majority of the te
    :Type: AlphaNumeric
    :Default: None
    :Example: tiff
-
-Unsupported Image Types
-=======================
-
-We currently do not support 3-D tiffs.

@@ -43,5 +43,5 @@ posix-ipc
 networkx
 requests
 anyjson
-amqp
+amqp==1.4.9
 pylibmc

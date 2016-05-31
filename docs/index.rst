@@ -50,7 +50,7 @@ The system design inherits much from NoSQL scale-out and data-intensive computin
 .. toctree::
    :maxdepth: 1
    :caption: API Documentation
-   All of the APIs enumerated here are RESTful calls that are used via the browser or calls to the web service. For additional usage information see online RESTful documentation.
+   
 
    api/nd_types
    api/info_api
@@ -75,6 +75,8 @@ The system design inherits much from NoSQL scale-out and data-intensive computin
    Mailing List <https://groups.google.com/forum/#!forum/ocp-support/> 
    Github repo <https://github.com/neurodata/ndstore>
    Release Notes <https://github.com/neurodata/ndstore/releases/>
+
+All of the APIs enumerated here are RESTful calls that are used via the browser or calls to the web service. For additional usage information see online RESTful documentation.
 
 If you use NeuroData or its data derivatives, please cite:
   R Burns, K Lillaney, E Perlman, P Manavalan, JT Vogelstein (2015). ocp v0.7. Zenodo. 10.5281/zenodo.15974 `zenodo <https://zenodo.org/record/15974?ln=en#.VYyl-XUVhBc>`_ `bibtex <https://zenodo.org/record/15974?ln=en#.VYyjE3UVhBc>`_
