@@ -18,7 +18,7 @@ from django.shortcuts import render
 
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
-from django.core.servers.basehttp import FileWrapper
+from wsgiref.util import FileWrapper
 
 import os
 import numpy as np
@@ -26,6 +26,7 @@ import json
 import re
 from contextlib import closing
 import tarfile
+import pdb
 
 from django.conf import settings
 
@@ -50,7 +51,7 @@ def getResponse( filename ):
         output.close()
 
     wrapper = FileWrapper(file("/tmp/GeneratedGraph.tar.gz"))
-    response     = HttpResponse(wrapper,'application/x-gzip')
+    response = HttpResponse(wrapper,'application/x-gzip')
     response['Content-Length'] = 5
     response['Content-Disposition'] = 'attachment; filename="GeneratedGraph.tar.gz"'
     return response
@@ -60,13 +61,13 @@ def getResponse( filename ):
 def buildGraph (request, webargs):
   #Indicated which type of arguements to return/send
   arguementType=0
-  
+  pdb.set_trace()
   try:
     # argument of format /token/channel/Arguments
     #Tries each of the possible 3 entries
     #ndgraph/test_graph_syn/test_graph_syn/pajek/5472/6496/8712/9736/1000/1100/
     #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
-    #
+
 
     if re.match("(\w+)/(\w+)/$", webargs) is not None:
         m = re.match("(\w+)/(\w+)/$", webargs)
@@ -76,8 +77,8 @@ def buildGraph (request, webargs):
         m = re.match("(\w+)/(\w+)/(\w+)/$", webargs)
         [syntoken, synchan_name, graphType] = [i for i in m.groups()]
         arguementType=2
-    elif re.match("(\w+)/(\w+)/(\w+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/(\w+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/$", webargs)
+    elif re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs) is not None:
+        m = re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs)
         [syntoken, synchan_name, graphType, Xmin,Xmax,Ymin,Ymax,Zmin,Zmax] = [i for i in m.groups()]
         arguementType=3
     else:
@@ -89,22 +90,12 @@ def buildGraph (request, webargs):
     logger.warning("Arguments not in the correct format: /token/channel/Arguments")
     raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
 
-  # get the project
-  with closing ( ndproj.NDProjectsDB() ) as projdb:
-
-    synproj = projdb.loadToken ( syntoken )
-
-  # and the database and then call the db function
-  with closing ( spatialdb.SpatialDB(synproj) ) as syndb:
-      # open the segment channel and the synapse channel
-      synch = synproj.getChannelObj(synchan_name)
-      #AETODO verify that they are both annotation channels
-      if arguementType==1:
-          return getResponse(ndgraph.genGraphRAMON (syndb, synproj, synch))
-      elif arguementType==2:
-          return getResponse(ndgraph.genGraphRAMON (syndb, synproj, synch, graphType))
-      elif arguementType==3:
-          return getResponse(ndgraph.genGraphRAMON (syndb, synproj, synch, graphType, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax))
-      else:
-          logger.warning("Unable to return file")
-          raise NDWSError("Unable to return file")
+  if arguementType==1:
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name))
+  elif arguementType==2:
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType))
+  elif arguementType==3:
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax))
+  else:
+      logger.warning("Unable to return file")
+      raise NDWSError("Unable to return file")

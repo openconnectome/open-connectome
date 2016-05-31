@@ -4,7 +4,8 @@
 # Maintainer: Kunal Lillaney <lillaney@jhu.edu>
 
 # update the sys packages and upgrade them
-sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get update -y
+sudo apt-get upgrade -y | echo "y"
 
 # apt-get install mysql packages
 echo "mysql-server-5.6 mysql-server/root_password password neur0data" | sudo debconf-set-selections
@@ -31,7 +32,6 @@ cd /home/neurodata/ndstore
 sudo -u neurodata git checkout microns
 sudo -u neurodata git submodule init
 sudo -u neurodata git submodule update
-
 
 # pip install packages
 cd /home/neurodata/ndstore/setup/
