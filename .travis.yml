@@ -81,6 +81,9 @@ install:
   - ls /home/travis/build
   - ls /home/
   - ls /home/travis/virtualenv/
+  - ls /home/travis/virtualenv/python2.7_with_system_site_packages/
+  - source /home/travis/virtualenv/python2.7_with_system_site_packages/bin/activate
+  - pip freeze
     # restarting all the services
   - sudo service nginx restart
   - sudo service uwsgi restart
