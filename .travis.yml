@@ -80,7 +80,7 @@ install:
   - ls /home/travis/
   - ls /home/travis/build
   - ls /home/
-  - ls /home/ubuntu
+  - ls /home/travis/virtualenv/
     # restarting all the services
   - sudo service nginx restart
   - sudo service uwsgi restart
