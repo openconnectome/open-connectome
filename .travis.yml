@@ -72,11 +72,11 @@ install:
   #- sudo ln -s ./setup/docker_config/nginx/nginx.conf /etc/nginx/nginx.conf
     # move uwsgi config files and start service
   - sudo chown -R www-data:www-data /tmp/
-  - sudo ln -s ./setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
-  - sudo ln -s ./setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
+  - sudo cp ./setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
+  - sudo ln -s /etc/uwsgi/apps-available/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
     # move celery config files and start service
-  - sudo ln -s ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
-  - sudo ln -s ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
+  - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
+  - sudo cp -s ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
     # restarting all the services
   - sudo service nginx restart
   - sudo service uwsgi restart
@@ -91,5 +91,5 @@ script:
   - ls -la /tmp/
   - cd ./test/
   - py.test test_info.py
-  - cat /var/log/uwsgi/app/*.log
-  - cat /var/log/neurodata/ndstore.log
+  - sudo cat /var/log/uwsgi/app/*.log
+  - sudo cat /var/log/neurodata/ndstore.log
