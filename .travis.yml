@@ -76,7 +76,7 @@ install:
   - sudo ln -s /etc/uwsgi/apps-available/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
     # move celery config files and start service
   - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
-  - sudo cp -s ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
+  - sudo cp ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
     # restarting all the services
   - sudo service nginx restart
   - sudo service uwsgi restart
