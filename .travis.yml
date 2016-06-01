@@ -72,7 +72,7 @@ install:
   #- sudo ln -s ./setup/docker_config/nginx/nginx.conf /etc/nginx/nginx.conf
     # move uwsgi config files and start service
   - sudo chown -R www-data:www-data /tmp/
-  - sudo cp ./setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
+  - sudo cp ./setup/travis_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
   - sudo ln -s /etc/uwsgi/apps-available/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
     # move celery config files and start service
   - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
