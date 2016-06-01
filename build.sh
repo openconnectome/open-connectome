@@ -268,8 +268,8 @@ echo -e "\033[31;1mThe debug environment is not available. Please contact suppor
 false
 }
 
-if [[ ! -f ~/virtualenv/python[2.7]/bin/activate ]]; then
-  echo -e "\033[33;1m[2.7] is not installed; attempting download\033[0m"
+if [[ ! -f ~/virtualenv/python2.7/bin/activate ]]; then
+  echo -e "\033[33;1m2.7 is not installed; attempting download\033[0m"
   if [[ $(uname) = 'Linux' ]]; then
     travis_host_os=$(lsb_release -is | tr 'A-Z' 'a-z')
     travis_rel_version=$(lsb_release -rs)
@@ -278,11 +278,11 @@ if [[ ! -f ~/virtualenv/python[2.7]/bin/activate ]]; then
     travis_rel=$(sw_vers -productVersion)
     travis_rel_version=${travis_rel%*.*}
   fi
-  archive_url=https://s3.amazonaws.com/travis-python-archives/binaries/${travis_host_os}/${travis_rel_version}/$(uname -m)/python-[2.7].tar.bz2
-  travis_cmd curl\ -s\ -o\ python-\[2.7\].tar.bz2\ \$\{archive_url\} --assert
-  travis_cmd sudo\ tar\ xjf\ python-\[2.7\].tar.bz2\ --directory\ / --assert
-  rm python-[2.7].tar.bz2
-  sed -e 's|export PATH=\(.*\)$|export PATH=/opt/python/[2.7]/bin:\1|' /etc/profile.d/pyenv.sh > /tmp/pyenv.sh
+  archive_url=https://s3.amazonaws.com/travis-python-archives/binaries/${travis_host_os}/${travis_rel_version}/$(uname -m)/python-2.7.tar.bz2
+  travis_cmd curl\ -s\ -o\ python-2.7.tar.bz2\ \$\{archive_url\} --assert
+  travis_cmd sudo\ tar\ xjf\ python-2.7.tar.bz2\ --directory\ / --assert
+  rm python-2.7.tar.bz2
+  sed -e 's|export PATH=\(.*\)$|export PATH=/opt/python/2.7/bin:\1|' /etc/profile.d/pyenv.sh > /tmp/pyenv.sh
   cat /tmp/pyenv.sh | sudo tee /etc/profile.d/pyenv.sh > /dev/null
 fi
 
@@ -290,7 +290,7 @@ export GIT_ASKPASS=echo
 
 travis_fold start git.checkout
   if [[ ! -d neurodata/ndstore/.git ]]; then
-    travis_cmd git\ clone\ --depth\=50\ --branch\=\'\'\ https://github.com/neurodata/ndstore.git\ neurodata/ndstore --assert --echo --retry --timing
+    travis_cmd git\ clone\ --depth\=50\ --branch\=\'microns\'\ https://github.com/neurodata/ndstore.git\ neurodata/ndstore --assert --echo --retry --timing
   else
     travis_cmd git\ -C\ neurodata/ndstore\ fetch\ origin --assert --echo --retry --timing
     travis_cmd git\ -C\ neurodata/ndstore\ reset\ --hard --assert --echo
@@ -340,8 +340,8 @@ export TRAVIS_REPO_SLUG=neurodata/ndstore
 export TRAVIS_OS_NAME=''
 export TRAVIS_LANGUAGE=python
 export TRAVIS_TAG=''
-export TRAVIS_PYTHON_VERSION=[2.7]
-travis_cmd source\ \~/virtualenv/python\[2.7\]/bin/activate --assert --echo --timing
+export TRAVIS_PYTHON_VERSION=2.7
+#travis_cmd source\ \~/virtualenv/python2.7/bin/activate --assert --echo --timing
 
 travis_fold start cache.1
   echo -e "Setting up build cache"
@@ -355,7 +355,7 @@ travis_fold start cache.1
   fi
   if [[ -f $CASHER_DIR/bin/casher ]]; then
     travis_cmd type\ rvm\ \&\>/dev/null\ \|\|\ source\ \~/.rvm/scripts/rvm --timing
-    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ fetch\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T154725Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=25db597bb2e76bf9f589120d75d67b081621b6143620fef434873d94ee843ff5\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890//cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T154725Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=12e1d960842b3aa06c397c3a67b104b718059f752bd4c000fe71f48dd08363d5\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T154725Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=cc0a53c5ca5c8082979686e5510cb59200470308a1170f75d182dc5b85ed0f23\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T154725Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=411c1de7423682f3896c0508c1ba9b0e479f2f412cadf4c27bd4849a0e46d405\\\&X-Amz-SignedHeaders\\\=host --timing
+    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ fetch\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T163105Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=429039597ba84d66e25f5e0fa5fc38eba2f703cb352d4540f545c040e212df24\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890//cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T163105Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=981fcbafadd622fc171970f91f1dba3be0192436cb64351aaa59b955aca7c8dd\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T163105Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=6cb2ff17806416aa19628597b596c3efa6275184a1f477e79538cf1ceca71a2c\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T163105Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=4ea4112aaba1e6c8c2db6900f37e1a8e93a6fb41936f43c97272f71164e39324\\\&X-Amz-SignedHeaders\\\=host --timing
   fi
 travis_fold end cache.1
 
@@ -392,11 +392,11 @@ travis_fold start install.1
 travis_fold end install.1
 
 travis_fold start install.2
-  travis_cmd pip\ install\ cython\ numpy --assert --echo --timing
+  travis_cmd sudo pip\ install\ cython\ numpy --assert --echo --timing
 travis_fold end install.2
 
 travis_fold start install.3
-  travis_cmd pip\ install\ -r\ ./setup/requirements.txt --assert --echo --timing
+  travis_cmd sudo pip\ install\ -r\ ./setup/requirements.txt --assert --echo --timing
 travis_fold end install.3
 
 travis_fold start install.4
@@ -506,7 +506,7 @@ travis_fold start cache.2
   echo -e "store build cache"
   if [[ -f $CASHER_DIR/bin/casher ]]; then
     travis_cmd type\ rvm\ \&\>/dev/null\ \|\|\ source\ \~/.rvm/scripts/rvm --timing
-    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ push\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T154725Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=3c6d4697e633f2de86a6c696b7f004f15c872c4063a1a991d5831ad255d375a4\\\&X-Amz-SignedHeaders\\\=host --timing
+    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ push\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160601\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160601T163105Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=30cfc5e47a92539cb439c7a6adefd5ae0e7782b2a5c015ee1498e158c086edb6\\\&X-Amz-SignedHeaders\\\=host --timing
   fi
 travis_fold end cache.2
 
