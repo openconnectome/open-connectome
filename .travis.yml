@@ -87,7 +87,6 @@ install:
   - sudo service supervisor restart
   - sudo service rabbitmq-server restart
   - sudo service memcached restart 
-  - 
 
 script:
   - wget localhost
