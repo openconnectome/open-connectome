@@ -448,11 +448,11 @@ travis_fold start install.15
 travis_fold end install.15
 
 travis_fold start install.16
-  travis_cmd sudo\ ln\ -s\ ./setup/docker_config/uwsgi/ndstore.ini\ /etc/uwsgi/apps-available/ndstore.ini --assert --echo --timing
+  travis_cmd sudo\ cp\ ./setup/docker_config/uwsgi/ndstore.ini\ /etc/uwsgi/apps-available/ndstore.ini --assert --echo --timing
 travis_fold end install.16
 
 travis_fold start install.17
-  travis_cmd sudo\ ln\ -s\ ./setup/docker_config/uwsgi/ndstore.ini\ /etc/uwsgi/apps-enabled/ndstore.ini --assert --echo --timing
+  travis_cmd sudo\ cp\ ./setup/docker_config/uwsgi/ndstore.ini\ /etc/uwsgi/apps-enabled/ndstore.ini --assert --echo --timing
 travis_fold end install.17
 
 travis_fold start install.18
