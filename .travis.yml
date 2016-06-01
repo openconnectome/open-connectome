@@ -77,7 +77,7 @@ install:
     # move celery config files and start service
   - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
   - sudo cp ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
-  - ls /home/
+  - ls /home/travis/
     # restarting all the services
   - sudo service nginx restart
   - sudo service uwsgi restart
