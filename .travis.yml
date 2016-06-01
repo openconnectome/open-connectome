@@ -78,6 +78,9 @@ install:
   - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
   - sudo cp ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
   - ls /home/travis/
+  - ls /home/travis/build
+  - ls /home/
+  - ls /home/ubuntu
     # restarting all the services
   - sudo service nginx restart
   - sudo service uwsgi restart
