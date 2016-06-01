@@ -400,7 +400,7 @@ travis_fold start install.3
 travis_fold end install.3
 
 travis_fold start install.4
-  travis_cmd make\ -f\ /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX\ -C\ ./ndlib/c_version/ --assert --echo --timing
+  travis_cmd make\ -f\ /home/ubuntu/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX\ -C\ ./ndlib/c_version/ --assert --echo --timing
 travis_fold end install.4
 
 travis_fold start install.5
@@ -412,7 +412,7 @@ travis_fold start install.6
 travis_fold end install.6
 
 travis_fold start install.7
-  travis_cmd ln\ -s\ /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py\ /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py --assert --echo --timing
+  travis_cmd ln\ -s\ /home/ubuntu/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py\ /home/ubuntu/build/neurodata/ndstore/django/ND/settings_secret.py --assert --echo --timing
 travis_fold end install.7
 
 travis_fold start install.8
