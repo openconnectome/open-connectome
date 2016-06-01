@@ -62,8 +62,9 @@ install:
   - python ./django/manage.py collectstatic --noinput
     # move the nginx config files and start service
   - sudo rm /etc/nginx/sites-enabled/default
-  - sudo ln -s ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-enabled/default
-  - sudo ln -s ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
+  - sudo rm /etc/nginx/sites-available/default
+  - sudo cp ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
+  - sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
   #- sudo rm /etc/nginx/nginx.conf
   #- sudo ln -s ./setup/docker_config/nginx/nginx.conf /etc/nginx/nginx.conf
     # move uwsgi config files and start service
