@@ -51,8 +51,9 @@ before_install:
   - sudo chmod -R 777 /var/log/neurodata/
 
 install: 
+  - sudo pip2 install --upgrade pip -H
   - source /home/travis/virtualenv/python2.7.10/bin/activate
-  - sudo pip2 install --upgrade pip
+  - sudo pip2 install --upgrade pip -H
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install uwsgi
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
