@@ -1,0 +1,6 @@
+#Extras
+boto3
+mysql-python
+cassandra-driver
+riak
+redis
