@@ -49,8 +49,9 @@ before_install:
   - sudo chmod -R 777 /var/log/neurodata/
 
 install: 
-  - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - source /home/travis/virtualenv/python2.7.10/bin/activate
+  - pip2 install uwsgi
+  # - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install cython numpy
   - pip2 install -r ./setup/requirements.txt
     # compiling the ctypes lib
