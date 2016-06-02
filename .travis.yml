@@ -59,7 +59,7 @@ before_install:
   - sudo chmod -R 777 /var/log/neurodata/
 
 install: 
-#  - source /home/travis/virtualenv/python2.7.10/bin/activate
+  - source /home/travis/virtualenv/python2.7/bin/activate
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install uwsgi
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
@@ -96,6 +96,7 @@ install:
   - ls /home/travis/virtualenv/
   - ls /home/travis/virtualenv/python2.7_with_system_site_packages/
     # restarting all the services
+  - sudo chown www-data:www-data /home/travis
   - sudo service nginx restart
   - sudo service uwsgi restart
   - sudo service supervisor restart
