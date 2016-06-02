@@ -56,7 +56,7 @@ install:
   - pip2 install uwsgi
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install cython numpy
-  - pip2 isntall -r ./setup/requirements1.txt
+  - pip2 install -r ./setup/requirements1.txt
   - pip2 install -r ./setup/requirements.txt
     # compiling the ctypes lib
   - make -f /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX -C ./ndlib/c_version/
