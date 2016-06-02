@@ -268,7 +268,7 @@ echo -e "\033[31;1mThe debug environment is not available. Please contact suppor
 false
 }
 
-if [[ ! -f ~/virtualenv/python2.7/bin/activate ]]; then
+if [[ ! -f ~/virtualenv/python[2.7]/bin/activate ]]; then
   echo -e "\033[33;1m[2.7] is not installed; attempting download\033[0m"
   if [[ $(uname) = 'Linux' ]]; then
     travis_host_os=$(lsb_release -is | tr 'A-Z' 'a-z')
@@ -279,7 +279,7 @@ if [[ ! -f ~/virtualenv/python2.7/bin/activate ]]; then
     travis_rel_version=${travis_rel%*.*}
   fi
   archive_url=https://s3.amazonaws.com/travis-python-archives/binaries/${travis_host_os}/${travis_rel_version}/$(uname -m)/python-2.7.tar.bz2
-  travis_cmd curl\ -s\ -o\ python-\[2.7\].tar.bz2\ $\{archive_url\} --assert
+  travis_cmd curl\ -s\ -o\ python-\[2.7\].tar.bz2\ \$\{archive_url\} --assert
   travis_cmd sudo\ tar\ xjf\ python-\[2.7\].tar.bz2\ --directory\ / --assert
   rm python-[2.7].tar.bz2
   sed -e 's|export PATH=\(.*\)$|export PATH=/opt/python/[2.7]/bin:\1|' /etc/profile.d/pyenv.sh > /tmp/pyenv.sh
@@ -356,12 +356,8 @@ export TRAVIS_REPO_SLUG=neurodata/ndstore
 export TRAVIS_OS_NAME=linux
 export TRAVIS_LANGUAGE=python
 export TRAVIS_TAG=''
-echo
-echo -e "\033[33;1mSetting environment variables from .travis.yml\033[0m"
-travis_cmd export\ TOXENV\=py-uwsgi --echo
-echo
 export TRAVIS_PYTHON_VERSION=[2.7]
-travis_cmd source\ /home/travis/virtualenv/python2.7/bin/activate --assert --echo --timing
+travis_cmd source\ \~/virtualenv/python\[2.7\]/bin/activate --assert --echo --timing
 
 travis_fold start cache.1
   echo -e "Setting up build cache"
@@ -375,7 +371,7 @@ travis_fold start cache.1
   fi
   if [[ -f $CASHER_DIR/bin/casher ]]; then
     travis_cmd type\ rvm\ \&\>/dev/null\ \|\|\ source\ \~/.rvm/scripts/rvm --timing
-    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ fetch\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-linux-trusty-b5e200ad15de1f183fa9669478cb8f357f1030e28da239a143884b726edb75d9--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T170340Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=32411e11e3cc1eb6840405a6b0625de6b4139c76e348d3c4f31f6a3aa4f3ce52\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890//cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T170340Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=41811e3f06c07a46990aafae25142238cc18bb0f08c0f8a006da684355944f5d\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache-linux-trusty-b5e200ad15de1f183fa9669478cb8f357f1030e28da239a143884b726edb75d9--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T170340Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=c0c64534678eebcfd9cade04aecc2bdb51ffaf5adfbc91d772348903fbc5d287\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T170340Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=571893dd55c947f77496c78af9aa97afd1d87196d044b4d00098c8169408453a\\\&X-Amz-SignedHeaders\\\=host --timing
+    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ fetch\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-linux-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T195719Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=6a35e3108d5e88de784d9be5eaa48dbced75eec0eae54b99796a956f91d014df\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890//cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T195719Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=caba1fec5a6fd37cca7fc30834cc7ebe6952db6869b6c17b7cd8389c08f6e01d\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache-linux-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T195719Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=3b4f314c330f93336ca95bc99f0f8713fbc02c2f1dedada838c202012ff9a49f\\\&X-Amz-SignedHeaders\\\=host\ https://cache_bucket.s3.amazonaws.com/1234567890/master/cache--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T195719Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=8bbe05ba19a0cf5f84d0f48b14afa699839443d1bdf7e0d3e2988fd6cd5519bb\\\&X-Amz-SignedHeaders\\\=host --timing
   fi
 travis_fold end cache.1
 
@@ -390,8 +386,6 @@ travis_fold end cache.pip
 travis_cmd python\ --version --echo
 travis_cmd pip\ --version --echo
 export PIP_DISABLE_PIP_VERSION_CHECK=1
-
-source /home/travis/virtualenv/python2.7/bin/activate
 
 travis_fold start before_install.1
   travis_cmd sudo\ mkdir\ /var/log/neurodata --assert --echo --timing
@@ -410,124 +404,140 @@ travis_fold start before_install.4
 travis_fold end before_install.4
 
 travis_fold start install.1
-  travis_cmd sudo\ apt-get\ -y\ install\ uwsgi\ uwsgi-plugin-python --assert --echo --timing
+  travis_cmd source\ /home/travis/virtualenv/python2.7.10/bin/activate --assert --echo --timing
 travis_fold end install.1
 
 travis_fold start install.2
-  travis_cmd sudo pip2\ install\ uwsgi --assert --echo --timing
+  travis_cmd sudo\ pip\ install\ --upgrade\ pip --assert --echo --timing
 travis_fold end install.2
 
 travis_fold start install.3
-  travis_cmd sudo pip2\ install\ cython\ numpy --assert --echo --timing
+  travis_cmd sudo\ apt-get\ -y\ install\ uwsgi\ uwsgi-plugin-python --assert --echo --timing
 travis_fold end install.3
 
 travis_fold start install.4
-  travis_cmd sudo pip2\ install\ -r\ ./setup/requirements.txt --assert --echo --timing
+  travis_cmd pip2\ install\ uwsgi --assert --echo --timing
 travis_fold end install.4
 
 travis_fold start install.5
-  travis_cmd make\ -f\ /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX\ -C\ ./ndlib/c_version/ --assert --echo --timing
+  travis_cmd pip2\ install\ cython\ numpy --assert --echo --timing
 travis_fold end install.5
 
 travis_fold start install.6
-  travis_cmd mysql\ -u\ root\ -i\ -e\ \"create\ user\ \'neurodata\'@\'localhost\'\ identified\ by\ \'neur0data\'\;\"\ \&\&\ mysql\ -u\ root\ -i\ -e\ \"grant\ all\ privileges\ on\ \*.\*\ to\ \'neurodata\'@\'localhost\'\ with\ grant\ option\;\"\ \&\&\ mysql\ -u\ neurodata\ -pneur0data\ -i\ -e\ \"CREATE\ DATABASE\ neurodjango\;\" --assert --echo --timing
+  travis_cmd pip2\ install\ -r\ ./setup/requirements1.txt --assert --echo --timing
 travis_fold end install.6
 
 travis_fold start install.7
-  travis_cmd cp\ ./django/ND/settings.py.example\ ./django/ND/settings.py --assert --echo --timing
+  travis_cmd pip2\ install\ -r\ ./setup/requirements.txt --assert --echo --timing
 travis_fold end install.7
 
 travis_fold start install.8
-  travis_cmd ln\ -s\ /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py\ /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py --assert --echo --timing
+  travis_cmd make\ -f\ /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX\ -C\ ./ndlib/c_version/ --assert --echo --timing
 travis_fold end install.8
 
 travis_fold start install.9
-  travis_cmd python\ ./django/manage.py\ migrate --assert --echo --timing
+  travis_cmd mysql\ -u\ root\ -i\ -e\ \"create\ user\ \'neurodata\'@\'localhost\'\ identified\ by\ \'neur0data\'\;\"\ \&\&\ mysql\ -u\ root\ -i\ -e\ \"grant\ all\ privileges\ on\ \*.\*\ to\ \'neurodata\'@\'localhost\'\ with\ grant\ option\;\"\ \&\&\ mysql\ -u\ neurodata\ -pneur0data\ -i\ -e\ \"CREATE\ DATABASE\ neurodjango\;\" --assert --echo --timing
 travis_fold end install.9
 
 travis_fold start install.10
-  travis_cmd echo\ \"from\ django.contrib.auth.models\ import\ User\;\ User.objects.create_superuser\(\'neurodata\',\ \'abc@xyz.com\',\ \'neur0data\'\)\"\ \|\ python\ ./django/manage.py\ shell --assert --echo --timing
+  travis_cmd cp\ ./django/ND/settings.py.example\ ./django/ND/settings.py --assert --echo --timing
 travis_fold end install.10
 
 travis_fold start install.11
-  travis_cmd python\ ./django/manage.py\ collectstatic\ --noinput --assert --echo --timing
+  travis_cmd ln\ -s\ /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py\ /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py --assert --echo --timing
 travis_fold end install.11
 
 travis_fold start install.12
-  travis_cmd sudo\ rm\ /etc/nginx/sites-enabled/default --assert --echo --timing
+  travis_cmd python\ ./django/manage.py\ migrate --assert --echo --timing
 travis_fold end install.12
 
 travis_fold start install.13
-  travis_cmd sudo\ rm\ /etc/nginx/sites-available/default --assert --echo --timing
+  travis_cmd echo\ \"from\ django.contrib.auth.models\ import\ User\;\ User.objects.create_superuser\(\'neurodata\',\ \'abc@xyz.com\',\ \'neur0data\'\)\"\ \|\ python\ ./django/manage.py\ shell --assert --echo --timing
 travis_fold end install.13
 
 travis_fold start install.14
-  travis_cmd sudo\ cp\ ./setup/docker_config/nginx/ndstore.conf\ /etc/nginx/sites-available/default --assert --echo --timing
+  travis_cmd python\ ./django/manage.py\ collectstatic\ --noinput --assert --echo --timing
 travis_fold end install.14
 
 travis_fold start install.15
-  travis_cmd sudo\ ln\ -s\ /etc/nginx/sites-available/default\ /etc/nginx/sites-enabled/default --assert --echo --timing
+  travis_cmd sudo\ rm\ /etc/nginx/sites-enabled/default --assert --echo --timing
 travis_fold end install.15
 
 travis_fold start install.16
-  travis_cmd sudo\ chown\ -R\ www-data:www-data\ /tmp/ --assert --echo --timing
+  travis_cmd sudo\ rm\ /etc/nginx/sites-available/default --assert --echo --timing
 travis_fold end install.16
 
 travis_fold start install.17
-  travis_cmd sudo\ cp\ ./setup/travis_config/uwsgi/ndstore.ini\ /etc/uwsgi/apps-available/ndstore.ini --assert --echo --timing
+  travis_cmd sudo\ cp\ ./setup/docker_config/nginx/ndstore.conf\ /etc/nginx/sites-available/default --assert --echo --timing
 travis_fold end install.17
 
 travis_fold start install.18
-  travis_cmd sudo\ ln\ -s\ /etc/uwsgi/apps-available/ndstore.ini\ /etc/uwsgi/apps-enabled/ndstore.ini --assert --echo --timing
+  travis_cmd sudo\ ln\ -s\ /etc/nginx/sites-available/default\ /etc/nginx/sites-enabled/default --assert --echo --timing
 travis_fold end install.18
 
 travis_fold start install.19
-  travis_cmd sudo\ cp\ ./setup/docker_config/celery/propagate.conf\ /etc/supervisor/conf.d/propagate.conf --assert --echo --timing
+  travis_cmd sudo\ chown\ -R\ www-data:www-data\ /tmp/ --assert --echo --timing
 travis_fold end install.19
 
 travis_fold start install.20
-  travis_cmd sudo\ cp\ ./setup/docker_config/celery/ingest.conf\ /etc/supervisor/conf.d/ingest.conf --assert --echo --timing
+  travis_cmd sudo\ cp\ ./setup/travis_config/uwsgi/ndstore.ini\ /etc/uwsgi/apps-available/ndstore.ini --assert --echo --timing
 travis_fold end install.20
 
 travis_fold start install.21
-  travis_cmd ls\ /home/travis/ --assert --echo --timing
+  travis_cmd sudo\ ln\ -s\ /etc/uwsgi/apps-available/ndstore.ini\ /etc/uwsgi/apps-enabled/ndstore.ini --assert --echo --timing
 travis_fold end install.21
 
 travis_fold start install.22
-  travis_cmd ls\ /home/travis/build --assert --echo --timing
+  travis_cmd sudo\ cp\ ./setup/docker_config/celery/propagate.conf\ /etc/supervisor/conf.d/propagate.conf --assert --echo --timing
 travis_fold end install.22
 
 travis_fold start install.23
-  travis_cmd ls\ /home/ --assert --echo --timing
+  travis_cmd sudo\ cp\ ./setup/docker_config/celery/ingest.conf\ /etc/supervisor/conf.d/ingest.conf --assert --echo --timing
 travis_fold end install.23
 
 travis_fold start install.24
-  travis_cmd ls\ /home/travis/virtualenv/ --assert --echo --timing
+  travis_cmd ls\ /home/travis/ --assert --echo --timing
 travis_fold end install.24
 
 travis_fold start install.25
-  travis_cmd ls\ /home/travis/virtualenv/python2.7_with_system_site_packages/ --assert --echo --timing
+  travis_cmd ls\ /home/travis/build --assert --echo --timing
 travis_fold end install.25
 
 travis_fold start install.26
-  travis_cmd sudo\ service\ nginx\ restart --assert --echo --timing
+  travis_cmd ls\ /home/ --assert --echo --timing
 travis_fold end install.26
 
 travis_fold start install.27
-  travis_cmd sudo\ service\ uwsgi\ restart --assert --echo --timing
+  travis_cmd ls\ /home/travis/virtualenv/ --assert --echo --timing
 travis_fold end install.27
 
 travis_fold start install.28
-  travis_cmd sudo\ service\ supervisor\ restart --assert --echo --timing
+  travis_cmd ls\ /home/travis/virtualenv/python2.7_with_system_site_packages/ --assert --echo --timing
 travis_fold end install.28
 
 travis_fold start install.29
-  travis_cmd sudo\ service\ rabbitmq-server\ restart --assert --echo --timing
+  travis_cmd sudo\ chown\ www-data:www-data\ /home/travis --assert --echo --timing
 travis_fold end install.29
 
 travis_fold start install.30
-  travis_cmd sudo\ service\ memcached\ restart --assert --echo --timing
+  travis_cmd sudo\ service\ nginx\ restart --assert --echo --timing
 travis_fold end install.30
+
+travis_fold start install.31
+  travis_cmd sudo\ service\ uwsgi\ restart --assert --echo --timing
+travis_fold end install.31
+
+travis_fold start install.32
+  travis_cmd sudo\ service\ supervisor\ restart --assert --echo --timing
+travis_fold end install.32
+
+travis_fold start install.33
+  travis_cmd sudo\ service\ rabbitmq-server\ restart --assert --echo --timing
+travis_fold end install.33
+
+travis_fold start install.34
+  travis_cmd sudo\ service\ memcached\ restart --assert --echo --timing
+travis_fold end install.34
 
 travis_cmd wget\ localhost --echo --timing
 travis_result $?
@@ -548,7 +558,7 @@ travis_fold start cache.2
   echo -e "store build cache"
   if [[ -f $CASHER_DIR/bin/casher ]]; then
     travis_cmd type\ rvm\ \&\>/dev/null\ \|\|\ source\ \~/.rvm/scripts/rvm --timing
-    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ push\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-linux-trusty-b5e200ad15de1f183fa9669478cb8f357f1030e28da239a143884b726edb75d9--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T170340Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=caaa4e10d31483f13c14dc5b74cb566bf567cef5b647346131288c17e3e57b8b\\\&X-Amz-SignedHeaders\\\=host --timing
+    travis_cmd rvm\ 1.9.3\ --fuzzy\ do\ \$CASHER_DIR/bin/casher\ push\ https://cache_bucket.s3.amazonaws.com/1234567890//cache-linux-trusty-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855--python-2.7.tgz\\\?X-Amz-Algorithm\\\=AWS4-HMAC-SHA256\\\&X-Amz-Credential\\\=abcdef0123456789\\\%2F20160602\\\%2Fus-east-1\\\%2Fs3\\\%2Faws4_request\\\&X-Amz-Date\\\=20160602T195719Z\\\&X-Amz-Expires\\\=60\\\&X-Amz-Signature\\\=9c617585a7589b4925e659b0286f72a7d8532931a1389065c82aca4d3e17c219\\\&X-Amz-SignedHeaders\\\=host --timing
   fi
 travis_fold end cache.2
 
