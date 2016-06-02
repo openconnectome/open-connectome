@@ -52,6 +52,7 @@ before_install:
 
 install: 
   - source /home/travis/virtualenv/python2.7.10/bin/activate
+  - sudo pip install --upgrade pip
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install uwsgi
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
