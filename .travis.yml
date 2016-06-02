@@ -50,6 +50,7 @@ before_install:
 
 install: 
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
+  - source /home/travis/virtualenv/python2.7.10/bin/activate
   - pip2 install cython numpy
   - pip2 install -r ./setup/requirements.txt
     # compiling the ctypes lib
@@ -82,11 +83,6 @@ install:
   - ls /home/
   - ls /home/travis/virtualenv/
   - ls /home/travis/virtualenv/python2.7_with_system_site_packages/
-  - source /home/travis/virtualenv/python2.7.10/bin/activate
-  - pip freeze
-  - deactivate
-  - source /home/travis/virtualenv/python2.7/bin/activate
-  - pip freeze
     # restarting all the services
   - sudo service nginx restart
   - sudo service uwsgi restart
