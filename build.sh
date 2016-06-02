@@ -268,7 +268,7 @@ echo -e "\033[31;1mThe debug environment is not available. Please contact suppor
 false
 }
 
-if [[ ! -f ~/virtualenv/python[2.7]/bin/activate ]]; then
+if [[ ! -f ~/virtualenv/python2.7/bin/activate ]]; then
   echo -e "\033[33;1m[2.7] is not installed; attempting download\033[0m"
   if [[ $(uname) = 'Linux' ]]; then
     travis_host_os=$(lsb_release -is | tr 'A-Z' 'a-z')
@@ -361,7 +361,7 @@ echo -e "\033[33;1mSetting environment variables from .travis.yml\033[0m"
 travis_cmd export\ TOXENV\=py-uwsgi --echo
 echo
 export TRAVIS_PYTHON_VERSION=[2.7]
-travis_cmd source\ \~/virtualenv/python\[2.7\]/bin/activate --assert --echo --timing
+travis_cmd source\ /home/travis/virtualenv/python2.7/bin/activate --assert --echo --timing
 
 travis_fold start cache.1
   echo -e "Setting up build cache"
@@ -391,6 +391,8 @@ travis_cmd python\ --version --echo
 travis_cmd pip\ --version --echo
 export PIP_DISABLE_PIP_VERSION_CHECK=1
 
+source /home/travis/virtualenv/python2.7/bin/activate
+
 travis_fold start before_install.1
   travis_cmd sudo\ mkdir\ /var/log/neurodata --assert --echo --timing
 travis_fold end before_install.1
@@ -412,15 +414,15 @@ travis_fold start install.1
 travis_fold end install.1
 
 travis_fold start install.2
-  travis_cmd pip2\ install\ uwsgi --assert --echo --timing
+  travis_cmd sudo pip2\ install\ uwsgi --assert --echo --timing
 travis_fold end install.2
 
 travis_fold start install.3
-  travis_cmd pip2\ install\ cython\ numpy --assert --echo --timing
+  travis_cmd sudo pip2\ install\ cython\ numpy --assert --echo --timing
 travis_fold end install.3
 
 travis_fold start install.4
-  travis_cmd pip2\ install\ -r\ ./setup/requirements.txt --assert --echo --timing
+  travis_cmd sudo pip2\ install\ -r\ ./setup/requirements.txt --assert --echo --timing
 travis_fold end install.4
 
 travis_fold start install.5
