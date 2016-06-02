@@ -50,8 +50,9 @@ before_install:
   - sudo chown -R www-data:www-data /var/log/neurodata
   - sudo chmod -R 777 /var/log/neurodata/
 
-install: 
-  - sudo pip2 install --upgrade pip
+install:
+  - sudo pip2 install --upgrade pip wheel
+  - sudo pip2 install tox
   - source /home/travis/virtualenv/python2.7.10/bin/activate
   - sudo pip2 install --upgrade pip
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
