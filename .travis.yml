@@ -7,9 +7,9 @@ env:
     - TOXENV=py-uwsgi
 
 install:
- - pip install tox
+ - pip install tox-travis
 script:
- - tox -e $TOX_ENV
+ - tox
 
 os: linux
 
