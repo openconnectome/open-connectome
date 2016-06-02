@@ -278,8 +278,8 @@ if [[ ! -f ~/virtualenv/python[2.7]/bin/activate ]]; then
     travis_rel=$(sw_vers -productVersion)
     travis_rel_version=${travis_rel%*.*}
   fi
-  archive_url=https://s3.amazonaws.com/travis-python-archives/binaries/${travis_host_os}/${travis_rel_version}/$(uname -m)/python-[2.7].tar.bz2
-  travis_cmd curl\ -s\ -o\ python-\[2.7\].tar.bz2\ \$\{archive_url\} --assert
+  archive_url=https://s3.amazonaws.com/travis-python-archives/binaries/${travis_host_os}/${travis_rel_version}/$(uname -m)/python-2.7.tar.bz2
+  travis_cmd curl\ -s\ -o\ python-\[2.7\].tar.bz2\ $\{archive_url\} --assert
   travis_cmd sudo\ tar\ xjf\ python-\[2.7\].tar.bz2\ --directory\ / --assert
   rm python-[2.7].tar.bz2
   sed -e 's|export PATH=\(.*\)$|export PATH=/opt/python/[2.7]/bin:\1|' /etc/profile.d/pyenv.sh > /tmp/pyenv.sh
@@ -290,7 +290,7 @@ export GIT_ASKPASS=echo
 
 travis_fold start git.checkout
   if [[ ! -d neurodata/ndstore/.git ]]; then
-    travis_cmd git\ clone\ --depth\=50\ --branch\=\'\'\ https://github.com/neurodata/ndstore.git\ neurodata/ndstore --assert --echo --retry --timing
+    travis_cmd git\ clone\ --depth\=50\ --branch\=\'ae-graphgen-update\'\ https://github.com/neurodata/ndstore.git\ neurodata/ndstore --assert --echo --retry --timing
   else
     travis_cmd git\ -C\ neurodata/ndstore\ fetch\ origin --assert --echo --retry --timing
     travis_cmd git\ -C\ neurodata/ndstore\ reset\ --hard --assert --echo
