@@ -64,6 +64,8 @@ install:
   - sudo pip2 install -r ./setup/requirements.txt
   - pip2 --version
   - python --version
+  - pip2 freeze
+  - python -c "import sys; print sys.path"
     # compiling the ctypes lib
   - make -f /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX -C ./ndlib/c_version/
     # creating the mysql user
