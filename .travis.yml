@@ -88,11 +88,6 @@ install:
     # move celery config files and start service
   - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
   - sudo cp ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
-  - ls /home/travis/
-  - ls /home/travis/build
-  - ls /home/
-  - ls /home/travis/virtualenv/
-  - ls /home/travis/virtualenv/python2.7_with_system_site_packages/
     # restarting all the services
   - sudo chown www-data:www-data /home/travis
   - sudo service nginx restart

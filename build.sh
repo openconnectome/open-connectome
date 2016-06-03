@@ -357,7 +357,7 @@ export TRAVIS_OS_NAME=linux
 export TRAVIS_LANGUAGE=python
 export TRAVIS_TAG=''
 export TRAVIS_PYTHON_VERSION=[2.7]
-travis_cmd source\ \~/virtualenv/python\[2.7\]/bin/activate --assert --echo --timing
+travis_cmd source\ \~/virtualenv/python2.7.10/bin/activate --assert --echo --timing
 
 travis_fold start cache.1
   echo -e "Setting up build cache"
@@ -494,26 +494,6 @@ travis_fold end install.22
 travis_fold start install.23
   travis_cmd sudo\ cp\ ./setup/docker_config/celery/ingest.conf\ /etc/supervisor/conf.d/ingest.conf --assert --echo --timing
 travis_fold end install.23
-
-travis_fold start install.24
-  travis_cmd ls\ /home/travis/ --assert --echo --timing
-travis_fold end install.24
-
-travis_fold start install.25
-  travis_cmd ls\ /home/travis/build --assert --echo --timing
-travis_fold end install.25
-
-travis_fold start install.26
-  travis_cmd ls\ /home/ --assert --echo --timing
-travis_fold end install.26
-
-travis_fold start install.27
-  travis_cmd ls\ /home/travis/virtualenv/ --assert --echo --timing
-travis_fold end install.27
-
-travis_fold start install.28
-  travis_cmd ls\ /home/travis/virtualenv/python2.7_with_system_site_packages/ --assert --echo --timing
-travis_fold end install.28
 
 travis_fold start install.29
   travis_cmd sudo\ chown\ www-data:www-data\ /home/travis --assert --echo --timing
