@@ -13,6 +13,7 @@ sudo: required
 dist: trusty
 
 cache:
+  - pip
   - apt
 
 addons:
@@ -34,8 +35,6 @@ addons:
        - libmysqlclient-dev
        - python-numpy
        - rabbitmq-server
-       - python-dev
-       - python-pip
 
 services:
   - mysql
@@ -52,16 +51,11 @@ before_install:
   - sudo chmod -R 777 /var/log/neurodata/
 
 install:
-  - sudo pip2 install --upgrade pip
-#  - sudo pip2 install tox
-#  - source /home/travis/virtualenv/python2.7.10/bin/activate
-#  - sudo pip2 install --upgrade pip
-  - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - sudo pip2 install uwsgi
+  - source /home/travis/virtualenv/python2.7.10/bin/activate
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - sudo pip2 install cython numpy
-  - sudo pip2 install -r ./setup/requirements1.txt
-  - sudo pip2 install -r ./setup/requirements.txt
+  - pip2 install cython numpy
+  - pip2 install -r ./setup/requirements1.txt
+  - pip2 install -r ./setup/requirements.txt
   - pip2 --version
   - python --version
   - pip2 freeze
@@ -91,6 +85,11 @@ install:
     # move celery config files and start service
   - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
   - sudo cp ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
+  - ls /home/travis/
+  - ls /home/travis/build
+  - ls /home/
+  - ls /home/travis/virtualenv/
+  - ls /home/travis/virtualenv/python2.7_with_system_site_packages/
     # restarting all the services
   - sudo chown www-data:www-data /home/travis
   - sudo service nginx restart
