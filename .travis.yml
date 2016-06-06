@@ -62,7 +62,7 @@ before_install:
   - sudo chmod -R 777 /var/log/neurodata/
 
 install:
-  - sudo virtualenv /home/travis/virtualenv/python2.7.10/ -no-setup-tools
+  - sudo virtualenv -no-setup-tools /home/travis/virtualenv/python2.7.10/
   - source /home/travis/virtualenv/python2.7.10/bin/activate
   - python -m ensurepip
   - pip2 install --upgrade ndg-httpsclient
