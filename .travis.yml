@@ -45,6 +45,7 @@ services:
   - redis
 
 before_install:
+  - ls
   - sudo apt-get install -y build-essential checkinstall
   - sudo apt-get install -y libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
   - cd /usr/src
@@ -79,30 +80,30 @@ install:
   - pip2 freeze
   - python -c "import sys; print sys.path"
     # compiling the ctypes lib
-  - make -f /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX -C ./ndlib/c_version/
+  - make -f /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX -C /home/travis/build/ndlib/c_version/
     # creating the mysql user
   - mysql -u root -i -e "create user 'neurodata'@'localhost' identified by 'neur0data';" && mysql -u root -i -e "grant all privileges on *.* to 'neurodata'@'localhost' with grant option;" && mysql -u neurodata -pneur0data -i -e "CREATE DATABASE neurodjango;"
     # settings and secret_settings
-  - cp ./django/ND/settings.py.example ./django/ND/settings.py
+  - cp /home/travis/build/django/ND/settings.py.example /home/travis/build/django/ND/settings.py
   - ln -s /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py
     # django migrate
-  - python ./django/manage.py migrate
+  - python /home/travis/build/django/manage.py migrate
   - echo "from django.contrib.auth.models import User; User.objects.create_superuser('neurodata', 'abc@xyz.com', 'neur0data')" | python ./django/manage.py shell
-  - python ./django/manage.py collectstatic --noinput
+  - python /home/travis/build/django/manage.py collectstatic --noinput
     # move the nginx config files and start service
   - sudo rm /etc/nginx/sites-enabled/default
   - sudo rm /etc/nginx/sites-available/default
-  - sudo cp ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
+  - sudo cp /home/travis/build/setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
   - sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
   #- sudo rm /etc/nginx/nginx.conf
   #- sudo ln -s ./setup/docker_config/nginx/nginx.conf /etc/nginx/nginx.conf
     # move uwsgi config files and start service
   - sudo chown -R www-data:www-data /tmp/
-  - sudo cp ./setup/travis_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
+  - sudo cp /home/travis/build/setup/travis_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
   - sudo ln -s /etc/uwsgi/apps-available/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
     # move celery config files and start service
-  - sudo cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
-  - sudo cp ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
+  - sudo cp /home/travis/build/setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
+  - sudo cp /home/travis/build/setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
   - ls /home/travis/
   - ls /home/travis/build
   - ls /home/
@@ -120,7 +121,7 @@ script:
   - wget localhost
   - wget localhost/nd/accounts/login
   - ls -la /tmp/
-  - cd ./test/
+  - cd /home/travis/build/test/
   - py.test test_info.py
   - sudo cat /var/log/uwsgi/app/*.log
   - sudo cat /var/log/neurodata/ndstore.log
