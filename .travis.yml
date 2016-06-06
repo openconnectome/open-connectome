@@ -59,9 +59,9 @@ install:
   - pip2 install -r ./setup/requirements.txt
   - sudo pip2 install uwsgi
   # 'Hacky' solution
-  - mkdir /etc/uwsgi/
-  - mkdir /etc/uwsgi/apps-available
-  - mkdir /etc/uwsgi/apps-enabled
+  - sudo mkdir /etc/uwsgi/
+  - sudo mkdir /etc/uwsgi/apps-available
+  - sudo mkdir /etc/uwsgi/apps-enabled
   - pip2 --version
   - python --version
   - pip2 freeze
