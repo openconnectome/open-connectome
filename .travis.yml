@@ -53,9 +53,9 @@ before_install:
 install:
   - source /home/travis/virtualenv/python2.7.10/bin/activate
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - sudo pip2 install cython numpy
-  - sudo pip2 install -r ./setup/requirements1.txt
-  - sudo pip2 install -r ./setup/requirements.txt
+  - pip2 install cython numpy
+  - pip2 install -r ./setup/requirements1.txt
+  - pip2 install -r ./setup/requirements.txt
   - pip2 --version
   - python --version
   - pip2 freeze
