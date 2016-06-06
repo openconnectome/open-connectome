@@ -54,7 +54,7 @@ before_install:
   - sudo ./configure
   - sudo make altinstall
   - python --version
-  - cd
+  - cd /home/travis/build/neurodata
   - sudo mkdir /var/log/neurodata
   - sudo touch /var/log/neurodata/nd.log
   - sudo chown -R www-data:www-data /var/log/neurodata
