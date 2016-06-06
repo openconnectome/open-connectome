@@ -61,9 +61,9 @@ install:
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install uwsgi
   # 'Hacky' solution
-  - sudo mkdir /etc/uwsgi/
-  - sudo mkdir /etc/uwsgi/apps-available
-  - sudo mkdir /etc/uwsgi/apps-enabled
+  #- sudo mkdir /etc/uwsgi/
+  #- sudo mkdir /etc/uwsgi/apps-available
+  #- sudo mkdir /etc/uwsgi/apps-enabled
   - pip2 --version
   - python --version
   - pip2 freeze
