@@ -65,8 +65,8 @@ install:
   - pip2 install --upgrade ndg-httpsclient
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install cython numpy
-  - pip2 install -r /home/travis/setup/requirements1.txt
-  - pip2 install -r /home/travis/setup/requirements.txt
+  - pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements1.txt
+  - pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements.txt
   - sudo pip2 install uwsgi
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install uwsgi
