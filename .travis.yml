@@ -52,6 +52,7 @@ before_install:
 
 install:
   - source /home/travis/virtualenv/python2.7.10/bin/activate
+  - pip2 install --upgrade ndg-httpsclient
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install cython numpy
   - pip2 install -r ./setup/requirements1.txt
