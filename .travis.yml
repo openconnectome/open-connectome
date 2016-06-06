@@ -88,7 +88,7 @@ install:
   - ln -s /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py
     # django migrate
   - python /home/travis/build/neurodata/ndstore/django/manage.py migrate
-  - echo "from django.contrib.auth.models import User; User.objects.create_superuser('neurodata', 'abc@xyz.com', 'neur0data')" | python ./django/manage.py shell
+  - echo "from django.contrib.auth.models import User; User.objects.create_superuser('neurodata', 'abc@xyz.com', 'neur0data')" | python /home/travis/build/neurodata/ndstore/django/manage.py shell
   - python /home/travis/build/neurodata/ndstore/django/manage.py collectstatic --noinput
     # move the nginx config files and start service
   - sudo rm /etc/nginx/sites-enabled/default
