@@ -53,6 +53,8 @@ before_install:
   - cd Python-2.7.10
   - sudo ./configure
   - sudo make altinstall
+  - python --version
+  - cd
   - sudo mkdir /var/log/neurodata
   - sudo touch /var/log/neurodata/nd.log
   - sudo chown -R www-data:www-data /var/log/neurodata
