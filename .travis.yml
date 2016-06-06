@@ -87,23 +87,23 @@ install:
   - cp /home/travis/build/django/ND/settings.py.example /home/travis/build/django/ND/settings.py
   - ln -s /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py
     # django migrate
-  - python /home/travis/build/django/manage.py migrate
+  - python /home/travis/build/neurodata/ndstore/django/manage.py migrate
   - echo "from django.contrib.auth.models import User; User.objects.create_superuser('neurodata', 'abc@xyz.com', 'neur0data')" | python ./django/manage.py shell
-  - python /home/travis/build/django/manage.py collectstatic --noinput
+  - python /home/travis/build/neurodata/ndstore/django/manage.py collectstatic --noinput
     # move the nginx config files and start service
   - sudo rm /etc/nginx/sites-enabled/default
   - sudo rm /etc/nginx/sites-available/default
-  - sudo cp /home/travis/build/setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
+  - sudo cp /home/travis/build/neurodata/ndstore/setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
   - sudo ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
   #- sudo rm /etc/nginx/nginx.conf
   #- sudo ln -s ./setup/docker_config/nginx/nginx.conf /etc/nginx/nginx.conf
     # move uwsgi config files and start service
   - sudo chown -R www-data:www-data /tmp/
-  - sudo cp /home/travis/build/setup/travis_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
+  - sudo cp /home/travis/build/neurodata/ndstore/setup/travis_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
   - sudo ln -s /etc/uwsgi/apps-available/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
     # move celery config files and start service
-  - sudo cp /home/travis/build/setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
-  - sudo cp /home/travis/build/setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
+  - sudo cp /home/travis/build/neurodata/ndstore/setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
+  - sudo cp /home/travis/build/neurodata/ndstore/setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
   - ls /home/travis/
   - ls /home/travis/build
   - ls /home/
@@ -121,7 +121,7 @@ script:
   - wget localhost
   - wget localhost/nd/accounts/login
   - ls -la /tmp/
-  - cd /home/travis/build/test/
+  - cd /home/travis/build/neurodata/ndstore/test/
   - py.test test_info.py
   - sudo cat /var/log/uwsgi/app/*.log
   - sudo cat /var/log/neurodata/ndstore.log
