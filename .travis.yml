@@ -62,15 +62,15 @@ before_install:
   - sudo chmod -R 777 /var/log/neurodata/
 
 install:
-  - source /home/travis/virtualenv/python2.7.10/bin/activate
-  - pip2 install --upgrade ndg-httpsclient
+  #- source /home/travis/virtualenv/python2.7.10/bin/activate
+  - sudo pip2 install --upgrade ndg-httpsclient
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - pip2 install cython numpy
-  - pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements1.txt
-  - pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements.txt
+  - sudo pip2 install cython numpy
+  - sudo pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements1.txt
+  - sudo pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements.txt
   - sudo pip2 install uwsgi
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - pip2 install uwsgi
+  - sudo pip2 install uwsgi
   # 'Hacky' solution
   #- sudo mkdir /etc/uwsgi/
   #- sudo mkdir /etc/uwsgi/apps-available
