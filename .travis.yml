@@ -64,7 +64,6 @@ before_install:
 install:
   - sudo virtualenv --no-setuptools /home/travis/virtualenv/python2.7.10/
   - source /home/travis/virtualenv/python2.7.10/bin/activate
-  - python -m ensurepip
   - pip2 install --upgrade ndg-httpsclient
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
   - pip2 install cython numpy
