@@ -64,17 +64,18 @@ before_install:
 install:
   - sudo virtualenv --no-setuptools /home/travis/virtualenv/python2.7.10/
   - source /home/travis/virtualenv/python2.7.10/bin/activate
-  - pip2 install --upgrade ndg-httpsclient
+  - sudo apt-get install python-pip
+  - pip install --upgrade ndg-httpsclient
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - pip2 install cython numpy
-  - pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements1.txt
-  - pip2 install -r /home/travis/build/neurodata/ndstore/setup/requirements.txt
-  - pip2 install uwsgi
+  - pip install cython numpy
+  - pip install -r /home/travis/build/neurodata/ndstore/setup/requirements1.txt
+  - pip install -r /home/travis/build/neurodata/ndstore/setup/requirements.txt
+  - pip install uwsgi
   - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - pip2 install uwsgi
-  - pip2 --version
+  - pip install uwsgi
+  - pip --version
   - python --version
-  - pip2 freeze
+  - pip freeze
   - python -c "import sys; print sys.path"
     # compiling the ctypes lib
   - make -f /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX -C /home/travis/build/neurodata/ndstore/ndlib/c_version/
