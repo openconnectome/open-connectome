@@ -62,7 +62,7 @@ before_install:
   - sudo chmod -R 777 /var/log/neurodata/
 
 install:
-  - virtualenv /home/travis/virtualenv/python2.7.10/
+  - sudo virtualenv /home/travis/virtualenv/python2.7.10/
   - source /home/travis/virtualenv/python2.7.10/bin/activate
   - pip2 install --upgrade ndg-httpsclient
   # - sudo apt-get -y install uwsgi uwsgi-plugin-python
