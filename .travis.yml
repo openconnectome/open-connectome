@@ -84,7 +84,7 @@ install:
     # creating the mysql user
   - mysql -u root -i -e "create user 'neurodata'@'localhost' identified by 'neur0data';" && mysql -u root -i -e "grant all privileges on *.* to 'neurodata'@'localhost' with grant option;" && mysql -u neurodata -pneur0data -i -e "CREATE DATABASE neurodjango;"
     # settings and secret_settings
-  - cp /home/travis/build/django/ND/settings.py.example /home/travis/build/django/ND/settings.py
+  - cp /home/travis/build/neurodata/ndstore/django/ND/settings.py.example /home/travis/build/neurodata/ndstore/django/ND/settings.py
   - ln -s /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py
     # django migrate
   - python /home/travis/build/neurodata/ndstore/django/manage.py migrate
