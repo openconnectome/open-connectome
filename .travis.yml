@@ -49,7 +49,7 @@ install:
   - git clone -b microns https://github.com/neurodata/ndstore.git 
   - ls
   - ls setup
-  - setup/nstore_install.sh
+  - setup/ndstore_install.sh
 
 script:
   - wget localhost
