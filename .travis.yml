@@ -48,6 +48,7 @@ services:
 install:
   - git clone -b microns https://github.com/neurodata/ndstore.git 
   - ls
+  - ls setup
   - setup/nstore_install.sh
 
 script:
