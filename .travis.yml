@@ -35,6 +35,7 @@ addons:
        - libmysqlclient-dev
        - python-numpy
        - rabbitmq-server
+       - libssl-dev
 
 services:
   - mysql
