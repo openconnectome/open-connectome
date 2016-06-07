@@ -46,7 +46,7 @@ services:
   - redis
 
 install:
-  - git clone https://github.com/neurodata/ndstore.git
+  - git clone -b microns https://github.com/neurodata/ndstore.git 
   - ls
   - setup/nstore_install.sh
 
