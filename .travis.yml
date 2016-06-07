@@ -51,6 +51,7 @@ install:
   - ls setup
 
 script:
+  - source /home/travis/virtualenv/python2.7/bin/activate
   - setup/ndstore_install.sh
   - pip freeze
   - wget localhost
