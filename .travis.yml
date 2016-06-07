@@ -49,10 +49,10 @@ install:
   - git clone -b microns https://github.com/neurodata/ndstore.git 
   - ls
   - ls setup
-  - setup/ndstore_install.sh
-  - pip freeze
 
 script:
+  - setup/ndstore_install.sh
+  - pip freeze
   - wget localhost
   - wget localhost/nd/accounts/login
   - ls -la /tmp/
