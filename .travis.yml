@@ -50,6 +50,7 @@ install:
   - ls
   - ls setup
   - setup/ndstore_install.sh
+  - pip freeze
 
 script:
   - wget localhost
