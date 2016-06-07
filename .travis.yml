@@ -47,7 +47,7 @@ services:
 
 install:
   - git clone https://github.com/neurodata/ndstore.git
-  - /home/travis/build/neurodata/ndstore/setup/nstore_install.sh
+  - ./setup/nstore_install.sh
 
 script:
   - wget localhost
