@@ -18,7 +18,7 @@ from django.shortcuts import render
 
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
-from django.core.servers.basehttp import FileWrapper
+from wsgiref.util import FileWrapper
 
 import os
 import numpy as np
@@ -66,7 +66,7 @@ def buildGraph (request, webargs):
     #Tries each of the possible 3 entries
     #ndgraph/test_graph_syn/test_graph_syn/pajek/5472/6496/8712/9736/1000/1100/
     #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
-    
+
 
     if re.match("(\w+)/(\w+)/$", webargs) is not None:
         m = re.match("(\w+)/(\w+)/$", webargs)
