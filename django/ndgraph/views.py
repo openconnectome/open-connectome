@@ -66,7 +66,7 @@ def buildGraph (request, webargs):
     #Tries each of the possible 3 entries
     #ndgraph/test_graph_syn/test_graph_syn/pajek/5472/6496/8712/9736/1000/1100/
     #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
-    #
+    
 
     if re.match("(\w+)/(\w+)/$", webargs) is not None:
         m = re.match("(\w+)/(\w+)/$", webargs)
@@ -76,8 +76,8 @@ def buildGraph (request, webargs):
         m = re.match("(\w+)/(\w+)/(\w+)/$", webargs)
         [syntoken, synchan_name, graphType] = [i for i in m.groups()]
         arguementType=2
-    elif re.match("(\w+)/(\w+)/(\w+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/(\w+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/(\d+)/$", webargs)
+    elif re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs) is not None:
+        m = re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs)
         [syntoken, synchan_name, graphType, Xmin,Xmax,Ymin,Ymax,Zmin,Zmax] = [i for i in m.groups()]
         arguementType=3
     else:

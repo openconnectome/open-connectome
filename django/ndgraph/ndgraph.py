@@ -28,13 +28,14 @@ import ndproj
 import h5ann
 import ndlib
 import ndchannel
+import spatialdb
 
 from ndwserror import NDWSError
 import logging
 logger = logging.getLogger("neurodata")
 
 
-def getAnnoIds(proj, db, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
+def getAnnoIds(proj, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
   """Return a list of anno ids restricted by equality predicates. Equalities are alternating in field/value in the url."""
   mins = (int(Xmin), int(Ymin), int(Zmin))
   maxs = (int(Xmax), int(Ymax), int(Zmax))
@@ -45,8 +46,8 @@ def getAnnoIds(proj, db, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
   if not proj.datasetcfg.checkCube(resolution, corner, dim):
     logger.warning("Illegal cutout corner={}, dim={}".format(corner, dim))
     raise NDWSError("Illegal cutout corner={}, dim={}".format(corner, dim))
-
-  cutout = db.cutout(ch, corner, dim, resolution)
+  sdb = (spatialdb.SpatialDB(proj))
+  cutout = sdb.cutout(ch, corner, dim, resolution)
 
   if cutout.isNotZeros():
     annoids = np.unique(cutout.data)
@@ -67,52 +68,22 @@ def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin
 
   cubeRestrictions = int(Xmin) + int(Xmax) + int(Ymin) + int(Ymax) + int(Zmin) + int(Zmax)
   matrix = []
-
+  #assumption that the channel is a neuron channel
   if cubeRestrictions != 0:
-    idslist = getAnnoIds(proj, db, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
+    idslist = getAnnoIds(proj, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
   else:
     #Entire cube
     [Xmax, Ymax, Zmax] = proj.datasetcfg.imagesz
-    idslist = getAnnoIds(proj, db, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
+    idslist = getAnnoIds(proj, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
 
   if (idslist.size) == 0:
     logger.warning("Area specified is empty")
     raise NDWSError("Area specified is empty")
 
-  rdb =
-"""
-    with closing(conn.cursor()) as cursor:
-      for i in range(idslist.size):
-        cursor.execute(("select kv_value from {} where kv_key = 'synapse_segments' and annoid = {};").format(
-            channel.getKVTable(""), idslist[i]))
-        matrix.append(cursor.fetchall()[0])
-  else:
-    with closing(conn.cursor()) as cursor:
-      cursor.execute(("select kv_value from {} where kv_key = 'synapse_segments';").format(
-          channel.getKVTable("")))
-      matrix = cursor.fetchall()
+  synapses = db.annodb.querySynapses(ch, idslist)
 
-  synapses = np.empty(shape=(len(matrix), 2))
-  rawstring = (matrix[0])[0]
-  splitString = rawstring.split(",")
 
-  if len(splitString) == 2:
-    # For kv pairs with 127:0, 13:0 (for example)
-    for i in range(len(matrix)):
-        # Get raw from matrix
-      rawstring = (matrix[i])[0]
-      splitString = rawstring.split(",")
 
-      # Split and cast the raw string
-      synapses[i] = [int((splitString[0].split(":"))[0]), int((splitString[1].split(":"))[0])]
-  else:
-    # for kv pairs with just 4:5
-    for i in range(len(matrix)):
-      # Get raw from matrix
-      rawstring = (matrix[i])[0]
-      # Split and cast the raw string
-      synapses[i] = rawstring.split(":")
-"""
   # Create and export graph
   outputGraph = nx.Graph()
   outputGraph.add_edges_from(synapses)
