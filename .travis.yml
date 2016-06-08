@@ -49,9 +49,11 @@ install:
   - git clone -b microns https://github.com/neurodata/ndstore.git 
   - ls
   - ls setup
-  - setup/ndstore_install.sh
 
 script:
+  - source /home/travis/virtualenv/python2.7/bin/activate
+  - setup/ndstore_install.sh
+  - pip freeze
   - wget localhost
   - wget localhost/nd/accounts/login
   - ls -la /tmp/
