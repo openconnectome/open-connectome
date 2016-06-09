@@ -87,6 +87,7 @@ install:
   - sudo service memcached restart
 
 script:
+  - source ~/virtualenv/python2.7/bin/activate
   - wget localhost
   - wget localhost/nd/accounts/login
   - ls -la /tmp/
