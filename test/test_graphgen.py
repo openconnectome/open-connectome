@@ -38,7 +38,7 @@ import site_to_test
 SITE_HOST = site_to_test.site
 
 p = Params()
-p.token = 'unittest1'
+p.token = 'unittest'
 p.resolution = 0
 p.channels = ['ANNO1']
 p.channel_type = ANNOTATION
@@ -48,17 +48,17 @@ class Test_GraphGen:
 
   def setup_class(self):
     """Create the unittest database"""
-    makeunitdb.createTestDB(p.token, channel_list=p.channels, public=True, readonly=0)
+    makeunitdb.createTestDB(p.token, channel_list=p.channels, public=True, readonly=0, ximagesize=100, yimagesize=100, zimagesize=100)
     pdb.set_trace()
     cutout1 = "0/2,5/1,3/0,2"
     cutout2 = "0/1,3/4,6/2,5"
     cutout3 = "0/4,6/2,5/5,7"
     cutout4 = "0/6,8/5,9/2,4"
 
-    syn_segments1 = [[7, 3], ]
-    syn_segments2 = [[7, 4], ]
-    syn_segments3 = [[3, 9], ]
-    syn_segments4 = [[5, 4], ]
+    syn_segments1 = [[7, 3],]
+    syn_segments2 = [[7, 4],]
+    syn_segments3 = [[3, 9],]
+    syn_segments4 = [[5, 4],]
 
     f1 = createSpecificSynapse(1, syn_segments1, cutout1)
     putid = putAnnotation(p, f1)

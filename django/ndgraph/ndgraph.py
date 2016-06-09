@@ -61,7 +61,6 @@ def getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
     return annoids
 
 def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin=0, Ymax=0, Zmin=0, Zmax=0,):
-  pdb.set_trace()
   fproj = ndproj.NDProjectsDB()
   proj = fproj.loadToken(token_name)
   db = ramondb.RamonDB(proj)
@@ -81,14 +80,16 @@ def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin
   if (idslist.size) == 0:
     logger.warning("Area specified is empty")
     raise NDWSError("Area specified is empty")
-
-  synapses = db.annodb.querySynapses(ch, idslist)
-
-
+  pdb.set_trace()
+  
+  annos={}
+  for i in idslist:
+    tmp=db.annodb.getSegments(ch, i)
+    annos[i]=tmp
 
   # Create and export graph
   outputGraph = nx.Graph()
-  outputGraph.add_edges_from(synapses)
+  outputGraph.add_edges_from(annos)
 
   if graphType.upper() == "GRAPHML":
     nx.write_graphml(outputGraph, ("/tmp/{}_{}.graphml").format(
