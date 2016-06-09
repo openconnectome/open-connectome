@@ -38,7 +38,7 @@ import site_to_test
 SITE_HOST = site_to_test.site
 
 p = Params()
-p.token = 'unittest'
+p.token = 'unittest1'
 p.resolution = 0
 p.channels = ['ANNO1']
 p.channel_type = ANNOTATION

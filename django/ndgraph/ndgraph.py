@@ -41,7 +41,7 @@ def getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
   mins = (int(Xmin), int(Ymin), int(Zmin))
   maxs = (int(Xmax), int(Ymax), int(Zmax))
   offset = proj.datasetcfg.offset[resolution]
-  corner = map(max, zip(*[mins, offset]))
+  corner = map(max, zip(*[mins, map(sub, mins, offset)]))
   dim = map(sub, maxs, mins)
 
   if not proj.datasetcfg.checkCube(resolution, corner, dim):
