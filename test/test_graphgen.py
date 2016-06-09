@@ -25,6 +25,7 @@ import pytest
 from contextlib import closing
 import networkx as nx
 import time
+import pdb
 
 import makeunitdb
 from ndtype import ANNOTATION, UINT32
@@ -48,7 +49,7 @@ class Test_GraphGen:
   def setup_class(self):
     """Create the unittest database"""
     makeunitdb.createTestDB(p.token, channel_list=p.channels, public=True, readonly=0)
-
+    pdb.set_trace()
     cutout1 = "0/2,5/1,3/0,2"
     cutout2 = "0/1,3/4,6/2,5"
     cutout3 = "0/4,6/2,5/5,7"
@@ -106,7 +107,7 @@ class Test_GraphGen:
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
 
-    url = 'http://{}/ocpgraph/{}/{}/{}/{}/{}/{}/{}/{}/{}/'.format(
+    url = 'http://{}/ocpgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'graphml', 0, 7, 0, 8, 1, 4)
     graphFile = urllib2.urlopen(url)
 
@@ -129,6 +130,6 @@ class Test_GraphGen:
     assert(nx.is_isomorphic(outputGraph, truthGraph))
 
     """Invalid token"""
-    url = 'http://{}/ocpgraph/{}/{}/{}/{}/{}/{}/{}/{}/{}/'.format(
+    url = 'http://{}/ocpgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
         SITE_HOST, 'foo', p.channels[0], 'graphml', 0, 7, 0, 7, 0, 7)
     assert (getURL(url) == 500)

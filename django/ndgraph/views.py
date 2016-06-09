@@ -26,6 +26,7 @@ import json
 import re
 from contextlib import closing
 import tarfile
+import pdb
 
 from django.conf import settings
 
@@ -60,7 +61,7 @@ def getResponse( filename ):
 def buildGraph (request, webargs):
   #Indicated which type of arguements to return/send
   arguementType=0
-
+  pdb.set_trace()
   try:
     # argument of format /token/channel/Arguments
     #Tries each of the possible 3 entries
@@ -89,22 +90,12 @@ def buildGraph (request, webargs):
     logger.warning("Arguments not in the correct format: /token/channel/Arguments")
     raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
 
-  # get the project
-  with closing ( ndproj.NDProjectsDB() ) as projdb:
-
-    synproj = projdb.loadToken ( syntoken )
-
-  # and the database and then call the db function
-  with closing ( spatialdb.SpatialDB(synproj) ) as syndb:
-      # open the segment channel and the synapse channel
-      synch = synproj.getChannelObj(synchan_name)
-      #AETODO verify that they are both annotation channels
-      if arguementType==1:
-          return getResponse(ndgraph.genGraphRAMON (syndb, synproj, synch))
-      elif arguementType==2:
-          return getResponse(ndgraph.genGraphRAMON (syndb, synproj, synch, graphType))
-      elif arguementType==3:
-          return getResponse(ndgraph.genGraphRAMON (syndb, synproj, synch, graphType, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax))
-      else:
-          logger.warning("Unable to return file")
-          raise NDWSError("Unable to return file")
+  if arguementType==1:
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name))
+  elif arguementType==2:
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType))
+  elif arguementType==3:
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax))
+  else:
+      logger.warning("Unable to return file")
+      raise NDWSError("Unable to return file")

@@ -19,7 +19,7 @@ import h5py
 import re
 from contextlib import closing
 from django.conf import settings
-from operator import sub
+from operator import add, sub
 
 import restargs
 import ramondb
@@ -29,18 +29,19 @@ import h5ann
 import ndlib
 import ndchannel
 import spatialdb
+import pdb
 
 from ndwserror import NDWSError
 import logging
 logger = logging.getLogger("neurodata")
 
 
-def getAnnoIds(proj, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
+def getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
   """Return a list of anno ids restricted by equality predicates. Equalities are alternating in field/value in the url."""
   mins = (int(Xmin), int(Ymin), int(Zmin))
   maxs = (int(Xmax), int(Ymax), int(Zmax))
   offset = proj.datasetcfg.offset[resolution]
-  corner = map(sub, mins, offset)
+  corner = map(max, zip(*[mins, offset]))
   dim = map(sub, maxs, mins)
 
   if not proj.datasetcfg.checkCube(resolution, corner, dim):
@@ -60,8 +61,9 @@ def getAnnoIds(proj, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
     return annoids
 
 def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin=0, Ymax=0, Zmin=0, Zmax=0,):
+  pdb.set_trace()
   fproj = ndproj.NDProjectsDB()
-  proj = fproj.loadtoken(token_name)
+  proj = fproj.loadToken(token_name)
   db = ramondb.RamonDB(proj)
   ch = proj.getChannelObj(channel)
   resolution = ch.getResolution()
@@ -70,11 +72,11 @@ def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin
   matrix = []
   #assumption that the channel is a neuron channel
   if cubeRestrictions != 0:
-    idslist = getAnnoIds(proj, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
+    idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
   else:
     #Entire cube
-    [Xmax, Ymax, Zmax] = proj.datasetcfg.imagesz
-    idslist = getAnnoIds(proj, ch, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
+    [Xmax, Ymax, Zmax] = proj.datasetcfg.imagesz[resolution]
+    idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
 
   if (idslist.size) == 0:
     logger.warning("Area specified is empty")
