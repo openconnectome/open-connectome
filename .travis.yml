@@ -91,6 +91,6 @@ script:
   - wget localhost/nd/accounts/login
   - ls -la /tmp/
   - cd ./test/
-  - py.test test_info.py
+  - sudo py.test test_info.py
   - sudo cat /var/log/uwsgi/app/*.log
   - sudo cat /var/log/neurodata/ndstore.log
