@@ -33,6 +33,7 @@ addons:
        - libmysqlclient-dev
        - rabbitmq-server
        - libssl-dev
+       - python-pytest
 
 services:
   - mysql
