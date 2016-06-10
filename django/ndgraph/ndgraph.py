@@ -21,6 +21,7 @@ from contextlib import closing
 from django.conf import settings
 from operator import add, sub
 
+import annotation
 import restargs
 import ramondb
 import ndproject
@@ -80,50 +81,51 @@ def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin
   if (idslist.size) == 0:
     logger.warning("Area specified is empty")
     raise NDWSError("Area specified is empty")
-  pdb.set_trace()
   
   annos={}
   for i in idslist:
-    tmp=db.annodb.getSegments(ch, i)
-    annos[i]=tmp
+    tmp=db.getAnnotation(ch, i)
+    if int(db.annodb.getAnnotationKV(ch, i)['ann_type']) == annotation.ANNO_SYNAPSE:
+      annos[i]=[int(s) for s in tmp.getField('segments').split(',')]
 
   # Create and export graph
   outputGraph = nx.Graph()
-  outputGraph.add_edges_from(annos)
+  for key in annos:
+    outputGraph.add_edges_from([tuple(annos[key])])
 
   if graphType.upper() == "GRAPHML":
     nx.write_graphml(outputGraph, ("/tmp/{}_{}.graphml").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.graphml").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.graphml").format(proj.getProjectName(), channel)
   elif graphType.upper() == "ADJLIST":
     nx.write_adjlist(outputGraph, ("/tmp/{}_{}.adjlist").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.adjlist").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.adjlist").format(proj.getProjectName(), channel)
   elif graphType.upper() == "EDGELIST":
     nx.write_edgelist(outputGraph, ("/tmp/{}_{}.edgelist").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.edgelist").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.edgelist").format(proj.getProjectName(), channel)
   elif graphType.upper() == "GEXF":
     nx.write_gexf(outputGraph, ("/tmp/{}_{}.gexf").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.gexf").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.gexf").format(proj.getProjectName(), channel)
   elif graphType.upper() == "GML":
     nx.write_gml(outputGraph, ("/tmp/{}_{}.gml").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.gml").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.gml").format(proj.getProjectName(), channel)
   elif graphType.upper() == "GPICKLE":
     nx.write_gpickle(outputGraph, ("/tmp/{}_{}.gpickle").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.gpickle").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.gpickle").format(proj.getProjectName(), channel)
   elif graphType.upper() == "YAML":
     nx.write_yaml(outputGraph, ("/tmp/{}_{}.yaml").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.yaml").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.yaml").format(proj.getProjectName(), channel)
   elif graphType.upper() == "PAJEK":
     nx.write_net(outputGraph, ("/tmp/{}_{}.net").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.net").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.net").format(proj.getProjectName(), channel)
   else:
     nx.write_graphml(outputGraph, ("/tmp/{}_{}.graphml").format(
-        project.getProjectName(), channel.getChannelName()))
-    return ("/tmp/{}_{}.graphml").format(project.getProjectName(), channel.getChannelName())
+        proj.getProjectName(), channel))
+    return ("/tmp/{}_{}.graphml").format(proj.getProjectName(), channel)

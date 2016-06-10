@@ -38,7 +38,7 @@ import site_to_test
 SITE_HOST = site_to_test.site
 
 p = Params()
-p.token = 'unittest'
+p.token = 'unittest32'
 p.resolution = 0
 p.channels = ['ANNO1']
 p.channel_type = ANNOTATION
@@ -49,8 +49,8 @@ class Test_GraphGen:
   def setup_class(self):
     """Create the unittest database"""
     makeunitdb.createTestDB(p.token, channel_list=p.channels, public=True, readonly=0, ximagesize=100, yimagesize=100, zimagesize=100)
-    pdb.set_trace()
-    cutout1 = "0/2,5/1,3/0,2"
+    
+    cutout1 = "0/2,5/1,3/1,3"
     cutout2 = "0/1,3/4,6/2,5"
     cutout3 = "0/4,6/2,5/5,7"
     cutout4 = "0/6,8/5,9/2,4"
@@ -103,6 +103,7 @@ class Test_GraphGen:
 
   def test_checkCutout(self):
     """Test the cutout arguement of graphgen"""
+
     syn_segments = [[7, 3], [7, 4], [5, 4]]
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
@@ -132,4 +133,4 @@ class Test_GraphGen:
     """Invalid token"""
     url = 'http://{}/ocpgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
         SITE_HOST, 'foo', p.channels[0], 'graphml', 0, 7, 0, 7, 0, 7)
-    assert (getURL(url) == 500)
+    assert (getURL(url) >= 500)
