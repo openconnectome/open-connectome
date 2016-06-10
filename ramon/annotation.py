@@ -225,7 +225,7 @@ class AnnSynapse (Annotation):
         if type(v) == list:
           self.segments = [int(s) for s in v]
         else:
-          self.segments = [int(v)]
+          self.segments = [int(s) for s in v.replace('[','').replace(']','').split() if s.isdigit()] 
       elif k == 'syn_presegments':
         if type(v) == list:
           self.presegments = [int(s) for s in v]
