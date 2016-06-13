@@ -75,7 +75,7 @@ class MySQLProjectDB:
           if ch.getChannelType() not in [TIMESERIES]:
             for res in self.pr.datasetcfg.getResolutions():
               cursor.execute("CREATE TABLE {} ( zindex BIGINT PRIMARY KEY, cube LONGBLOB )".format(ch.getTable(res)))
-              cursor.execute ( "CREATE TABLE {}_res{}_index (zindex BIGINT NOT NULL PRIMARY KEY)".format(ch.getChannelName(), res) )
+              cursor.execute ( "CREATE TABLE {} (zindex BIGINT NOT NULL PRIMARY KEY)".format(ch.getS3IndexTable(res)) )
           # tables specific to timeseries data
           elif ch.getChannelType() == TIMESERIES:
             for res in self.pr.datasetcfg.getResolutions():
