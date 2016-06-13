@@ -390,7 +390,7 @@ class MySQLRamonDB:
     """Return segments that belong to this neuron"""
 
     sql = "SELECT annoid FROM {}_ramon WHERE kv_key='{}' AND kv_value={}".format(ch.getChannelName(), 'seg_neuron', annid)
-    import pdb; psb.set_trace()
+
     try:
       self.cursor.execute ( sql )
     except MySQLdb.Error, e:

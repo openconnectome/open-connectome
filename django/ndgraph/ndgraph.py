@@ -30,7 +30,6 @@ import h5ann
 import ndlib
 import ndchannel
 import spatialdb
-import pdb
 
 from ndwserror import NDWSError
 import logging
