@@ -26,7 +26,8 @@ Some common mistakes you can make
 * If you upload multiple channels at once they must all be part of the same dataset.
 * Check if you have the lastest version of ndio using "pip install -U ndio".
 * Make sure your directory structure is accurate and correctly ordered.
-* Make sure your data is HTTP accessible, see below how to check this if you are unsure. 
+* Make sure your data is HTTP accessible, see below how to check this if you are unsure.
+* Make sure the naming of your folders and files has the required leading zeros.
 
 Unsupported Image Types
 =======================
