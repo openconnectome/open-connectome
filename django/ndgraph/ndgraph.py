@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import MySQLdb
+# TODO UA remove unwanted imports from all your files. I removed MySQLdb here. Check if you have any other ones like h5py
 import numpy as np
 import networkx as nx
 import h5py
@@ -45,10 +45,11 @@ def getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
   dim = map(sub, maxs, mins)
 
   if not proj.datasetcfg.checkCube(resolution, corner, dim):
+    # TODO UA this logger.error when you are raising an error. we use warning when we are expecting an exception and doing something more vs breaking out of the code by calling NDWSError
     logger.warning("Illegal cutout corner={}, dim={}".format(corner, dim))
     raise NDWSError("Illegal cutout corner={}, dim={}".format(corner, dim))
-  sdb = (spatialdb.SpatialDB(proj))
-  cutout = sdb.cutout(ch, corner, dim, resolution)
+  with closing (spatialdb.SpatialDB(proj)) as sdb:
+    cutout = sdb.cutout(ch, corner, dim, resolution)
 
   if cutout.isNotZeros():
     annoids = np.unique(cutout.data)
@@ -61,36 +62,41 @@ def getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
     return annoids
 
 def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin=0, Ymax=0, Zmin=0, Zmax=0,):
-  fproj = ndproj.NDProjectsDB()
-  proj = fproj.loadToken(token_name)
-  db = ramondb.RamonDB(proj)
-  ch = proj.getChannelObj(channel)
-  resolution = ch.getResolution()
-
-  cubeRestrictions = int(Xmin) + int(Xmax) + int(Ymin) + int(Ymax) + int(Zmin) + int(Zmax)
-  matrix = []
-  #assumption that the channel is a neuron channel
-  if cubeRestrictions != 0:
-    idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
-  else:
-    #Entire cube
-    [Xmax, Ymax, Zmax] = proj.datasetcfg.imagesz[resolution]
-    idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
-
-  if (idslist.size) == 0:
-    logger.warning("Area specified is empty")
-    raise NDWSError("Area specified is empty")
+  """Generate the graph based on different inputs"""
   
-  annos={}
-  for i in idslist:
-    tmp=db.getAnnotation(ch, i)
-    if int(db.annodb.getAnnotationKV(ch, i)['ann_type']) == annotation.ANNO_SYNAPSE:
-      annos[i]=[int(s) for s in tmp.getField('segments').split(',')]
+  # TODO UA we use xmin and not Xmin, upper camel case is not usually a python thing and we do not use in OCP anywhere, please fix this in both files. Should be a simple find and replace
+  with closing (ndproj.NDProjectsDB()) as fproj:
+    proj = fproj.loadToken(token_name)
+  
+  with closing (ramondb.RamonDB(proj)) as db:
+    ch = proj.getChannelObj(channel)
+    resolution = ch.getResolution()
+      
+    # TODO UA all these arguments should be converted to in when it comes in from webargs in view not here and everywhere else
+    cubeRestrictions = int(Xmin) + int(Xmax) + int(Ymin) + int(Ymax) + int(Zmin) + int(Zmax)
+    matrix = []
+    # assumption that the channel is a neuron channel
+    if cubeRestrictions != 0:
+      idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
+    else:
+      # entire cube
+      [Xmax, Ymax, Zmax] = proj.datasetcfg.imagesz[resolution]
+      idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
 
-  # Create and export graph
-  outputGraph = nx.Graph()
-  for key in annos:
-    outputGraph.add_edges_from([tuple(annos[key])])
+    if idslist.size == 0:
+      logger.error("Area specified is empty")
+      raise NDWSError("Area specified is empty")
+    
+    annos = {}
+    for i in idslist:
+      tmp = db.getAnnotation(ch, i)
+      if int(db.annodb.getAnnotationKV(ch, i)['ann_type']) == annotation.ANNO_SYNAPSE:
+        annos[i]=[int(s) for s in tmp.getField('segments').split(',')]
+
+    # create and export graph
+    outputGraph = nx.Graph()
+    for key in annos:
+      outputGraph.add_edges_from([tuple(annos[key])])
 
   if graphType.upper() == "GRAPHML":
     nx.write_graphml(outputGraph, ("/tmp/{}_{}.graphml").format(

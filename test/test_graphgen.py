@@ -15,17 +15,13 @@
 import urllib2
 import cStringIO
 import tempfile
-import h5py
 import random
 import csv
 import os
-import sys
 import numpy as np
 import pytest
 from contextlib import closing
 import networkx as nx
-import time
-import pdb
 
 import makeunitdb
 from ndtype import ANNOTATION, UINT32
@@ -50,11 +46,13 @@ class Test_GraphGen:
     """Create the unittest database"""
     makeunitdb.createTestDB(p.token, channel_list=p.channels, public=True, readonly=0, ximagesize=100, yimagesize=100, zimagesize=100)
     
+    # TODO UA For args format look at other tests
     cutout1 = "0/2,5/1,3/1,3"
     cutout2 = "0/1,3/4,6/2,5"
     cutout3 = "0/4,6/2,5/5,7"
     cutout4 = "0/6,8/5,9/2,4"
-
+    
+    # TODO UA These should be randomly generated
     syn_segments1 = [[7, 3],]
     syn_segments2 = [[7, 4],]
     syn_segments3 = [[3, 9],]
@@ -92,7 +90,8 @@ class Test_GraphGen:
     syn_segments = [[7, 3], [7, 12], [3, 9], [5, 12]]
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
-
+    
+    # TODO UA Change ocp to nd everywhere in django as well
     url = 'http://{}/ocpgraph/{}/{}/{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'adjlist')
     graphFile = urllib2.urlopen(url)

@@ -40,7 +40,8 @@ logger=logging.getLogger("neurodata")
 
 
 def getResponse( filename ):
-
+    
+    # TODO UA We can make this better by actually keeping the tempfile in memory and not using writing it to disk. For this now this is fine but we have to remove this soon after we have fixed other problems in graphgen.
     output = tarfile.open('/tmp/GeneratedGraph.tar.gz', mode='w')
     try:
         output.add(filename)
@@ -57,10 +58,8 @@ def getResponse( filename ):
     return response
 
 
-
 def buildGraph (request, webargs):
-  #Indicated which type of arguements to return/send
-  arguementType=0
+  """Build a graph based on different arguments"""
   
   try:
     # argument of format /token/channel/Arguments
@@ -68,34 +67,24 @@ def buildGraph (request, webargs):
     #ndgraph/test_graph_syn/test_graph_syn/pajek/5472/6496/8712/9736/1000/1100/
     #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
 
-
+    # TODO UA I made this shorted but this still the incorrect way to do this. Use these arguments in the urls. Look at the urls in the django/spdb folder for the right way to do this. there should be 3 differnet functions for each different argument format. Ask me if you have quesitons.
     if re.match("(\w+)/(\w+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/$", webargs)
-        [syntoken, synchan_name] = [i for i in m.groups()]
-        arguementType=1
+      m = re.match("(\w+)/(\w+)/$", webargs)
+      [syntoken, synchan_name] = [i for i in m.groups()]
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name))
     elif re.match("(\w+)/(\w+)/(\w+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/(\w+)/$", webargs)
-        [syntoken, synchan_name, graphType] = [i for i in m.groups()]
-        arguementType=2
+      m = re.match("(\w+)/(\w+)/(\w+)/$", webargs)
+      [syntoken, synchan_name, graphType] = [i for i in m.groups()]
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType))
     elif re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs)
-        [syntoken, synchan_name, graphType, Xmin,Xmax,Ymin,Ymax,Zmin,Zmax] = [i for i in m.groups()]
-        arguementType=3
+      m = re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs)
+      [syntoken, synchan_name, graphType, Xmin,Xmax,Ymin,Ymax,Zmin,Zmax] = [i for i in m.groups()]
+      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax))
     else:
         logger.warning("Arguments not in the correct format: /token/channel/Arguments")
         raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
 
-
   except Exception, e:
     logger.warning("Arguments not in the correct format: /token/channel/Arguments")
+    # TODO UA Use NDWSError here
     raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
-
-  if arguementType==1:
-      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name))
-  elif arguementType==2:
-      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType))
-  elif arguementType==3:
-      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax))
-  else:
-      logger.warning("Unable to return file")
-      raise NDWSError("Unable to return file")
