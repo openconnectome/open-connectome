@@ -59,7 +59,7 @@ def getResponse( filename ):
 
 
 def buildGraph (request, webargs):
-  """Build a graph based on different arguments"""
+    """Build a graph based on different arguments"""
 
     try:
         return getResponse(ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1])))
