@@ -21,27 +21,24 @@ from django.core.files.base import ContentFile
 from wsgiref.util import FileWrapper
 
 import os
-import numpy as np
-import json
 import re
 from contextlib import closing
 import tarfile
-import pdb
-
-from django.conf import settings
 
 from ndwserror import NDWSError
-import ndproj
-import spatialdb
 import ndgraph
-
 import logging
 logger=logging.getLogger("neurodata")
 
 
-def getResponse( filename ):
+def getResponse(file, filename):
 
     # TODO UA We can make this better by actually keeping the tempfile in memory and not using writing it to disk. For this now this is fine but we have to remove this soon after we have fixed other problems in graphgen.
+
+    response = HttpResponse(mimetype='text/plain')
+    response['Content-Disposition'] = "attachment; filename=\"output.{}\"".format(filename)
+    response.write(file.read())
+    """
     output = tarfile.open('/tmp/GeneratedGraph.tar.gz', mode='w')
     try:
         output.add(filename)
@@ -55,6 +52,7 @@ def getResponse( filename ):
     response = HttpResponse(wrapper,'application/x-gzip')
     response['Content-Length'] = 5
     response['Content-Disposition'] = 'attachment; filename="GeneratedGraph.tar.gz"'
+    """
     return response
 
 

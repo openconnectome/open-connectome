@@ -17,6 +17,7 @@ import numpy as np
 import networkx as nx
 from contextlib import closing
 from operator import add, sub
+import tempfile
 
 import ndproject
 import ndproj
@@ -89,40 +90,26 @@ def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin
     outputGraph = nx.Graph()
     for key in annos:
       outputGraph.add_edges_from([tuple(annos[key])])
-
+  f = tempfile.NamedTemporaryFile()
   if graphType.upper() == "GRAPHML":
-    nx.write_graphml(outputGraph, ("/tmp/{}_{}.graphml").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.graphml").format(proj.getProjectName(), channel)
+    nx.write_graphml(outputGraph, f)
   elif graphType.upper() == "ADJLIST":
-    nx.write_adjlist(outputGraph, ("/tmp/{}_{}.adjlist").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.adjlist").format(proj.getProjectName(), channel)
+    nx.write_adjlist(outputGraph, f)
   elif graphType.upper() == "EDGELIST":
-    nx.write_edgelist(outputGraph, ("/tmp/{}_{}.edgelist").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.edgelist").format(proj.getProjectName(), channel)
+    nx.write_edgelist(outputGraph, f)
   elif graphType.upper() == "GEXF":
-    nx.write_gexf(outputGraph, ("/tmp/{}_{}.gexf").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.gexf").format(proj.getProjectName(), channel)
+    nx.write_gexf(outputGraph, f)
   elif graphType.upper() == "GML":
-    nx.write_gml(outputGraph, ("/tmp/{}_{}.gml").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.gml").format(proj.getProjectName(), channel)
+    nx.write_gml(outputGraph, f)
   elif graphType.upper() == "GPICKLE":
-    nx.write_gpickle(outputGraph, ("/tmp/{}_{}.gpickle").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.gpickle").format(proj.getProjectName(), channel)
+    nx.write_gpickle(outputGraph, f)
   elif graphType.upper() == "YAML":
-    nx.write_yaml(outputGraph, ("/tmp/{}_{}.yaml").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.yaml").format(proj.getProjectName(), channel)
+    nx.write_yaml(outputGraph, f)
   elif graphType.upper() == "PAJEK":
-    nx.write_net(outputGraph, ("/tmp/{}_{}.net").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.net").format(proj.getProjectName(), channel)
+    nx.write_net(outputGraph, f)
   else:
-    nx.write_graphml(outputGraph, ("/tmp/{}_{}.graphml").format(
-        proj.getProjectName(), channel))
-    return ("/tmp/{}_{}.graphml").format(proj.getProjectName(), channel)
+    nx.write_graphml(outputGraph, f)
+  f.flush()
+  f.seek(0)
+
+  return (f, graphType.lower())
