@@ -46,8 +46,8 @@ def getResponse( filename ):
     try:
         output.add(filename)
     except Exception, e:
-      logger.warning("Unable to write to tar")
-      raise OCPCAError("Unable to write to tar")
+        logger.warning("Unable to write to tar")
+        raise OCPCAError("Unable to write to tar")
     finally:
         output.close()
 
@@ -61,8 +61,8 @@ def getResponse( filename ):
 def buildGraph (request, webargs):
   """Build a graph based on different arguments"""
 
-try:
-    return getResponse(ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1])))
-except Exception as e:
-    logger.warning(e)
-    raise NDWSError(e)
+    try:
+        return getResponse(ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1])))
+    except Exception as e:
+        logger.warning(e)
+        raise NDWSError(e)
