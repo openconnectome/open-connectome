@@ -15,19 +15,13 @@
 # TODO UA remove unwanted imports from all your files. I removed MySQLdb here. Check if you have any other ones like h5py
 import numpy as np
 import networkx as nx
-import h5py
-import re
 from contextlib import closing
-from django.conf import settings
 from operator import add, sub
 
-import annotation
-import restargs
-import ramondb
 import ndproject
 import ndproj
-import h5ann
-import ndlib
+import ramondb
+import annotation
 import ndchannel
 import spatialdb
 
@@ -62,7 +56,7 @@ def getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax):
 
 def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0):
   """Generate the graph based on different inputs"""
-  [xmin, xmax, ymin, ymax, zmin, zmax] = [int(i) for i in [xmin, xmax, ymin, ymax, zmin, zmax] if i.isdigit()]
+  [xmin, xmax, ymin, ymax, zmin, zmax] = [int(i) for i in [xmin, xmax, ymin, ymax, zmin, zmax]]
 
   with closing (ndproj.NDProjectsDB()) as fproj:
     proj = fproj.loadToken(token_name)
