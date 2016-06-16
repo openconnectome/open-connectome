@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+
+sys.path += [os.path.abspath('../django')]
+import ND.settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
+
+
 from ndtype import MYSQL, CASSANDRA, RIAK, DYNAMODB, REDIS
 
 kvengine = MYSQL
