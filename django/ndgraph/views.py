@@ -38,21 +38,6 @@ def getResponse(file, filename):
     response = HttpResponse(content_type='text/plain')
     response['Content-Disposition'] = "attachment; filename=\"output.{}\"".format(filename)
     response.write(file.read())
-    """
-    output = tarfile.open('/tmp/GeneratedGraph.tar.gz', mode='w')
-    try:
-        output.add(filename)
-    except Exception, e:
-        logger.warning("Unable to write to tar")
-        raise OCPCAError("Unable to write to tar")
-    finally:
-        output.close()
-
-    wrapper = FileWrapper(file("/tmp/GeneratedGraph.tar.gz"))
-    response = HttpResponse(wrapper,'application/x-gzip')
-    response['Content-Length'] = 5
-    response['Content-Disposition'] = 'attachment; filename="GeneratedGraph.tar.gz"'
-    """
     return response
 
 
