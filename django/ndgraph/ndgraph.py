@@ -62,7 +62,7 @@ def getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax):
 
 def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0):
   """Generate the graph based on different inputs"""
-  [xmin, xmax, ymin, ymax, zmin, zmax] = [int(i) for i in [xmin, xmax, ymin, ymax, zmin, zmax]]
+  [xmin, xmax, ymin, ymax, zmin, zmax] = [int(i) for i in [xmin, xmax, ymin, ymax, zmin, zmax] if i.isdigit()]
 
   with closing (ndproj.NDProjectsDB()) as fproj:
     proj = fproj.loadToken(token_name)

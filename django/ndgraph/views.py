@@ -62,13 +62,7 @@ def buildGraph (request, webargs):
   """Build a graph based on different arguments"""
 
   try:
-    # argument of format /token/channel/Arguments
-    #Tries each of the possible 3 entries
-    #ndgraph/test_graph_syn/test_graph_syn/pajek/5472/6496/8712/9736/1000/1100/
-    #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
-
-    # TODO UA I made this shorted but this still the incorrect way to do this. Use these arguments in the urls. Look at the urls in the django/spdb folder for the right way to do this. there should be 3 differnet functions for each different argument format. Ask me if you have quesitons.
-    return getResponse(ndgraph.genGraphRAMON (*(webargs.split('/')[0:-1])))
+    return getResponse(ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1]))
   except Exception, e:
     logger.warning(e)
     raise NDWSError(e)
