@@ -45,7 +45,7 @@ def getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax):
   dim = map(sub, maxs, mins)
 
   if not proj.datasetcfg.checkCube(resolution, corner, dim):
-    logger.error"Illegal cutout corner={}, dim={}".format(corner, dim))
+    logger.error("Illegal cutout corner={}, dim={}".format(corner, dim))
     raise NDWSError("Illegal cutout corner={}, dim={}".format(corner, dim))
   with closing (spatialdb.SpatialDB(proj)) as sdb:
     cutout = sdb.cutout(ch, corner, dim, resolution)

@@ -68,7 +68,7 @@ def buildGraph (request, webargs):
     #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
 
     # TODO UA I made this shorted but this still the incorrect way to do this. Use these arguments in the urls. Look at the urls in the django/spdb folder for the right way to do this. there should be 3 differnet functions for each different argument format. Ask me if you have quesitons.
-    return getResponse(ndgraph.genGraphRAMON (*(webargs.split('/'))))
+    return getResponse(ndgraph.genGraphRAMON (*(webargs.split('/')[0:-1])))
     """
     if re.match("(\w+)/(\w+)/$", webargs) is not None:
       m = re.match("(\w+)/(\w+)/$", webargs)
