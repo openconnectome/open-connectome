@@ -35,7 +35,7 @@ def getResponse(file, filename):
 
     # TODO UA We can make this better by actually keeping the tempfile in memory and not using writing it to disk. For this now this is fine but we have to remove this soon after we have fixed other problems in graphgen.
 
-    response = HttpResponse(mimetype='text/plain')
+    response = HttpResponse(content_type='text/plain')
     response['Content-Disposition'] = "attachment; filename=\"output.{}\"".format(filename)
     response.write(file.read())
     """
