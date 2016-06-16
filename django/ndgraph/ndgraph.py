@@ -36,17 +36,16 @@ import logging
 logger = logging.getLogger("neurodata")
 
 
-def getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
+def getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax):
   """Return a list of anno ids restricted by equality predicates. Equalities are alternating in field/value in the url."""
-  mins = (int(Xmin), int(Ymin), int(Zmin))
-  maxs = (int(Xmax), int(Ymax), int(Zmax))
+  mins = (xmin, ymin, zmin)
+  maxs = (xmax, ymax, zmax)
   offset = proj.datasetcfg.offset[resolution]
   corner = map(max, zip(*[mins, map(sub, mins, offset)]))
   dim = map(sub, maxs, mins)
 
   if not proj.datasetcfg.checkCube(resolution, corner, dim):
-    # TODO UA this logger.error when you are raising an error. we use warning when we are expecting an exception and doing something more vs breaking out of the code by calling NDWSError
-    logger.warning("Illegal cutout corner={}, dim={}".format(corner, dim))
+    logger.error"Illegal cutout corner={}, dim={}".format(corner, dim))
     raise NDWSError("Illegal cutout corner={}, dim={}".format(corner, dim))
   with closing (spatialdb.SpatialDB(proj)) as sdb:
     cutout = sdb.cutout(ch, corner, dim, resolution)
@@ -61,32 +60,31 @@ def getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax):
   else:
     return annoids
 
-def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin=0, Ymax=0, Zmin=0, Zmax=0,):
+def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0):
   """Generate the graph based on different inputs"""
-  
-  # TODO UA we use xmin and not Xmin, upper camel case is not usually a python thing and we do not use in OCP anywhere, please fix this in both files. Should be a simple find and replace
+  [xmin, xmax, ymin, ymax, zmin, zmax] = [int(i) for i in [xmin, xmax, ymin, ymax, zmin, zmax]]
+
   with closing (ndproj.NDProjectsDB()) as fproj:
     proj = fproj.loadToken(token_name)
-  
+
   with closing (ramondb.RamonDB(proj)) as db:
     ch = proj.getChannelObj(channel)
     resolution = ch.getResolution()
-      
-    # TODO UA all these arguments should be converted to in when it comes in from webargs in view not here and everywhere else
-    cubeRestrictions = int(Xmin) + int(Xmax) + int(Ymin) + int(Ymax) + int(Zmin) + int(Zmax)
+
+    cubeRestrictions = xmin + xmax + ymin + ymax + zmin + zmax
     matrix = []
     # assumption that the channel is a neuron channel
     if cubeRestrictions != 0:
-      idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
+      idslist = getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax)
     else:
       # entire cube
-      [Xmax, Ymax, Zmax] = proj.datasetcfg.imagesz[resolution]
-      idslist = getAnnoIds(proj, ch, resolution, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax)
+      [xmax, ymax, zmax] = proj.datasetcfg.imagesz[resolution]
+      idslist = getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax)
 
     if idslist.size == 0:
       logger.error("Area specified is empty")
       raise NDWSError("Area specified is empty")
-    
+
     annos = {}
     for i in idslist:
       tmp = db.getAnnotation(ch, i)

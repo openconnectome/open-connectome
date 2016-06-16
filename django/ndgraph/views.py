@@ -40,7 +40,7 @@ logger=logging.getLogger("neurodata")
 
 
 def getResponse( filename ):
-    
+
     # TODO UA We can make this better by actually keeping the tempfile in memory and not using writing it to disk. For this now this is fine but we have to remove this soon after we have fixed other problems in graphgen.
     output = tarfile.open('/tmp/GeneratedGraph.tar.gz', mode='w')
     try:
@@ -60,7 +60,7 @@ def getResponse( filename ):
 
 def buildGraph (request, webargs):
   """Build a graph based on different arguments"""
-  
+
   try:
     # argument of format /token/channel/Arguments
     #Tries each of the possible 3 entries
@@ -68,6 +68,8 @@ def buildGraph (request, webargs):
     #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
 
     # TODO UA I made this shorted but this still the incorrect way to do this. Use these arguments in the urls. Look at the urls in the django/spdb folder for the right way to do this. there should be 3 differnet functions for each different argument format. Ask me if you have quesitons.
+    return getResponse(ndgraph.genGraphRAMON (*(webargs.split('/'))))
+    """
     if re.match("(\w+)/(\w+)/$", webargs) is not None:
       m = re.match("(\w+)/(\w+)/$", webargs)
       [syntoken, synchan_name] = [i for i in m.groups()]
@@ -83,8 +85,7 @@ def buildGraph (request, webargs):
     else:
         logger.warning("Arguments not in the correct format: /token/channel/Arguments")
         raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
-
+    """
   except Exception, e:
     logger.warning("Arguments not in the correct format: /token/channel/Arguments")
-    # TODO UA Use NDWSError here
-    raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
+    raise NDWSError("Arguments not in the correct format: /token/channel/Arguments")
