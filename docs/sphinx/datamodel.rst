@@ -91,7 +91,7 @@ Dataset Attributes
 
 .. function:: Scaling Choices
 
-   Scaling Choices represent the orientation of the data being stored, Z Slices corresponds to a Z-slice orientation (as in a collection of tiff images in which each tiff is a slice on the z plane) and Isotropic corresponds to an isotropic orientation (in which each tiff is a slice on the y plane).
+   Scaling is the scaling method of the data being stored. 0 corresponds to a Z-slice orientation (as in a collection of tiff images in which each tiff is a slice on the z plane) where data will be scaled only on the xy plane, not the z plane. 1 corresponds to an isotropic orientation (in which each tiff is a slice on the y plane) where data is scaled along all axis.
 
    :Type: {Z Slices, Isotropic}
    :Default: Z Slices
