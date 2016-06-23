@@ -38,7 +38,7 @@
         "data_url": {
             "description": "This url points to the root directory of the files. Dropbox is not an acceptable HTTP Server.",
             "type": "string",
-            "pattern": "^http:\/\/.*\/"
+            "pattern": "^http:\/\/.*"
         },
         "file_format": {
             "description": "This is the file format type. For now we support only Slice stacks and CATMAID tiles.",
