@@ -40,7 +40,8 @@ def getResponse(file, filename):
 
 def buildGraph (request, webargs):
     """Build a graph based on different arguments"""
-
+    
+    # TODO UA fuse these 2 functions
     try:
         return getResponse(*ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1])))
     except Exception as e:

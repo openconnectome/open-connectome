@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO UA remove unwanted imports from all your files. I removed MySQLdb here. Check if you have any other ones like h5py
 import numpy as np
 import networkx as nx
 from contextlib import closing
@@ -33,15 +32,18 @@ logger = logging.getLogger("neurodata")
 
 def getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax):
   """Return a list of anno ids restricted by equality predicates. Equalities are alternating in field/value in the url."""
+
   mins = (xmin, ymin, zmin)
   maxs = (xmax, ymax, zmax)
   offset = proj.datasetcfg.offset[resolution]
+  # Add a comment
   corner = map(max, zip(*[mins, map(sub, mins, offset)]))
   dim = map(sub, maxs, mins)
 
   if not proj.datasetcfg.checkCube(resolution, corner, dim):
     logger.error("Illegal cutout corner={}, dim={}".format(corner, dim))
     raise NDWSError("Illegal cutout corner={}, dim={}".format(corner, dim))
+
   with closing (spatialdb.SpatialDB(proj)) as sdb:
     cutout = sdb.cutout(ch, corner, dim, resolution)
 
@@ -57,6 +59,7 @@ def getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax):
 
 def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin=0, ymax=0, zmin=0, zmax=0):
   """Generate the graph based on different inputs"""
+
   [xmin, xmax, ymin, ymax, zmin, zmax] = [int(i) for i in [xmin, xmax, ymin, ymax, zmin, zmax]]
 
   with closing (ndproj.NDProjectsDB()) as fproj:
@@ -77,6 +80,7 @@ def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin
       idslist = getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax)
 
     if idslist.size == 0:
+      # TODO UA better logging
       logger.error("Area specified is empty")
       raise NDWSError("Area specified is empty")
 
@@ -90,6 +94,9 @@ def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin
     outputGraph = nx.Graph()
     for key in annos:
       outputGraph.add_edges_from([tuple(annos[key])])
+  
+  # TODO UA Catch file handle for this block
+
   f = tempfile.NamedTemporaryFile()
   if graphType.upper() == "GRAPHML":
     nx.write_graphml(outputGraph, f)
