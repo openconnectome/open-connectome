@@ -30,9 +30,9 @@ import ndgraph
 import logging
 logger=logging.getLogger("neurodata")
 
+@login_required(login_url='/nd/accounts/login/')
 def buildGraph (request, webargs):
     """Build a graph based on different arguments"""
-    
     try:
         (file, filename) = ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1]))
         response = HttpResponse(content_type='text/plain')
