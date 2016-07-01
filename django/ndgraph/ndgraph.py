@@ -118,8 +118,7 @@ def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin
     f.seek(0)
   except:
     logger.error("Internal file error in creating/editing a NamedTemporaryFile")
+    f.clos()
     raise NDWSError("Internal file error in creating/editing a NamedTemporaryFile")
-  finally:
-    f.close()
 
   return (f, graphType.lower())
