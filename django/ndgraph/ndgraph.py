@@ -80,9 +80,8 @@ def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin
       idslist = getAnnoIds(proj, ch, resolution, xmin, xmax, ymin, ymax, zmin, zmax)
 
     if idslist.size == 0:
-      # TODO UA better logging
-      logger.error("Area specified is empty")
-      raise NDWSError("Area specified is empty")
+      logger.error("Area specified x:{},{} y:{},{} z:{},{} is empty".format(xmin, xmax, ymin, ymax, zmin, zmax))
+      raise NDWSError("Area specified x:{},{} y:{},{} z:{},{} is empty".format(xmin, xmax, ymin, ymax, zmin, zmax))
 
     annos = {}
     for i in idslist:
@@ -95,28 +94,32 @@ def genGraphRAMON(token_name, channel, graphType="graphml", xmin=0, xmax=0, ymin
     for key in annos:
       outputGraph.add_edges_from([tuple(annos[key])])
   
-  # TODO UA Catch file handle for this block
-
-  f = tempfile.NamedTemporaryFile()
-  if graphType.upper() == "GRAPHML":
-    nx.write_graphml(outputGraph, f)
-  elif graphType.upper() == "ADJLIST":
-    nx.write_adjlist(outputGraph, f)
-  elif graphType.upper() == "EDGELIST":
-    nx.write_edgelist(outputGraph, f)
-  elif graphType.upper() == "GEXF":
-    nx.write_gexf(outputGraph, f)
-  elif graphType.upper() == "GML":
-    nx.write_gml(outputGraph, f)
-  elif graphType.upper() == "GPICKLE":
-    nx.write_gpickle(outputGraph, f)
-  elif graphType.upper() == "YAML":
-    nx.write_yaml(outputGraph, f)
-  elif graphType.upper() == "PAJEK":
-    nx.write_net(outputGraph, f)
-  else:
-    nx.write_graphml(outputGraph, f)
-  f.flush()
-  f.seek(0)
+  try: 
+    f = tempfile.NamedTemporaryFile()
+    if graphType.upper() == "GRAPHML":
+      nx.write_graphml(outputGraph, f)
+    elif graphType.upper() == "ADJLIST":
+      nx.write_adjlist(outputGraph, f)
+    elif graphType.upper() == "EDGELIST":
+      nx.write_edgelist(outputGraph, f)
+    elif graphType.upper() == "GEXF":
+      nx.write_gexf(outputGraph, f)
+    elif graphType.upper() == "GML":
+      nx.write_gml(outputGraph, f)
+    elif graphType.upper() == "GPICKLE":
+      nx.write_gpickle(outputGraph, f)
+    elif graphType.upper() == "YAML":
+      nx.write_yaml(outputGraph, f)
+    elif graphType.upper() == "PAJEK":
+      nx.write_net(outputGraph, f)
+    else:
+      nx.write_graphml(outputGraph, f)
+    f.flush()
+    f.seek(0)
+  except:
+    logger.error("Internal file error in creating/editing a NamedTemporaryFile")
+    raise NDWSError("Internal file error in creating/editing a NamedTemporaryFile")
+  finally:
+    f.close()
 
   return (f, graphType.lower())

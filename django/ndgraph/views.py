@@ -30,20 +30,15 @@ import ndgraph
 import logging
 logger=logging.getLogger("neurodata")
 
-
-def getResponse(file, filename):
-    response = HttpResponse(content_type='text/plain')
-    response['Content-Disposition'] = "attachment; filename=\"output.{}\"".format(filename)
-    response.write(file.read())
-    return response
-
-
 def buildGraph (request, webargs):
     """Build a graph based on different arguments"""
     
-    # TODO UA fuse these 2 functions
     try:
-        return getResponse(*ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1])))
+        (file, filename) = ndgraph.genGraphRAMON (*((webargs.replace(',','/').split('/'))[0:-1]))
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = "attachment; filename=\"output.{}\"".format(filename)
+        response.write(file.read())
+        return response
     except Exception as e:
         logger.warning(e)
         raise NDWSError(e)
