@@ -39,7 +39,6 @@ from nduser.models import Channel
 @login_required(login_url='/nd/accounts/login/')
 def buildGraph (request, webargs):
     """Build a graph based on different arguments"""
-    import pdb; pdb.set_trace()
     try:
         args = (webargs.replace(',','/').split('/'))[0:-1]
         w_token = args[0]
