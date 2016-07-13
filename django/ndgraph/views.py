@@ -26,7 +26,6 @@ import json
 import re
 from contextlib import closing
 import tarfile
-import pdb
 
 from django.conf import settings
 
@@ -61,7 +60,6 @@ def getResponse( filename ):
 def buildGraph (request, webargs):
   #Indicated which type of arguements to return/send
   arguementType=0
-  pdb.set_trace()
   try:
     # argument of format /token/channel/Arguments
     #Tries each of the possible 3 entries

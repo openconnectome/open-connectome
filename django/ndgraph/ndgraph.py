@@ -79,7 +79,6 @@ def genGraphRAMON(token_name, channel, graphType="graphml", Xmin=0, Xmax=0, Ymin
   if (idslist.size) == 0:
     logger.warning("Area specified is empty")
     raise NDWSError("Area specified is empty")
-  pdb.set_trace()
   
   annos={}
   for i in idslist:
