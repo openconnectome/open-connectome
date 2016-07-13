@@ -33,7 +33,7 @@ ALLOWED_HOSTS = []
 
 FORCE_SCRIPT_NAME = '/nd'
 
-VIZ_SERVER = 'http://viz.neurodata.io'; # MUST include 'http'! 
+VIZ_SERVER = 'http://viz.neurodata.io'; # MUST include 'http'!
 
 # Application definition
 
@@ -54,8 +54,8 @@ INSTALLED_APPS = (
     'djcelery',
     'ndviz',
     'stats',
-    'corsheaders'
-    #'ndgraph',
+    'corsheaders',
+    'ndgraph',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -106,7 +106,7 @@ DATABASES = {
         'PASSWORD': settings_secret.PASSWORD,
         'HOST': settings_secret.HOST,
         'PORT': '',
-    
+
     }
 }
 
