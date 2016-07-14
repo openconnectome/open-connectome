@@ -22,11 +22,11 @@ RUN apt-get update -y && apt-get install -y \
   uwsgi\
   uwsgi-plugin-python\
   liblapack-dev\
-  wget
-  libmysqlclient-dev
-  rabbitmq-server
-  libssl-dev
-  python-pytest
+  wget\
+  libmysqlclient-dev\
+  rabbitmq-server\
+  libssl-dev\
+  python-pytest\
 
 # pip install packages
 RUN pip install \
