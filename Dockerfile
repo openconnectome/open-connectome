@@ -23,6 +23,10 @@ RUN apt-get update -y && apt-get install -y \
   uwsgi-plugin-python\
   liblapack-dev\
   wget
+  libmysqlclient-dev
+  rabbitmq-server
+  libssl-dev
+  python-pytest
 
 # pip install packages
 RUN pip install \
@@ -80,20 +84,30 @@ RUN service mysql start && mysql -u root -i -e "create user 'neurodata'@'localho
   mysql -u root -i -e "grant all privileges on *.* to 'neurodata'@'localhost' with grant option;" &&\
   mysql -u neurodata -pneur0data -i -e "CREATE DATABASE neurodjango;"
 
+# configure django
+RUN cp ./django/ND/settings.py.example ./django/ND/settings.py
+RUN cp /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py
+
+# django migrate
+RUN python ./django/manage.py migrate; echo "from django.contrib.auth.models import User; User.objects.create_superuser('neurodata', 'abc@xyz.com', 'neur0data')" | python ./django/manage.py shell
+RUN python ./django/manage.py collectstatic --noinput
+
 # move nginx config files and start service
 RUN rm /etc/nginx/sites-enabled/default
-RUN ln -s /home/neurodata/ndstore/setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-enabled/
-RUN ln -s /home/neurodata/ndstore/setup/docker_config/nginx/nginx.conf /etc/nginx/
+RUN rm /etc/nginx/sites-available/default
+RUN cp ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-available/default
+RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 RUN service nginx start
 
 # move uwsgi config files and start service
-RUN ln -s /home/neurodata/ndstore/setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/
-RUN ln -s /home/neurodata/ndstore/setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-enabled/
+RUN chown -R www-data:www-data /tmp/
+RUN cp ./setup/travis_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
+RUN ln -s /etc/uwsgi/apps-available/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
 RUN service uwsgi start
 
 # move celery config files and start service
-RUN ln -s /home/neurodata/ndstore/setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
-RUN ln -s /home/neurodata/ndstore/setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
+RUN cp ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
+RUN cp ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
 RUN service supervisor start
 RUN service rabbitmq-server start
 
