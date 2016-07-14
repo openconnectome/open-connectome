@@ -14,7 +14,7 @@ services:
   - docker
 
 before_install:
-  - docker build -t neurodata setup/docker_config/Dockerfile
+  - docker build -t neurodata .
   - docker run -d -p 127.0.0.1:80:4567 neurodata /bin/sh -c "cd /root/neurodata/;"
   - docker ps -a
   - docker run neurodata /bin/sh -c "cd /home/neurodata/ndstore/test/; py.test"
