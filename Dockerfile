@@ -2,7 +2,7 @@ FROM ubuntu:14.04
 MAINTAINER Kunal Lillaney <lillaney@jhu.edu>
 
 # apt-get update and install packages
-RUN apt-get update && -y install \
+RUN apt-get update -y && apt-get install -y \
   nginx\
   git\
   bash-completion\
