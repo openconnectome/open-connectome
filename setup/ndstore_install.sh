@@ -9,10 +9,13 @@ sudo apt-get update && sudo apt-get upgrade -y
 # apt-get install mysql packages
 echo "mysql-server-5.6 mysql-server/root_password password neur0data" | sudo debconf-set-selections
 echo "mysql-server-5.6 mysql-server/root_password_again password neur0data" | sudo debconf-set-selections
+sudo debconf-set-selections <<< "postfix postfix/mailname string openconnecto.me"
+sudo debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+
 sudo apt-get -y install mysql-client-core-5.6 libhdf5-serial-dev mysql-client-5.6
 
 # apt-get install packages
-sudo apt-get -y install nginx git bash-completion python-virtualenv libhdf5-dev libxslt1-dev libmemcached-dev g++ libjpeg-dev virtualenvwrapper python-dev mysql-server-5.6 libmysqlclient-dev xfsprogs supervisor rabbitmq-server uwsgi uwsgi-plugin-python liblapack-dev wget memcached
+sudo apt-get -y install nginx git bash-completion python-virtualenv libhdf5-dev libxslt1-dev libmemcached-dev g++ libjpeg-dev virtualenvwrapper python-dev mysql-server-5.6 libmysqlclient-dev xfsprogs supervisor rabbitmq-server uwsgi uwsgi-plugin-python liblapack-dev wget memcached postfix
 
 # create the log directory
 sudo mkdir /var/log/neurodata
@@ -54,6 +57,9 @@ mysql -u root -pneur0data -i -e "create user 'neurodata'@'localhost' identified 
 cd /home/neurodata/ndstore/django/ND/
 sudo -u neurodata cp settings.py.example settings.py
 sudo -u neurodata ln -s /home/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py settings_secret.py
+
+# add openconnecto.me to django_sites
+mysql -u neurodata -pneur0data -i -e "insert into django_site (id, domain, name) values (2, 'openconnecto.me', 'openconnecto.me');"
 
 # migrate the database and create the superuser
 sudo chmod -R 777 /var/log/neurodata/
