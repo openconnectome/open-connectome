@@ -79,6 +79,8 @@ sudo rm /etc/supervisor/conf.d/propagate.conf
 sudo ln -s /home/neurodata/ndstore/setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
 sudo rm /etc/supervisor/conf.d/ingest.conf
 sudo ln -s /home/neurodata/ndstore/setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
+sudo rm /etc/supervisor/conf.d/stats.conf
+sudo ln -s /home/neurodata/ndstore/setup/docker_config/celery/stats.conf /etc/supervisor/conf.d/stats.conf
 
 # starting all the services
 sudo service nginx restart

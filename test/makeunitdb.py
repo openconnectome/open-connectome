@@ -63,7 +63,8 @@ def createTestDB ( project_name, channel_list=['unit_anno'], channel_type=ANNOTA
       # create the channel table
       pd.newNDChannel(ch.channel_name)
   except Exception, e:
-    pass
+      print(e)
+      raise e
 
 
 def deleteTestDB ( project_name ):
@@ -92,7 +93,9 @@ def deleteTestDB ( project_name ):
     pr.delete()
     ds.delete()
   except Exception, e:
-    pass
+    print(e)
+    raise e
+    
 
 def deleteTestDBList(project_name_list):
   
@@ -107,4 +110,5 @@ def deleteTestDBList(project_name_list):
     # deleting the dataset works in django1.9 as it does a cascaded delete
     ds.delete()
   except Exception, e:
-    pass
+    print(e)
+    raise e
