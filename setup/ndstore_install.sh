@@ -88,5 +88,5 @@ sudo service rabbitmq-server restart
 sudo service memcached restart
 
 # running tests
-#cd /home/neurodata/ndstore/test/
-#py.test
+cd /home/neurodata/ndstore/test/
+py.test
