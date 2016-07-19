@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#site='localhost/nd'
+site='localhost/nd'
 # site='localhost:8080/nd'
-site='localhost:8080'
+#site='localhost:8000'
