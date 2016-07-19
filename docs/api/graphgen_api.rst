@@ -6,9 +6,9 @@ GrahpGen API
 getGraph
 --------
 
-.. http:get:: (string:server_name)/nd/ca/(string:token_name)/(string:channel_name)/(string:graph_type)/(int:Xmin)/(int:Xmax)/(int:Ymin)/(int:Ymax)/(int:Zmin)/(int:Zmax)/
+.. http:get:: (string:server_name)/nd/ca/(string:token_name)/(string:channel_name)/(string:graph_type)/(int:Xmin)/,int:Xmax)/(int:Ymin),(int:Ymax)/(int:Zmin),(int:Zmax)/
 
-   :synopsis: Get the graph of neuron RAMON objects, each neuron is a node and synapses between these neurons are represented by vertices. The graph generated is unweighted and has no direction.
+   :synopsis: Get the graph of neuron RAMON objects, each neuron is a node and synapses between these neurons are represented by vertices. The graph generated is unweighted and has no direction. Graphs are created by doing a spatial cutout of the annotation data, finding the unique ids of the annotations present, traversing the RAMON database for appropriate values, and generating a graph. 
 
    :param server_name: Server Name in NeuroData. In the general case this is openconnecto.me.
    :type server_name: string

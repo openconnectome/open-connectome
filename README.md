@@ -29,3 +29,15 @@ Major directories include:
 #### Architecture
 
 ![](./docs/images/neurodata_cluster.png)
+
+#### Benchmarks
+
+The benchmarks were performed on AWS EC2 instance type i2.8xlarge with a MySQL backend.
+
+##### Read Throughput
+
+![](./docs/images/neurodata_read_throughput.png)
+
+##### Write Throughput
+
+![](./docs/images/neurodata_write_throughput.png)

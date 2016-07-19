@@ -12,14 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import json
-import argparse
-import requests
-import os
-import requests
-import ndio.utils.autoingest as AI
-SITE_HOST = "http://neurodata.io"
+import ndio.remote.ndingest as NI
 
 def main():
 
@@ -77,7 +70,7 @@ def main():
     """
 
     #Uncomment this line if you wish to get a json file names file_name
-    #ai.output_json("ocp.json")
+    #ni.output_json("ocp.json")
 
     #Post the data
     ni.post_data()

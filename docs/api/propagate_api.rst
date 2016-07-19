@@ -53,7 +53,7 @@ setPropagate
    :param channel_name: Channel Name in NeuroData. *Optional*. If missing will use default channel for the token.
    :type channel_name: string
    :param propagate_value: 0,1,2
-   :param propagate_value: int
+   :type propagate_value: int
 
    :statuscode 200: No error
    :statuscode 404: Error in the syntax or file format

@@ -87,6 +87,7 @@ List of commands needed to configure the database for mysql
 ##### Install python packages using pip
   ```sh
   pip install numpy scipy h5py django django-registration-redux django-celery mysql-python pytest pillow posix_ipc
+  pip install --force-reinstall --upgrade --no-cache-dir --compile blosc  
   pip install pylibmc --install-option="--with-libmemcached=/usr/local/Cellar/libmemcached/1.0.18_1/"
 
   ```

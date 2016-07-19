@@ -43,7 +43,10 @@ You can open an issue on our github `repository <https://github.com/neurodata/nd
 
 **How do I view my data?**
 
-Please visit our NeuroDataViz page.
+Please visit our `NeuroDataViz page <http://docs.neurodata.io/ndviz/>`_.
+
+**How do I use the RESTful interface?**
+The RESTful interface can be accessed with any browser by inputting the correct link or any package that supports web requests. 
 
 **Is there a support forum?**
 
