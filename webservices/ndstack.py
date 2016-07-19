@@ -43,9 +43,8 @@ def buildStack(token, channel_name, resolution=None):
   with closing(NDProjectsDB()) as projdb:
     proj = projdb.loadToken(token)
     ch = proj.getChannelObj(channel_name)
- 
+    
     try:
-     
       if ch.getChannelType() in ANNOTATION_CHANNELS:
         clearStack(proj, ch, resolution)
         buildAnnoStack(proj, ch, resolution)
@@ -128,14 +127,15 @@ def buildAnnoStack ( proj, ch, res=None ):
       ylimit = (yimagesz-1) / ycubedim + 1
       zlimit = (zimagesz-1) / zcubedim + 1
 
-      #  Choose constants that work for all resolutions. recall that cube size changes from 128x128x16 to 64*64*64
+      # choose constants that work for all resolutions. 
+      # recall that cube size changes from 128x128x16 to 64*64*64 with res
       if scaling == ZSLICES:
         outdata = np.zeros ( [ zcubedim*4, ycubedim*2, xcubedim*2 ], dtype=ND_dtypetonp.get(ch.getDataType()))
       elif scaling == ISOTROPIC:
         outdata = np.zeros ( [ zcubedim*2,  ycubedim*2, xcubedim*2 ], dtype=ND_dtypetonp.get(ch.getDataType()))
       else:
-        logger.error ( "Invalid scaling option in project = {}".format(scaling) )
-        raise NDWSError ( "Invalid scaling option in project = {}".format(scaling)) 
+        logger.error("Invalid scaling option in project = {}".format(scaling) )
+        raise NDWSError("Invalid scaling option in project = {}".format(scaling)) 
 
       # Round up to the top of the range
       lastzindex = (ndlib.XYZMorton([xlimit,ylimit,zlimit])/64+1)*64
@@ -151,7 +151,10 @@ def buildAnnoStack ( proj, ch, res=None ):
         for idx, datastring in cuboids:
 
           xyz = ndlib.MortonXYZ(idx)
-          cube.fromNPZ(datastring)
+          if db.NPZ:
+            cube.fromNPZ(datastring)
+          else:
+            cube.fromBlosc(datastring)
 
           if scaling == ZSLICES:
 
