@@ -15,17 +15,3 @@ services:
 
 before_install:
   - docker build -t neurodata .
-  - docker run -d -p 127.0.0.1:80:4567 neurodata /bin/sh -c "cd /root/neurodata/;"
-  - docker ps -a
-  - docker run neurodata /bin/sh -c "cd /home/neurodata/ndstore/test/; py.test"
-
-script:
-  - cd ~/test/
-  - py.test
-  - wget localhost
-  - wget localhost/nd/accounts/login
-  - ls -la /tmp/
-  - cd ./test/
-  - sudo py.test test_info.py
-  - sudo cat /var/log/uwsgi/app/*.log
-  - sudo cat /var/log/neurodata/ndstore.log
