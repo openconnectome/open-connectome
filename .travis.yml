@@ -15,4 +15,4 @@ services:
 
 script:
   - echo "Branch $TRAVIS_BRANCH"
-  - docker build --build-arg TRAVIS_BRANCH="$TRAVIS_BRANCH" -t neurodata .
+  - docker build --build-arg BRANCH=$TRAVIS_BRANCH -t neurodata .

@@ -1,4 +1,6 @@
 FROM ubuntu:14.04
+ARG BRANCH
+ENV TRAVIS_BRANCH $BRANCH
 MAINTAINER Kunal Lillaney <lillaney@jhu.edu>
 
 #Remove pesky problems 
