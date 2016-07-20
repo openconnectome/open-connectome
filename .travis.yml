@@ -14,4 +14,4 @@ services:
   - docker
 
 script:
-  - docker build -t neurodata .
+  - docker build -t --build-arg TRAVIS_BRANCH="$TRAVIS_BRANCH" neurodata .
