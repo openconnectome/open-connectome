@@ -17,8 +17,16 @@ RUN apt-get update -y && apt-get install -y \
   bash-completion
 USER neurodata
 
+RUN echo $TRAVIS_BRANCH
+
 # clone the repo
-RUN if [ ! -z "$TRAVIS_BRANCH" ]; then cd /home/travis/build/neurodata/ndstore/setup; 	./ndstore_install.sh "$TRAVIS_BRANCH"; else cd /home/neurodata; git clone https://github.com/neurodata/ndstore.git; cd /home/neurodata/ndstore; git checkout microns; git submodule init; git submodule update; cd /home/neurodata/ndstore/setup; ./ndstore_install.sh; fi
+RUN cd /home/neurodata; git clone https://github.com/neurodata/ndstore.git; cd /home/neurodata/ndstore; git checkout microns; git submodule init; git submodule update
+WORKDIR /home/neurodata/ndstore
+RUN if [ ! -z "$TRAVIS_BRANCH" ]; then git checkout $TRAVIS_BRANCH; fi
+
+USER root
+WORKDIR /home/neurodata/ndstore/setup
+RUN if [ ! -z "$TRAVIS_BRANCH" ]; then ./ndstore_install.sh $TRAVIS_BRANCH; else ./ndstore_install.sh; fi
 
 # open the port
 EXPOSE 80
