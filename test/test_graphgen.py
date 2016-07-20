@@ -75,16 +75,8 @@ class Test_GraphGen:
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
 
-<<<<<<< HEAD:test/test_graphgen.py
     url = 'http://{}/ocpgraph/{}/{}/'.format(SITE_HOST, p.token, p.channels[0])
     graphFile = getURL(url).content
-
-=======
-    url = 'http://{}/ndgraph/{}/{}/'.format(SITE_HOST, p.token, p.channels[0])
-    graphFile = urllib2.urlopen(url)
-    with open(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]), "wb") as f:
-        f.write(graphFile.read())
->>>>>>> origin/ae-graphgen-update:test/test_graphgen.py
     outputGraph = nx.read_graphml(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     #os.remove(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
@@ -98,14 +90,7 @@ class Test_GraphGen:
     # TODO UA Change nd to nd everywhere in django as well
     url = 'http://{}/ndgraph/{}/{}/{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'adjlist')
-<<<<<<< HEAD:test/test_graphgen.py
     graphFile = getURL(url).content
-
-=======
-    graphFile = urllib2.urlopen(url)
-    with open(("/tmp/{}_{}.adjlist").format(p.token, p.channels[0]), "wb") as f:
-        f.write(graphFile.read())
->>>>>>> origin/ae-graphgen-update:test/test_graphgen.py
     outputGraph = nx.read_adjlist(("/tmp/{}_{}.adjlist").format(p.token, p.channels[0]))
     #os.remove(("/tmp/{}_{}.adjlist").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
@@ -117,18 +102,10 @@ class Test_GraphGen:
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
 
-<<<<<<< HEAD:test/test_graphgen.py
     url = 'http://{}/ocpgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'graphml', 0, 7, 0, 8, 1, 4)
     graphFile = getURL(url).content
 
-=======
-    url = 'http://{}/ndgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
-        SITE_HOST, p.token, p.channels[0], 'graphml', 0, 7, 0, 8, 1, 4)
-    graphFile = urllib2.urlopen(url)
-    with open(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]), "wb") as f:
-        f.write(graphFile.read())
->>>>>>> origin/ae-graphgen-update:test/test_graphgen.py
     outputGraph = nx.read_graphml(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     #os.remove(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
@@ -141,23 +118,12 @@ class Test_GraphGen:
 
     url = 'http://{}/ndgraph/{}/{}/{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'foograph')
-<<<<<<< HEAD:test/test_graphgen.py
     graphFile = getURL(url).content
-
-=======
-    graphFile = urllib2.urlopen(url)
-    with open(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]), "wb") as f:
-        f.write(graphFile.read())
->>>>>>> origin/ae-graphgen-update:test/test_graphgen.py
     outputGraph = nx.read_graphml(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     #os.remove(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
 
     """Invalid token"""
-<<<<<<< HEAD:test/test_graphgen.py
-    url = 'http://{}/ocpgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
-=======
     url = 'http://{}/ndgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
->>>>>>> origin/ae-graphgen-update:test/test_graphgen.py
         SITE_HOST, 'foo', p.channels[0], 'graphml', 0, 7, 0, 7, 0, 7)
     assert (getURL(url) >= 500)
