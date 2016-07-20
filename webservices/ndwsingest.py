@@ -322,7 +322,7 @@ class IngestData:
                 if ch.getChannelType() in IMAGE_CHANNELS:
                   db.putCube(ch, zidx, self.resolution, cube, update=True)
                 elif ch.getChannelType() in TIMESERIES_CHANNELS:
-                  db.putTimeCube(ch, zidx, timestamp, self.resolution, cube, update=True)
+                  db.putTimeCube(ch, zidx, timestamp, self.resolution, cube, update=False)
                 elif ch.getChannelType() in ANNOTATION_CHANNELS:
                   corner = map(sub, [x,y,slice_number], [xoffset,yoffset,zoffset])
                   db.annotateDense(ch, corner, self.resolution, cube.data, 'O')

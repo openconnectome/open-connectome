@@ -77,7 +77,7 @@ def autoIngest(webargs, post_data):
   ds = extractDatasetDict(dataset_dict)
   pr, tk = extractProjectDict(project_dict)
   pr.host = 'localhost'
-  pr.kvengine = REDIS
+  # pr.kvengine = REDIS
   pr.s3backend = S3_TRUE
   if pr.project_name in ['unittest','unittest2']:
     pr.host = 'localhost'

@@ -147,7 +147,6 @@ class Test_Create_Channel_Json():
     """Setup Parameters"""
     p.channels = []
     makeunitdb.createTestDB(p.token, channel_list=p.channels, ximagesize=2000, yimagesize=2000, zimagesize=1000, xvoxelres=1.0, yvoxelres=1.0, zvoxelres=5.0)
-
   def teardown_class(self):
     """Teardown Parameters"""
     makeunitdb.deleteTestDB(p.token)

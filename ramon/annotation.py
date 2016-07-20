@@ -69,8 +69,8 @@ class Annotation:
     elif self.kvpairs.get(field):
       return self.kvpairs[field]
     else:
-      logger.warning ( "getField: No such field %s" % (field))
-      raise NDWSError ( "getField: No such field %s" % (field))
+      logger.error("getField: No such field %s".format(field))
+      raise NDWSError("getField: No such field %s".format(field))
 
 
   def setField ( self, field, value ):
@@ -132,7 +132,7 @@ class AnnSynapse (Annotation):
     self.weight = 0.0 
     self.synapse_type = 0 
     self.seeds = np.array([], dtype=np.uint32)
-    self.segments = np.array([], dtype=np.uint32)      #undirected edge
+    self.segments = np.array([], dtype=np.uint32)      # undirected edge
     self.presegments = np.array([], dtype=np.uint32)    # directed edge
     self.postsegments = np.array([], dtype=np.uint32)   # directed edge   
     self.centroid = np.array([], dtype=np.uint32)    # centroid -- xyz coordinate
@@ -181,7 +181,8 @@ class AnnSynapse (Annotation):
     elif field == 'centroid':
       self.centroid = np.array([int(x) for x in value.split(',')], dtype=np.uint32)
       if len(self.centroid) != 3:
-        raise NDWSError ("Illegal arguments to set field centroid: %s" % value)
+        logger.error("Illegal arguments to set field centroid: {}".format(value))
+        raise NDWSError("Illegal arguments to set field centroid: {}".format(value))
     else:
       Annotation.setField ( self, field, value )
 
@@ -280,7 +281,7 @@ class AnnSeed (Annotation):
     elif field == 'position':
       self.position = np.array([int(x) for x in value.split(',')], dtype=np.uint32)
       if len(self.position) != 3:
-        raise NDWSError ("Illegal arguments to set field position: %s" % value)
+        raise NDWSError ("Illegal arguments to set field position: {}".format(value))
     elif field == 'cubelocation':
       self.cubelocation = value
     elif field == 'source':
@@ -365,7 +366,7 @@ class AnnSegment (Annotation):
       return Annotation.getField(self, field)
 
   def setField ( self, field, value ):
-    """Mutator by field name.  Then need to store the field."""
+    """Mutator by field name. Then need to store the field."""
     
     if field == 'segmentclass':
       self.segmentclass = value
@@ -374,9 +375,9 @@ class AnnSegment (Annotation):
     elif field == 'neuron':
       self.neuron = value
     elif field == 'synapses':
-      raise NDWSError ("Cannot set synapses in segments.  It is derived from the synapse annotations.")
+      raise NDWSError ("Cannot set synapses in segments. It is derived from the synapse annotations.")
     elif field == 'organelles':
-      raise NDWSError ("Cannot set organelles in segments.  It is derived from the organelle annotations.")
+      raise NDWSError ("Cannot set organelles in segments. It is derived from the organelle annotations.")
     else:
       Annotation.setField ( self, field, value )
 
@@ -435,10 +436,10 @@ class AnnNeuron (Annotation):
       return Annotation.getField(self, field)
 
   def setField ( self, field, value ):
-    """Mutator by field name.  Then need to store the field."""
+    """Mutator by field name. Then need to store the field."""
     
     if field == 'segments':
-      raise NDWSError ("Cannot set segments.  It is derived from the neuron field of ANNO_SEGMENTS.")
+      raise NDWSError ("Cannot set segments. It is derived from the neuron field of ANNO_SEGMENTS.")
     else:
       Annotation.setField ( self, field, value )
 
@@ -509,7 +510,7 @@ class AnnOrganelle (Annotation):
     elif field == 'centroid':
       self.centroid = np.array([int(x) for x in value.split(',')], dtype=np.uint32)
       if len(self.centroid) != 3:
-        raise NDWSError ("Illegal arguments to set field centroid: %s" % value)
+        raise NDWSError("Illegal arguments to set field centroid: {}".format(value))
     elif field == 'parentseed':
       self.parentseed = value
     elif field == 'segment':

@@ -10,80 +10,18 @@ sudo: required
 
 dist: trusty
 
-cache:
-  - pip
-  - apt
-
-addons:
-  apt:
-     packages:
-       - nginx
-       - supervisor
-       - python-dev
-       - liblapack-dev
-       - libmemcached-dev
-       - memcached
-       - g++
-       - libxslt1-dev
-       - libhdf5-serial-dev
-       - libjpeg-dev
-       - mysql-server-5.6
-       - mysql-client-core-5.6
-       - mysql-client-5.6
-
 services:
-  - mysql
-  - memcached
-  - rabbitmq
-  - supervisor
-  - nginx
-  - redis
+  - docker
 
 before_install:
-  - sudo mkdir /var/log/neurodata
-  - sudo touch /var/log/neurodata/nd.log
-  - sudo chown -R www-data:www-data /var/log/neurodata
-  - sudo chmod -R 777 /var/log/neurodata/
-
-install: 
-  - sudo apt-get -y install uwsgi uwsgi-plugin-python
-  - pip install cython numpy
-  - pip install -r ./setup/requirements.txt
-    # compiling the ctypes lib
-  - make -f /home/travis/build/neurodata/ndstore/ndlib/c_version/makefile_LINUX -C ./ndlib/c_version/
-    # creating the mysql user
-  - mysql -u root -i -e "create user 'neurodata'@'localhost' identified by 'neur0data';" && mysql -u root -i -e "grant all privileges on *.* to 'neurodata'@'localhost' with grant option;" && mysql -u neurodata -pneur0data -i -e "CREATE DATABASE neurodjango;"
-    # settings and secret_settings
-  - cp ./django/ND/settings.py.example ./django/ND/settings.py
-  - ln -s /home/travis/build/neurodata/ndstore/setup/docker_config/django/docker_settings_secret.py /home/travis/build/neurodata/ndstore/django/ND/settings_secret.py
-    # django migrate
-  - python ./django/manage.py migrate
-  - echo "from django.contrib.auth.models import User; User.objects.create_superuser('neurodata', 'abc@xyz.com', 'neur0data')" | python ./django/manage.py shell
-  - python ./django/manage.py collectstatic --noinput
-    # move the nginx config files and start service
-  - sudo rm /etc/nginx/sites-enabled/default
-  - sudo ln -s ./setup/docker_config/nginx/ndstore.conf /etc/nginx/sites-enabled/default
-  #- sudo rm /etc/nginx/nginx.conf
-  #- sudo ln -s ./setup/docker_config/nginx/nginx.conf /etc/nginx/nginx.conf
-    # move uwsgi config files and start service
-  - sudo chown -R www-data:www-data /tmp/
-  - sudo ln -s ./setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-available/ndstore.ini
-  - sudo ln -s ./setup/docker_config/uwsgi/ndstore.ini /etc/uwsgi/apps-enabled/ndstore.ini
-    # move celery config files and start service
-  - sudo ln -s ./setup/docker_config/celery/propagate.conf /etc/supervisor/conf.d/propagate.conf
-  - sudo ln -s ./setup/docker_config/celery/ingest.conf /etc/supervisor/conf.d/ingest.conf
-    # restarting all the services
-  - sudo service nginx restart
-  - sudo service uwsgi restart
-  - sudo service supervisor restart
-  - sudo service rabbitmq-server restart
-  - sudo service memcached restart
+#  - sudo apt-get update
+  - sudo apt-get install apt-transport-https ca-certificates
+  - sudo apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+  - sudo bash -c "echo "deb https://apt.dockerproject.org/repo ubuntu-trusty main" >> /etc/apt/sources.list.d/docker.list"
+  - sudo apt-get update -y; sudo apt-key update -y
+  - sudo apt-get -qqy -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" install docker-engine=1.11.1-0~trusty
+#  - sudo apt-get install docker-engine
 
 script:
-  - wget localhost
-  - wget localhost/nd/accounts/login
-  - ls -la /tmp/
-  - cd ./test/
-  - py.test test_info.py
-  - cat /var/log/uwsgi/app/*.log
-  - cat /var/log/neurodata/ndstore.log
+  - echo "Branch $TRAVIS_BRANCH"
+  - docker build --build-arg BRANCH=$TRAVIS_BRANCH -t neurodata .
