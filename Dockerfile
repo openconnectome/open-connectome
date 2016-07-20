@@ -16,16 +16,7 @@ RUN apt-get update -y && apt-get install -y \
 USER neurodata
 
 # clone the repo
-WORKDIR /home/neurodata
-RUN git clone https://github.com/neurodata/ndstore.git
-WORKDIR /home/neurodata/ndstore
-RUN git checkout travis_changes
-RUN git submodule init
-RUN git submodule update
-USER root
-
-WORKDIR /home/neurodata/ndstore/setup
-RUN ./ndstore_install.sh
+RUN if [ ! -z "$TRAVIS_BRANCH" ]; then cd /home/travis/build/neurodata/ndstore/setup; 	./ndstore_install.sh "$TRAVIS_BRANCH"; else cd /home/neurodata; git clone https://github.com/neurodata/ndstore.git; cd /home/neurodata/ndstore; git checkout microns; git submodule init; git submodule update; cd /home/neurodata/ndstore/setup; ./ndstore_install.sh; fi
 
 # open the port
 EXPOSE 80

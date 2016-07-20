@@ -28,7 +28,13 @@ sudo useradd -m -p neur0data -g neurodata -s /bin/bash neurodata
 cd /home/neurodata
 sudo -u neurodata git clone https://github.com/neurodata/ndstore
 cd /home/neurodata/ndstore
-sudo -u neurodata git checkout travis_changes 
+
+if [ -z "$1" ]; then
+  sudo -u neurodata git checkout microns 
+else
+  sudo -u neurodata git checkout "$1"
+fi
+
 sudo -u neurodata git submodule init
 sudo -u neurodata git submodule update
 
