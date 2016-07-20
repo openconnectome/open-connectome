@@ -23,13 +23,14 @@ import numpy as np
 import pytest
 from contextlib import closing
 
+import kvengine_to_test
+
 from ndtype import UINT8, UINT16, UINT32, ANNOTATION, IMAGE 
 from ND import celery_app 
 import makeunitdb
 from params import Params
 from postmethods import postNPZ, getNPZ 
 
-import kvengine_to_test
 import site_to_test
 SITE_HOST = site_to_test.site
 
