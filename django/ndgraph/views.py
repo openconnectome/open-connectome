@@ -15,85 +15,48 @@
 from django.shortcuts import render
 
 # Create your views here.
-
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
 from wsgiref.util import FileWrapper
 
 import os
-import numpy as np
-import json
 import re
 from contextlib import closing
 import tarfile
 
-from django.conf import settings
 
 from ndwserror import NDWSError
-import ndproj
-import spatialdb
 import ndgraph
-
 import logging
 logger=logging.getLogger("neurodata")
 
+from nduser.models import Project
+from nduser.models import Dataset
+from nduser.models import Token
+from nduser.models import Channel
 
-def getResponse( filename ):
-
-    output = tarfile.open('/tmp/GeneratedGraph.tar.gz', mode='w')
-    try:
-        output.add(filename)
-    except Exception, e:
-      logger.warning("Unable to write to tar")
-      raise OCPCAError("Unable to write to tar")
-    finally:
-        output.close()
-
-    wrapper = FileWrapper(file("/tmp/GeneratedGraph.tar.gz"))
-    response = HttpResponse(wrapper,'application/x-gzip')
-    response['Content-Length'] = 5
-    response['Content-Disposition'] = 'attachment; filename="GeneratedGraph.tar.gz"'
-    return response
-
-
-
+#@login_required(login_url='/nd/accounts/login/')
 def buildGraph (request, webargs):
-  #Indicated which type of arguements to return/send
-  arguementType=0
-  try:
-    # argument of format /token/channel/Arguments
-    #Tries each of the possible 3 entries
-    #ndgraph/test_graph_syn/test_graph_syn/pajek/5472/6496/8712/9736/1000/1100/
-    #http://127.0.0.1:8000/ocp/ndgraph/GraphAnno/synanno/
+    """Build a graph based on different arguments"""
+    try:
+        args = (webargs.replace(',','/').split('/'))[0:-1]
+        w_token = args[0]
 
+        if not request.user.is_superuser:
+            m_tokens = Token.objects.filter(user=request.user.id) | Token.objects.filter(public=1)
+            tokens = []
+            for v in m_tokens.values():
+                tokens.append(v['token_name'])
+            if w_token not in tokens:
+                raise NDWSError ("Token {} does not exist or you do not have\
+                                  sufficient permissions to access it.".format(w_token))
 
-    if re.match("(\w+)/(\w+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/$", webargs)
-        [syntoken, synchan_name] = [i for i in m.groups()]
-        arguementType=1
-    elif re.match("(\w+)/(\w+)/(\w+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/(\w+)/$", webargs)
-        [syntoken, synchan_name, graphType] = [i for i in m.groups()]
-        arguementType=2
-    elif re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs) is not None:
-        m = re.match("(\w+)/(\w+)/(\w+)/(\d+),(\d+)/(\d+),(\d+)/(\d+),(\d+)/$", webargs)
-        [syntoken, synchan_name, graphType, Xmin,Xmax,Ymin,Ymax,Zmin,Zmax] = [i for i in m.groups()]
-        arguementType=3
-    else:
-        logger.warning("Arguments not in the correct format: /token/channel/Arguments")
-        raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
-
-
-  except Exception, e:
-    logger.warning("Arguments not in the correct format: /token/channel/Arguments")
-    raise OCPCAError("Arguments not in the correct format: /token/channel/Arguments")
-
-  if arguementType==1:
-      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name))
-  elif arguementType==2:
-      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType))
-  elif arguementType==3:
-      return getResponse(ndgraph.genGraphRAMON (syntoken, synchan_name, graphType, Xmin, Xmax, Ymin, Ymax, Zmin, Zmax))
-  else:
-      logger.warning("Unable to return file")
-      raise NDWSError("Unable to return file")
+        (file, filename) = ndgraph.genGraphRAMON (*args)
+        response = HttpResponse(content_type='text/plain')
+        response['Content-Disposition'] = "attachment; filename=\"output.{}\"".format(filename)
+        response.write(file.read())
+        return response
+    except Exception as e:
+        logger.warning(e)
+        raise e

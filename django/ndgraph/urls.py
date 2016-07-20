@@ -20,5 +20,7 @@ from django.conf.urls import patterns, include, url
 
 
 urlpatterns = patterns('ndgraph.views',
-   url(r'(?P<webargs>^.*)$', 'buildGraph'),
+   url(r'(?P<webargs>^\w+/\w+/)$', 'buildGraph'),
+   url(r'(?P<webargs>^\w+/\w+/\w+/)$', 'buildGraph'),
+   url(r'(?P<webargs>^\w+/\w+/\w+/\d+,\d+/\d+,\d+/\d+,\d+/)$', 'buildGraph'),
 )
