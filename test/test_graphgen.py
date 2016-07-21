@@ -45,6 +45,7 @@ class Test_GraphGen:
   def setup_class(self):
     """Create the unittest database"""
     makeunitdb.createTestDB(p.token, channel_list=p.channels, public=True, readonly=0, ximagesize=100, yimagesize=100, zimagesize=100)
+
     cutout1 = "0/2,5/1,3/1,3"
     cutout2 = "0/1,3/4,6/2,5"
     cutout3 = "0/4,6/2,5/5,7"
@@ -75,10 +76,11 @@ class Test_GraphGen:
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
 
-    url = 'http://{}/ocpgraph/{}/{}/'.format(SITE_HOST, p.token, p.channels[0])
-    graphFile = getURL(url).content
+    url = 'http://{}/ndgraph/{}/{}/'.format(SITE_HOST, p.token, p.channels[0])
+    graphFile = urllib2.urlopen(url)
+    with open(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]), "wb") as f:
+        f.write(graphFile.read())
     outputGraph = nx.read_graphml(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
-    #os.remove(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
 
   def test_checkType(self):
@@ -87,12 +89,12 @@ class Test_GraphGen:
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
 
-    # TODO UA Change nd to nd everywhere in django as well
     url = 'http://{}/ndgraph/{}/{}/{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'adjlist')
-    graphFile = getURL(url).content
+    graphFile = urllib2.urlopen(url)
+    with open(("/tmp/{}_{}.adjlist").format(p.token, p.channels[0]), "wb") as f:
+        f.write(graphFile.read())
     outputGraph = nx.read_adjlist(("/tmp/{}_{}.adjlist").format(p.token, p.channels[0]))
-    #os.remove(("/tmp/{}_{}.adjlist").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
 
   def test_checkCutout(self):
@@ -102,12 +104,12 @@ class Test_GraphGen:
     truthGraph = nx.Graph()
     truthGraph.add_edges_from(syn_segments)
 
-    url = 'http://{}/ocpgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
+    url = 'http://{}/ndgraph/{}/{}/{}/{},{}/{},{}/{},{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'graphml', 0, 7, 0, 8, 1, 4)
-    graphFile = getURL(url).content
-
+    graphFile = urllib2.urlopen(url)
+    with open(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]), "wb") as f:
+        f.write(graphFile.read())
     outputGraph = nx.read_graphml(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
-    #os.remove(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
 
   def test_ErrorHandling(self):
@@ -118,9 +120,10 @@ class Test_GraphGen:
 
     url = 'http://{}/ndgraph/{}/{}/{}/'.format(
         SITE_HOST, p.token, p.channels[0], 'foograph')
-    graphFile = getURL(url).content
+    graphFile = urllib2.urlopen(url)
+    with open(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]), "wb") as f:
+        f.write(graphFile.read())
     outputGraph = nx.read_graphml(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
-    #os.remove(("/tmp/{}_{}.graphml").format(p.token, p.channels[0]))
     assert(nx.is_isomorphic(outputGraph, truthGraph))
 
     """Invalid token"""
