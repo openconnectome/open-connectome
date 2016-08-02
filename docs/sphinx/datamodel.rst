@@ -62,7 +62,7 @@ Dataset Attributes
 
 .. function:: Voxel Resolution
 
-    Voxel Resolution is the voxel scale per unit pixel. We store X,Y,Z voxel resolution separately.
+    Voxel Resolution is the voxel scale in nanometer per unit pixel. We store X,Y,Z voxel resolution separately.
 
    :Type: [FLOAT,FLOAT,FLOAT]
    :Default: [0.0,0.0,0.0]
