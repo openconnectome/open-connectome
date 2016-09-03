@@ -676,17 +676,6 @@ def updateDataset(request):
 
     return redirect(getDatasets)
 
-    """
-    datasets = pd.getDatasets()
-
-    context = {
-      'dts': datasets
-    }
-
-    return render(request, 'datasets.html', context)
-    #return render_to_response('datasets.html', { 'dts': datasets })
-    """
-
 
 @login_required(login_url='/nd/accounts/login/')
 def updateChannel(request):
@@ -1009,7 +998,7 @@ def createToken(request):
           new_token.user_id=request.user.id
           new_token.save()
           #return HttpResponseRedirect(get_script_prefix()+'nduser/projects/')
-          return redirect(getProjects)
+          return redirect(getTokens)
         else:
           context = {'form': form}
           return render(request, 'createtoken.html', context)

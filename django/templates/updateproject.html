@@ -21,14 +21,14 @@ Create Project Template
 
   <div id="form" >
   <form method="post" action="" enctype="multipart/form-data">
-   
+
     {{ form.errors }}
 
-    <p> <font color="red"> NOTICE: Many project fields cannot be updated!!!</font> Changing these fields would modify 
-physical properties of the database.  If you need to change these fields, please create a new project. 
-  You are allowed to change the key/value server and the host server, although this is not recommended.  
-This would be necessary when changing a hostname. </p>  
-      
+    <p> <font color="red"> NOTICE: Many project fields cannot be updated!!!</font> Changing these fields would modify
+physical properties of the database.  If you need to change these fields, please create a new project.
+  You are allowed to change the key/value server and the host server, although this is not recommended.
+This would be necessary when changing a hostname. </p>
+
     <div class = "row">
       <div class ="col-md-4"></div>
       <div class ="col-md-2">
@@ -102,7 +102,21 @@ This would be necessary when changing a hostname. </p>
       <div class ="col-md-4"></div>
     </div>
 
-    <br> 
+    <div class = "row">
+      <div class ="col-md-4"></div>
+      <div class ="col-md-2">
+        <div class="fieldWrapper">
+          {{ form.subject.errors }}
+          <label for="kvserver"> <font color="red">KV Engine</font></label>
+        </div>
+      </div>
+      <div class ="col-md-2">
+        {{ form.kvengine }}
+      </div>
+      <div class ="col-md-4"></div>
+    </div>
+
+    <br>
 
     <div class = "row">
       <div class ="col-md-5"></div>
@@ -110,14 +124,12 @@ This would be necessary when changing a hostname. </p>
 
         <button class="btn btn-primary" name = "UpdateProject" type="submit">Update Project</button>
         <button class="btn btn-primary" name = "backtoprojects" type="submit">Back to Projects</button>
-        
+
       </div>
       <div class ="col-md-4"></div>
-    </div>      
+    </div>
 
  </form>
  </div>
-       
+
 {% endblock %}
-
-
