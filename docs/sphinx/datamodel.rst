@@ -13,10 +13,10 @@ Overview
 
 Our data model for image datasets is composed of the following components:
 
-* Dataset: containing metadata required to efficiently store, visualize, and analyze data for a set of projects; it effectively defines the dataspace. The dataset itself contains no actual data, as the actual data is stored in the channel objects.
-* Project: is a database storing a collection of channels
-* Token: a name for a project, a project can have multiple tokens, each with different permissions (eg, read vs. write)
-* Channel: is a collection of tables, including the actual images, as well as metadata
+* Dataset: containing metadata required to efficiently store, visualize, and analyze data for a set of projects; it effectively defines the dataspace. The dataset itself contains no actual data, as the actual data is stored in the channel objects. The user does not interact with dataset objects other than to define them.
+* Project: is a database storing a collection of channels. This object is primarly for backend use. 
+* Token: a unique identifier for a project. A project can have multiple tokens, each with different permissions (eg, read vs. write). This is the object that a user will be interacting with the most.
+* Channel: is where the data is actually stored in a collection of tables, including the actual images and associated metadata.
 
 To understand the relationship between the above 4 different components of the data model, consider the following example.
 
@@ -54,7 +54,7 @@ Dataset Attributes
 
 .. function:: Image Size
 
-   Image size is the pixel count dimensions of the data. For example is the data is stored as a series of 100 slices each 2100x2000 pixel TIFF images, the X,Y,Z dimensions are (2100, 2000, 100).
+   Image size is the pixel count dimensions of the data. For example is the data is stored as a series of 100 slices each 2100x2000 pixel TIFF images, the X,Y,Z dimensions are (2100, 2000, 100). A common mistake here is to mix up the X and Y dimensions of the data. X is the width of the image and Y is the length of the image.
 
    :Type: [INT,INT,INT]
    :Default: None
@@ -158,7 +158,7 @@ Channel Attributes
 
 .. function:: Channel Name
 
-   Channel Name is the specific name of a specific series of data. Standard naming convention is to do ImageTypeIterationNumber or NameSubProjectName.
+   Channel Name is the specific name of a specific series of data. Standard naming convention is to do ImageTypeIterationNumber or NameSubProjectName. 
 
    :Type: AlphaNumeric
    :Default: None
@@ -187,7 +187,7 @@ Channel Attributes
 
 .. function:: Base Resolution
 
-   Resolution is the starting resolution of the data being uploaded to the channel.
+   Resolution is the starting resolution of the data being uploaded to the channel. NeuroData builds a multi-resolution hierarchy for each project where each higher resolution is scaled down by a factor of 2 in the x and y dimensions (the number of z slices remain the same for non-isotropic data).
 
    :Type: INT
    :Default: 0
