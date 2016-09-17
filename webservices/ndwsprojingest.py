@@ -260,12 +260,12 @@ def createChannel(webargs, post_data):
       ch.save()
       
       # Create channel database using the ndproj interface
-      pd = ndproj.NDProjectsDB.getProjDB(pr.project_name)
+      pd = ndproj.NDProjectsDB.getProjDB(tk.token_name)
       pd.newNDChannel(ch.channel_name)
   except Exception, e:
-    logger.error("Error saving models")
+    logger.error("Error creating new channel: {}".format(ch.channel_name))
     # return the bad request with failed message
-    return HttpResponseBadRequest("Error saving models.", content_type="text/plain")
+    return HttpResponseBadRequest("Error creating new channel: {}".format(ch.channel_name), content_type="text/plain")
 
   # return the JSON file with success
   return HttpResponse("Success. The channels were created.", content_type="text/plain")
