@@ -45,9 +45,17 @@ You can open an issue on our github `repository <https://github.com/neurodata/nd
 
 Please visit our NeuroDataViz page.
 
+**How do I download data?**
+
+You can download sub volumes of data using our RESTful API's. `Here <../api/data_api>`_ is the documentation for this. You catch fetch the data in HDF5, Numpy or Blosc format. It is also highly recommended to fetch this data in regions of 1024,1024,16. Alternatively there is a python library NDIO, which wraps around these RESTful API's.
+
 **How do I use the RESTful interface?**
 The RESTful interface can be accessed with any browser by inputting the correct link or any package that supports web requests. 
 
 **Is there a support forum?**
 
 Information on making a support request and archived questions and answers may be found `here <https://groups.google.com/a/neurodata.io/forum/#!forum/support>`_.
+
+**What do I do if a service is down?**
+
+If a service appears to be down, it is highly recommended that you wait some time and try to access it again later. If later the service is still down the fastest way to get a response will be to open an issue `here. <https://github.com/neurodata/ndstore/issues>`_
