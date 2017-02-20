@@ -218,9 +218,6 @@ LOGGING = {
   },
 }
 
-# Cuboid settings
-SUPER_CUBOID_SIZE = [512, 512, 64]
-
 # Celery Settings
 BROKER_URL = 'amqp://guest@localhost'
 CELERY_TASK_SERIALIZER = 'json'
@@ -273,10 +270,6 @@ REDIS_DATA_HOST = 'localhost'
 REDIS_DATA_PORT = 6379
 REDIS_DATA_DB = 0
 
-# Amazon Settings
-AWS_ACCESS_KEY_ID = settings_secret.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = settings_secret.AWS_SECRET_ACCESS_KEY
-
 # HTTPS Settings
 SECRET_TOKEN = settings_secret.SECRET_TOKEN
 SESSION_COOKIE_SECURE = True
@@ -286,14 +279,6 @@ os.environ['wsgi.url_scheme'] = 'https'
 os.environ['HTTPS'] = "on"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
-
-# REGION_NAME = 'us-east-1'
-S3_CUBOID_BUCKET = 'neurodata-cuboid-store'
-# S3_TILE_BUCKET = 'neurodata-tile-store'
-# DYNAMO_CUBOIDINDEX_TABLE = 's3indexdb'
-# DYNAMO_TILEINDEX_TABLE = 'tileindexdb'
-AWS_ACCESS_KEY_ID = settings_secret.AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = settings_secret.AWS_SECRET_ACCESS_KEY
 
 # Upload Sizes for max memory and number of fields
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2147483648

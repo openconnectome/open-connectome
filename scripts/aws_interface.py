@@ -362,7 +362,7 @@ class AwsInterface:
     cur_res = tile_params['ingest_job']['resolution']
     
     # loading all the parameters for image-sizes, tile-sizes, and iteration limits
-    [xsupercubedim, ysupercubedim, zsupercubedim] = supercubedim = settings.SUPER_CUBOID_SIZE
+    [xsupercubedim, ysupercubedim, zsupercubedim] = supercubedim = SUPER_CUBOID_SIZE
     [x_start, x_end] = tile_params['ingest_job']['extent']['x']
     [y_start, y_end] = tile_params['ingest_job']['extent']['y']
     [z_start, z_end] = tile_params['ingest_job']['extent']['z']
