@@ -2,7 +2,7 @@
 # Requirements file for Ndstore
 # Maintainer : Kunal Lillaney <lillaney@jhu.edu>
 # Instructions to add new packages:
-# 1. Do not specify pacakge version untill absoutely required
+# 1. Do not specify pacakge version untill absolutely required
 # 2. Add your package to one of the sub-categories. If unsure add them to the misc section
 # 3. Run this with the command "pip install -U -r requirements.txt"
 #################################################################
@@ -15,7 +15,7 @@ blosc
 #
 # Django and other piping
 uwsgi
-django==1.9.9
+django
 django-registration
 django-celery
 django-cors-headers

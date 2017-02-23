@@ -32,6 +32,16 @@ Major directories include:
 
 ![](./docs/images/neurodata_cluster.png)
 
+#### Installation
+
+* Use a fresh Ubuntu14.04 instance with sudo access.
+```console
+wget https://raw.githubusercontent.com/neurodata/ndstore/master/setup/ndstore_install.sh
+sudo chmod 7000 ndstore_install.sh
+sudo ./ndstore_install.sh
+```
+**Note:** *ndstore does not support Docker images because running custom systemd services needs some relaxation of security on the Docker engine leading to issues. We recommend using the install script used above*
+
 #### Benchmarks
 
 The benchmarks were performed on AWS EC2 instance type i2.8xlarge with a MySQL backend.

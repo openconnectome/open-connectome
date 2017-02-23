@@ -132,8 +132,8 @@ sudo ln -s /home/neurodata/ndstore/ndingest/settings/settings.ini.example /home/
 if [ -z "$2" ]; then
   sudo mkdir /etc/nginx/ssl
   cd /home/neurodata/ndstore/setup/
-  sudo openssl req -newkey rsa:2048 -nodes -keyout /etc/nginx/ssl/server.key -config ssl_config.txt
-  sudo openssl req -key /etc/nginx/ssl/server.key -new -x509 -out /etc/nginx/ssl/server.crt -config ssl_config.txt
+  sudo openssl req -newkey rsa:2048 -nodes -keyout /etc/nginx/ssl/neurodata.io.key -config ssl_config.txt
+  sudo openssl req -key /etc/nginx/ssl/neurodata.io.key -new -x509 -out /etc/nginx/ssl/neurodata.io.crt -config ssl_config.txt
 else
   if [ "$2" == "PRODUCTION" ]; then
     sudo mkdir /etc/nginx/ssl
@@ -142,8 +142,8 @@ else
     chmod a+x certbot-auto
     echo "y" | sudo ./certbot-auto
     sudo ./certbot-auto certonly --noninteractive --agree-tos --email $4 --webroot -w /usr/share/nginx/html/ -d $3
-    sudo cp /etc/letsencrypt/live/$3/privkey.pem /etc/nginx/ssl/server.key
-    sudo cp /etc/letsencrypt/live/$3/cert.pem /etc/nginx/ssl/server.crt
+    sudo cp /etc/letsencrypt/live/$3/privkey.pem /etc/nginx/ssl/neurodata.io.key
+    sudo cp /etc/letsencrypt/live/$3/cert.pem /etc/nginx/ssl/neurodata.io.crt
     sudo ./certbot-auto renew --quiet --no-self-upgrade
   fi
 fi
