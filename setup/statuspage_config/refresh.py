@@ -16,7 +16,7 @@
 import pytest
 import sys
 sys.path.append('..')
-from core.component import Component
+from statuspage.core.component import Component
 import os
 
 os.chdir('../../test/')

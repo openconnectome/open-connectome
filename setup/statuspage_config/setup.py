@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from core.component import Component
+from statuspage.core.component import Component
 
 #Spatial Database
 component = Component()
