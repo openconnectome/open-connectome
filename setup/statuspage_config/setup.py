@@ -17,73 +17,69 @@ from statuspage.core.component import Component
 
 #Spatial Database
 component = Component()
-component.name = 'Test_Blosc'
+component.name = 'Blosc API'
 component.create()
 
 component = Component()
-component.name = 'Test_Image'
+component.name = 'Image API'
 component.create()
 
 component = Component()
-component.name = 'Test_Jpeg'
+component.name = 'Jpeg API'
 component.create()
 
 component = Component()
-component.name = 'Test_Raw'
+component.name = 'Raw API'
 component.create()
 
 component = Component()
-component.name = 'Test_Propagate'
+component.name = 'Propagate API'
 component.create()
 
 component = Component()
-component.name = 'Test_Time'
+component.name = 'Time API'
 component.create()
 
 component = Component()
-component.name = 'Test_Autoingest'
+component.name = 'Autoingest API'
 component.create()
 
 component = Component()
-component.name = 'Test_Io' #Change to Anno IO
+component.name = 'Anno IO' #Change to Anno IO
 component.create()
 
 component = Component()
-component.name = 'Test_Query' #Change to Anno Query
+component.name = 'Anno Query' #Change to Anno Query
 component.create()
 
 component = Component()
-component.name = 'Test_Annoid'
+component.name = 'Annoid API'
 component.create()
 
 component = Component()
-component.name = 'Test_Jsonann' #Json Ramon
+component.name = 'Json Ramon' #Json Ramon
 component.create()
 
 component = Component()
-component.name = 'Test_Ramon' #HDF5 Ramon
+component.name = 'HDF5 Ramon' #HDF5 Ramon
 component.create()
 
 component = Component()
-component.name = 'Test_Neuron' #HDF5 Ramon
+component.name = 'Graphgen API'
 component.create()
 
 component = Component()
-component.name = 'Test_Graphgen'
+component.name = 'Probability API'
 component.create()
 
 component = Component()
-component.name = 'Test_Probability'
+component.name = 'Stats API'
 component.create()
 
 component = Component()
-component.name = 'Test_Stats'
+component.name = 'Info API'
 component.create()
 
 component = Component()
-component.name = 'Test_Info'
-component.create()
-
-component = Component()
-component.name = 'Test_Resource' #Resource Management
+component.name = 'Resource Manager' #Resource Management
 component.create()
