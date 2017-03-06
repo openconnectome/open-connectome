@@ -33,8 +33,9 @@ class AnonAllowedAuthentication(authentication.TokenAuthentication):
             return None
 
         if len(auth) == 1:
-            msg = _('Invalid token header. No credentials provided.')
-            raise exceptions.AuthenticationFailed(msg)
+            #If this is the case someone passed an empty user_token which should be treated as valid but anonymous
+            return None
+
         elif len(auth) > 2:
             msg = _('Invalid token header. Token string should not contain spaces.')
             raise exceptions.AuthenticationFailed(msg)
