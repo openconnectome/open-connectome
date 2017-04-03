@@ -18,13 +18,14 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFou
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
 from ndauth.authentication import PublicAuthentication
 from nduser.models import Dataset
 from ndproj.nddataset import NDDataset
 
 @authentication_classes((SessionAuthentication, TokenAuthentication))
-@permission_classes((PublicAuthentication,))
-class DatasetView(View):
+@permission_classes((IsAuthenticated,))
+class DatasetView(generics.GenericAPIView):
 
   def get(self, request, dataset_name):
     try:

@@ -18,14 +18,16 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFou
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
+
 from ndauth.authentication import PublicAuthentication
 from ndproj.ndproject import NDProject
 from nduser.models import Channel
 from ndproj.ndchannel import NDChannel
 
 @authentication_classes((SessionAuthentication, TokenAuthentication))
-@permission_classes((PublicAuthentication,))
-class ChannelView(View):
+@permission_classes((IsAuthenticated,))
+class ChannelView(generics.GenericAPIView):
 
   def get(self, request, dataset_name, project_name, channel_name):
 
