@@ -19,7 +19,6 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
-
 from ndauth.authentication import PublicAuthentication
 from ndproj.ndproject import NDProject
 from nduser.models import Channel
