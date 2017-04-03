@@ -161,7 +161,7 @@ sudo service ndmanager restart
 
 # Create superuser token
 cd /home/neurodata/ndstore/django/
-echo "from rest_framework.authtoken.models import Token; from django.contrib.auth.models import User; u = User.objects.get(username='neurodata'); token = Token.objects.create(user=u); f = open('/tmp/token_super','wb'); f.write(token.key); f.close()" | python manage.py shell
+echo "from rest_framework.authtoken.models import Token; from django.contrib.auth.models import User; u = User.objects.get(username='neurodata'); token = Token.objects.create(user=u); f = open('/tmp/token_super','wb'); f.write(token.key); f.close(); f = open('ND/settings_secret.py', 'r'); lines = f.read().replace('SECRET_TOKEN = \'\'', 'SECRET_TOKEN = \'' + token.key + '\''); f.close(); f.close(); f = open('ND/settings_secret.py', 'w+'); f.write(lines); f.close()" | sudo python manage.py shell
 
 cd /home/neurodata/ndstore/django/
 echo "from rest_framework.authtoken.models import Token; from django.contrib.auth.models import User; u = User.objects.get(username='test'); token = Token.objects.create(user=u); f = open('/tmp/token_user','wb'); f.write(token.key); f.close()" | python manage.py shell
