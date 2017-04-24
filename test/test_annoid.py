@@ -35,6 +35,7 @@ p.token = 'unittest'
 p.channels = ['testchannel']
 p.args = (0,1024,0,1024,1,11)
 
+@pytest.mark.skipif(KV_ENGINE == REDIS, reason='Annotation not supported in Redis')
 class Test_Annotation_Json():
 
   def setup_class(self):

@@ -17,20 +17,20 @@ import sys
 sys.path += [os.path.abspath('../django')]
 import ND.settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
-from ndlib.ndtype import MYSQL, CASSANDRA, RIAK, DYNAMODB, REDIS
+from ndlib.ndtype import *
 
-DEV_MODE = True
+DEV_MODE = False
 
 # kvengine settings
 KV_ENGINE = MYSQL
-# kvengine = CASSANDRA
-# kvengine = RIAK
-# kvengine = DYNAMODB
-# kvengine = REDIS
+# KV_ENGINE = REDIS
+
+# mdengine settings
+MD_ENGINE = MYSQL
 
 # kvserver settings
 KV_SERVER = 'localhost'
 
 # server to check against
-# SITE_HOST = 'localhost:8080'
 SITE_HOST = 'localhost/nd'
+# SITE_HOST = 'localhost:8080'

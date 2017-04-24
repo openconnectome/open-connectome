@@ -25,13 +25,12 @@ import django
 django.setup()
 from django.conf import settings
 from spdb.ndcube.cube import Cube
-from ndlib.ndtype import TIMESERIES_CHANNELS, IMAGE_CHANNELS, ANNOTATION_CHANNELS, ND_dtypetonp, UINT8, UINT16, UINT32, SUPERCUBESIZE
+from ndlib.ndtype import *
 import webservices.ndwsrest as ndwsrest
 from spdb.spatialdb import SpatialDB
 from ndproj.ndprojdb import NDProjectsDB
 from ndlib.ndctypelib import XYZMorton
-from ndlib.s3util import generateS3BucketName, generateS3Key
-from spdb.s3io import S3IO
+from spdb.ndkvio.s3io import S3IO
 from ndingest.nddynamo.cuboidindexdb import CuboidIndexDB
 from webservices.ndwserror import NDWSError
 from ndingest.settings.settings import Settings
@@ -52,11 +51,6 @@ class IngestData:
     self.file_format = file_format
     # set the file_type
     self.file_type = file_type
-    # try:
-      # self.client = boto3.client('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-    # except Exception, e:
-      # logger.error("Cannot connect to S3 backend")
-      # raise NDWSError("Cannot connect to S3 backend")
 
   def ingest(self):
     """Identify the data style and ingest accordingly"""
@@ -76,73 +70,21 @@ class IngestData:
     for slice_number in slice_list:
       # generating the url based on some parameters
       if time_value is not None:
-        key = '{}/{}/{}/{}/{}'.format(self.data_url, self.token, self.channel, time_value, self.generateFileName(slice_number), ondisk=False)
+        # key = '{}/{}/{}/{}/{}'.format(self.data_url, self.token, self.channel, time_value, self.generateFileName(slice_number), ondisk=False)
+        key = '{}/{}/{}/{}'.format(self.data_url, self.token, self.channel, self.generateFileName(slice_number, ondisk=False))
       else:
         if self.data_url == '':
           key = '{}/{}/{}'.format(self.token, self.channel, self.generateFileName(slice_number, ondisk=False))
         else:
           key = '{}/{}/{}/{}'.format(self.data_url, self.token, self.channel, self.generateFileName(slice_number, ondisk=False))
-      # making the request
-      # try:
-        # self.client.download_file(Bucket='neurodata-public', Key=key, Filename=self.path+self.generateFileName(slice_number))
-      # except botocore.exceptions.ClientError as e:
-        # continue
+      
       try:
         s3 = boto3.resource('s3', aws_access_key_id=ndsettings.AWS_ACCESS_KEY_ID, aws_secret_access_key=ndsettings.AWS_SECRET_ACCESS_KEY)
         s3.Object('neurodata-public', key).download_file(self.path+self.generateFileName(slice_number))
       except Exception as e:
         logger.warning("Image file not found {}. {}".format(self.generateFileName(slice_number) , e))
 
-        # req = urllib2.Request(url)
-        # resp = urllib2.urlopen(req, timeout=15)
-      # except urllib2.URLError, e:
-        # logger.warning("Failed to fetch url {}. File does not exist. {}".format(url, e))
-        # continue
-      
-      # writing the file to scratch
-      # try:
-        # image_file = open('{}'.format(self.path+self.generateFileName(slice_number)),'w')
-        # image_file.write(resp.read())
-      # except IOError, e:
-        # logger.warning("IOError. Could not open file {}. {}".format(self.path+self.generateFileName(slice_number), e))
-      # finally:
-        # image_file.close()
 
-
-  # def fetchCatmaidData(self, slice_list, xtile, ytile):
-    # """Fetch the next set of data from a remote source and place it locally"""
-    
-    # # iterating over the slice number list
-    # for slice_number in slice_list:
-      # # generating the url based on some parameters
-      # url = '{}/{}/{}/{}/{}'.format(self.data_url, self.channel, slice_number, self.resolution, self.generateCatmaidFileName(slice_number, xtile, ytile, ondisk=False))
-      
-      # # making the request
-      # try:
-        # req = urllib2.Request(url)
-        # resp = urllib2.urlopen(req, timeout=15)
-      # except urllib2.URLError, e:
-        # logger.warning("Failed to fetch url {}. File does not exist. {}".format(url, e))
-        # continue
-        
-      # # writing the file to scratch
-      # try:
-        # catmaid_file = open('{}'.format(self.path+self.generateCatmaidFileName(slice_number, xtile, ytile)),'w')
-        # catmaid_file.write(resp.read())
-      # except IOError, e:
-        # logger.warning("IOError. Could not open file {}. {}".format(self.path+self.generateCatmaidFileName(slice_number, xtile, ytile), e))
-      # finally:
-        # catmaid_file.close()
-
-  # def cleanCatmaidData(self, slice_list, xtile, ytile):
-    # """Remove the slices at the local store"""
-
-    # for slice_number in slice_list:
-      # try:
-        # os.remove('{}{}'.format(self.path, self.generateCatmaidFileName(slice_number, xtile, ytile)))
-      # except OSError, e:
-        # logger.warning("File {} not found. {}".format(self.generateCatmaidFileName(slice_number, xtile, ytile), e))
- 
   def cleanData(self, slice_list):
     """Remove the slices at the local store"""
 
@@ -152,13 +94,6 @@ class IngestData:
       except OSError, e:
         logger.warning("File {} not found. {}".format(self.generateFileName(slice_number), e))
 
-  # def generateCatmaidFileName(self, slice_number, xtile, ytile, ondisk=True):
-    # """Generate a file name given the slice_number"""
-    
-    # if ondisk:
-      # return '{}_{}_{}.{}'.format(slice_number, ytile, xtile, self.file_type)
-    # else:
-      # return '{}_{}.{}'.format(ytile, xtile, self.file_type)
 
   def generateFileName(self, slice_number, ondisk=True):
     """Generate a file name given the slice_number"""
@@ -168,93 +103,6 @@ class IngestData:
     else:
       return '{:0>4}.{}'.format(slice_number, self.file_type)
 
-  # def createS3Bucket(self, project_name):
-    # """Create s s3 bucket"""
-    
-    # # Creating a resource, similar to a client
-    # s3 = boto3.resource('s3', aws_access_key_id=settings.AWS_ACCESS_KEY_ID, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
-    # bucket = s3.Bucket(generateS3BucketName(project_name))
-    
-    # # Creating a bucket
-    # try:
-      # logger.warning("Creating bucket {}.".format(generateS3BucketName(project_name)))
-      # bucket.create()
-    # except Exception as e:
-      # logger.error("There was an error in creating the bucket {}.".format(generateS3BucketName(project_name)))
-      # raise NDWSError("There was an error in creating the bucket {}.".format(generateS3BucketName(project_name)))
-
-
-  # def ingestCatmaidStack(self):
-    # """Ingest a CATMAID tile stack"""
-    
-    # tilesz = 1024
-    # # Load a database
-    # proj = NDProjectsDB().loadToken(self.token)
-    # db = SpatialDB(proj)
-    # s3db = s3io.S3IO(db)
-    # ch = proj.getChannelObj(self.channel)
-    
-    # # creating bucket
-    # self.createS3Bucket(proj.getProjectName())
-
-    # # get the dataset configuration
-    # [ximagesz, yimagesz, zimagesz] = proj.datasetcfg.dataset_dim(self.resolution)
-    # [starttime,endtime] = ch.time_range()
-    # [xcubedim,ycubedim,zcubedim] = cubedim = proj.datasetcfg.get_cubedim(self.resolution)
-    # [xoffset, yoffset, zoffset] = proj.datasetcfg.get_offset(self.resolution)
-    # [xsupercubedim, ysupercubedim, zsupercubedim] = supercubedim = map(mul, cubedim, SUPERCUBESIZE)
-
-    # if ch.channel_type in TIMESERIES_CHANNELS:
-      # logger.error("Timeseries data not supported for CATMAID data. Error in {}".format(self.token))
-      # raise NDWSError("Timeseries data not supported for CATMAID data. Error in {}".format(self.token))
-    
-    # num_xtiles = ximagesz / tilesz
-    # num_ytiles = yimagesz / tilesz
-      
-    # # over all the tiles in the slice
-    # for ytile in range(0, num_ytiles, 1):
-      # for xtile in range(0, num_xtiles, 1):
-          
-        # # Get a list of the files in the directories
-        # for slice_number in range (zoffset, zimagesz, zsupercubedim):
-          # # empty slab
-          # slab = np.zeros([zsupercubedim, tilesz, tilesz], dtype=ND_dtypetonp.get(ch.channel_datatype))
-          
-          # # prefetch data
-          # self.fetchCatmaidData(range(slice_number, slice_number+zsupercubedim) if slice_number+zsupercubedim<=zimagesz else range(slice_number, zimagesz), xtile, ytile)
-          
-          # for b in range(zsupercubedim):
-            # if (slice_number + b < zimagesz):
-              # try:
-                # # reading the raw data
-                # file_name = "{}{}".format(self.path, self.generateCatmaidFileName(slice_number+b, xtile, ytile))
-                # logger.info("Open filename {}".format(file_name))
-                # slab[b,:,:] = np.asarray(Image.open(file_name, 'r'))[:,:,0]
-              # except IOError, e:
-                # logger.warning("IOError {}.".format(e))
-                # slab[b,:,:] = np.zeros((tilesz, tilesz), dtype=ND_dtypetonp.get(ch.channel_datatype))
-
-          # for y in range (ytile*tilesz, (ytile+1)*tilesz, ysupercubedim):
-            # for x in range (xtile*tilesz, (xtile+1)*tilesz, xsupercubedim):
-
-              # # Getting a Cube id and ingesting the data one cube at a time
-              # zidx = XYZMorton ( [(x-xoffset)/xsupercubedim, (y-yoffset)/ysupercubedim, (slice_number-zoffset)/zsupercubedim] )
-              # cube = Cube.getCube(supercubedim, ch.channel_type, ch.channel_datatype)
-              # cube.zeros()
-
-              # xmin = x % tilesz
-              # ymin = y % tilesz
-              # xmax = ( min(ximagesz-xoffset-1, x+xsupercubedim-1) % tilesz ) + 1
-              # ymax = ( min(yimagesz-yoffset-1, y+ysupercubedim-1) % tilesz ) + 1
-              # zmin = 0
-              # zmax = min(slice_number-zoffset+zsupercubedim, zimagesz+1)
-
-              # cube.data[0:zmax-zmin,0:ymax-ymin,0:xmax-xmin] = slab[zmin:zmax, ymin:ymax, xmin:xmax]
-              # if cube.isNotZeros():
-                # s3db.putCube(ch, self.resolution, zidx, cube.toBlosc())
-      
-          # # clean up the slices fetched
-          # self.cleanCatmaidData(range(slice_number,slice_number+zsupercubedim) if slice_number+zsupercubedim<=zimagesz else range(slice_number,zimagesz), xtile, ytile)
 
   def ingestImageStack(self):
     """Ingest a TIF image stack"""
@@ -266,7 +114,7 @@ class IngestData:
     with closing (SpatialDB(proj)) as db:
       
       s3_io = S3IO(db)
-      cuboidindex_db = CuboidIndexDB(proj.project_name, endpoint_url=ndsettings.DYNAMO_ENDPOINT)
+      # cuboidindex_db = CuboidIndexDB(proj.project_name, endpoint_url=ndsettings.DYNAMO_ENDPOINT)
       
       ch = proj.getChannelObj(self.channel)
       # get the dataset configuration
@@ -281,9 +129,9 @@ class IngestData:
         raise NDWSError("Timeseries Data cannot have timerange (0,0)")
 
       # Get a list of the files in the directories
-      for timestamp in range(starttime, endtime+1):
+      for timestamp in range(starttime, endtime):
         for slice_number in range (zoffset, zimagesz, zsupercubedim):
-          slab = np.zeros([zsupercubedim, yimagesz, ximagesz ], dtype=ND_dtypetonp.get(ch.channel_datatype))
+          slab = np.zeros([1, zsupercubedim, yimagesz, ximagesz ], dtype=ND_dtypetonp.get(ch.channel_datatype))
           # fetch 16 slices at a time
           if ch.channel_type in TIMESERIES_CHANNELS:
             time_value = timestamp
@@ -298,25 +146,25 @@ class IngestData:
                 # print "Open filename {}".format(file_name)
                 logger.info("Open filename {}".format(file_name))
                 
-                if ch.channel_datatype in [UINT8, UINT16] and ch.channel_type in IMAGE_CHANNELS:
+                if ch.channel_datatype in [UINT8, UINT16]:
                   try:
                     image_data = np.asarray(Image.open(file_name, 'r'))
-                    slab[b,:,:] = image_data
+                    slab[0,b,:,:] = image_data
                   except Exception as e:
-                    slab[b,:,:] = np.zeros((yimagesz, ximagesz), dtype=ND_dtypetonp.get(ch.channel_datatype))
+                    slab[0,b,:,:] = np.zeros((yimagesz, ximagesz), dtype=ND_dtypetonp.get(ch.channel_datatype))
                     logger.warning("File corrupted. Cannot open file. {}".format(e))
-                elif ch.channel_datatype in [UINT32] and ch.channel_type in IMAGE_CHANNELS:
+                elif ch.channel_datatype in [UINT32]:
                   image_data = np.asarray(Image.open(file_name, 'r').convert('RGBA'))
-                  slab[b,:,:] = np.left_shift(image_data[:,:,3], 24, dtype=np.uint32) | np.left_shift(image_data[:,:,2], 16, dtype=np.uint32) | np.left_shift(image_data[:,:,1], 8, dtype=np.uint32) | np.uint32(image_data[:,:,0])
+                  slab[0,b,:,:] = np.left_shift(image_data[:,:,3], 24, dtype=np.uint32) | np.left_shift(image_data[:,:,2], 16, dtype=np.uint32) | np.left_shift(image_data[:,:,1], 8, dtype=np.uint32) | np.uint32(image_data[:,:,0])
                 elif ch.channel_type in ANNOTATION_CHANNELS:
                   image_data = np.asarray(Image.open(file_name, 'r'))
-                  slab[b,:,:] = image_data
+                  slab[0,b,:,:] = image_data
                 else:
                   logger.error("Cannot ingest this data yet")
                   raise NDWSError("Cannot ingest this data yet")
               except IOError, e:
                 logger.warning("IOError {}.".format(e))
-                slab[b,:,:] = np.zeros((yimagesz, ximagesz), dtype=ND_dtypetonp.get(ch.channel_datatype))
+                slab[0,b,:,:] = np.zeros((yimagesz, ximagesz), dtype=ND_dtypetonp.get(ch.channel_datatype))
           
           for y in range ( 0, yimagesz+1, ysupercubedim ):
             for x in range ( 0, ximagesz+1, xsupercubedim ):
@@ -332,21 +180,11 @@ class IngestData:
               zmin = 0
               zmax = min(slice_number+zsupercubedim, zimagesz+1)
 
-              cube.data[0:zmax-zmin,0:ymax-ymin,0:xmax-xmin] = slab[zmin:zmax, ymin:ymax, xmin:xmax]
+              cube.data[0, 0:zmax-zmin,0:ymax-ymin,0:xmax-xmin] = slab[0, zmin:zmax, ymin:ymax, xmin:xmax]
               if cube.isNotZeros():
-                cuboidindex_db.putItem(ch.channel_name, self.resolution, x, y, slice_number)
-                s3_io.putCube(ch, self.resolution, zidx, blosc.pack_array(cube.data))
+                # cuboidindex_db.putItem(ch.channel_name, self.resolution, x, y, slice_number, ch.time_range[0])
+                # s3_io.putCube(ch, self.resolution, zidx, blosc.pack_array(cube.data))
+                s3_io.putCube(ch, timestamp, zidx, self.resolution, blosc.pack_array(cube.data), neariso=False)
                 
-                # if ch.channel_type in IMAGE_CHANNELS:
-                  # db.putCube(ch, zidx, self.resolution, cube, update=True)
-                # elif ch.channel_type in TIMESERIES_CHANNELS:
-                  # db.putTimeCube(ch, zidx, timestamp, self.resolution, cube, update=False)
-                # elif ch.channel_type in ANNOTATION_CHANNELS:
-                  # corner = map(sub, [x,y,slice_number], [xoffset,yoffset,zoffset])
-                  # db.annotateDense(ch, corner, self.resolution, cube.data, 'O')
-                # else:
-                  # logger.error("Channel type {} not supported".format(ch.channel_type))
-                  # raise NDWSError("Channel type {} not supported".format(ch.channel_type))
-          
           # clean up the slices fetched
           self.cleanData(range(slice_number, slice_number+zsupercubedim) if slice_number + zsupercubedim<=zimagesz else range(slice_number, zimagesz))

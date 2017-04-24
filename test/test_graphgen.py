@@ -36,7 +36,7 @@ p.channels = ['ANNO1']
 p.channel_type = ANNOTATION
 p.datatype = UINT32
 
-@pytest.mark.skipif(DEV_MODE, reason='Test not necessary for dev mode')
+@pytest.mark.skipif(True, reason='Test not necessary for dev mode')
 class Test_GraphGen:
 
   def setup_class(self):

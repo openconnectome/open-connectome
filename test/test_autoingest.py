@@ -36,7 +36,7 @@ p.datatype = UINT8
 p.dataset = 'unittest'
 
 
-@pytest.mark.skipif(DEV_MODE, reason='Test not necessary for dev mode')
+@pytest.mark.skipif(True, reason='Test not necessary for dev mode')
 class Test_AutoIngest():
 
   def setup_class(self):

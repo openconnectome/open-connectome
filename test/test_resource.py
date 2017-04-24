@@ -14,10 +14,11 @@
 
 import os
 import sys
+import pytest
 sys.path += [os.path.abspath('../django')]
 import ND.settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
-from ndlib.ndtype import IMAGE, UINT8, MYSQL
+from ndlib.ndtype import TIMESERIES, UINT8, MYSQL
 from params import Params
 from ndlib.restutil import getJson, postJson, deleteJson
 from test_settings import *
@@ -27,11 +28,11 @@ p.token = 'unittest'
 p.project = 'unittest'
 p.resolution = 0
 p.channels = ['CHAN1', 'CHAN2']
-p.channel_type = IMAGE
+p.channel_type = TIMESERIES
 p.datatype = UINT8
 p.dataset = 'unittest'
 
-
+@pytest.mark.skipif(DEV_MODE, reason='Test not necessary for dev mode')
 class Test_Resource():
 
   def setup_class(self):

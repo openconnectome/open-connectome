@@ -28,11 +28,27 @@ from ndproj.nddataset import NDDataset
 from ndproj.ndproject import NDProject
 from ndproj.ndchannel import NDChannel
 from ndproj.ndtoken import NDToken
-from ndlib.ndtype import ZSLICES, ANNOTATION, NOT_PROPAGATED, READONLY_FALSE, UINT32, ND_VERSION, MYSQL, CASSANDRA, RIAK, PUBLIC_TRUE
+from ndlib.ndtype import *
 from test_settings import *
+if KV_ENGINE == REDIS:
+  from ndingest.nddynamo.cuboidindexdb import CuboidIndexDB
+  from ndingest.ndbucket.cuboidbucket import CuboidBucket
+  try:
+    CuboidIndexDB.deleteTable()
+    CuboidBucket.deleteBucket()
+  except Exception as e:
+    pass
 
-def createTestDB ( project_name, channel_list=['unit_anno'], channel_type=ANNOTATION, channel_datatype=UINT32, public=PUBLIC_TRUE, ximagesize=10000, yimagesize=10000, zimagesize=1000, xvoxelres=4.0, yvoxelres=4.0, zvoxelres=3.0, scalingoption=ZSLICES, scalinglevels=5, readonly=READONLY_FALSE, propagate=NOT_PROPAGATED, window=[0,0], time=[0,0], default=False, nd_version=ND_VERSION, token_name='unittest', user='neurodata', dataset_name="unittest", s3backend=0 ):
+def createTestDB ( project_name, channel_list=['unit_anno'], channel_type=ANNOTATION, channel_datatype=UINT32, public=PUBLIC_TRUE, ximagesize=10000, yimagesize=10000, zimagesize=1000, xvoxelres=4.0, yvoxelres=4.0, zvoxelres=3.0, scalingoption=ZSLICES, scalinglevels=5, readonly=READONLY_FALSE, propagate=NOT_PROPAGATED, window=[0,0], time=[0,15], default=False, nd_version=ND_VERSION, token_name='unittest', user='neurodata', dataset_name="unittest", base_resolution=0):
   """Create a unit test data base on the specified sit and name"""
+  
+  # setting s3backend to true if Redis and creating s3 bucket and dynamo table
+  if KV_ENGINE == REDIS:
+    s3backend = S3_TRUE
+    CuboidIndexDB.createTable()
+    CuboidBucket.createBucket()    
+  else:
+    s3backend = S3_FALSE
 
   unituser = User.objects.get(username=user)
 
@@ -54,7 +70,7 @@ def createTestDB ( project_name, channel_list=['unit_anno'], channel_type=ANNOTA
 
   try:
     for channel_name in channel_list:
-      ch = NDChannel(Channel (channel_name=channel_name, channel_type=channel_type, channel_datatype=channel_datatype, channel_description='Unit test channel', project_id=pr.project_name, readonly=readonly, propagate=propagate, resolution=0, exceptions=1, starttime=time[0], endtime=time[1]  ,startwindow=window[0], endwindow=window[1], default=default))
+      ch = NDChannel(Channel (channel_name=channel_name, channel_type=channel_type, channel_datatype=channel_datatype, channel_description='Unit test channel', project_id=pr.project_name, readonly=readonly, propagate=propagate, resolution=base_resolution, exceptions=1, starttime=time[0], endtime=time[1]  ,startwindow=window[0], endwindow=window[1], default=default))
       # create a channel
       ch.create()
       # create the channel table
@@ -66,6 +82,7 @@ def createTestDB ( project_name, channel_list=['unit_anno'], channel_type=ANNOTA
 
 def deleteTestDB ( project_name, token_name='unittest' ):
   
+
   try:
     # get the objects
     tk = NDToken.fromName(token_name)
@@ -93,6 +110,11 @@ def deleteTestDB ( project_name, token_name='unittest' ):
     # delete the objects
     pr.delete()
     ds.delete()
+    
+    # delete s3 bucket and dynamo table
+    if KV_ENGINE == REDIS:
+      CuboidIndexDB.deleteTable()
+      CuboidBucket.deleteBucket()
   except Exception, e:
     print(e)
     raise e

@@ -37,14 +37,14 @@ GET_SLICE_SERVICES = ['xy', 'yz', 'xz']
 GET_ANNO_SERVICES = ['xyanno', 'yzanno', 'xzanno']
 POST_SERVICES = ['hdf5', 'npz', 'raw', 'hdf5_async', 'propagate', 'tiff', 'blosc', 'blaze']
 
-@api_view(['GET','POST'])
-@authentication_classes((SessionAuthentication, AnonAllowedAuthentication))
-@permission_classes((PublicAuthentication,))
+#@api_view(['GET','POST'])
+#@authentication_classes((SessionAuthentication, AnonAllowedAuthentication))
+#@permission_classes((PublicAuthentication,))
 def cutout (request, webargs):
   """Restful URL for all read services to annotation projects"""
   
   try:
-    m = re.match(r"(\w+)/(?P<channel>[\w+,]+)?/?(xy|xz|yz|tiff|hdf5|jpeg|blosc|blaze|npz|raw|zip|id|diff|ids|xyanno|xzanno|yzanno)/([\w,/-]*)$", webargs)
+    m = re.match(r"(\w+)/(?P<channel>[\w+,-]+)?/?(xy|xz|yz|tiff|hdf5|jpeg|blosc|blaze|npz|raw|zip|id|diff|ids|xyanno|xzanno|yzanno)/([\w\.,/-]*)$", webargs)
     [token, channel, service, cutoutargs] = [i for i in m.groups()]
 
     if channel is None:
@@ -108,7 +108,7 @@ def cutout (request, webargs):
     elif request.method == 'POST':
 
       if service in POST_SERVICES:
-        django.http.HttpResponse(ndwsrest.putCutout(webargs, request.body))
+        django.http.HttpResponse(ndwsrest.postCutout(webargs, request.body))
         return django.http.HttpResponse("Success", content_type='text/html')
       else:
         logger.warning("HTTP Bad request. Could not find service {}".format(service))
@@ -136,7 +136,7 @@ def nifti (request, webargs):
     if request.method == 'GET':
       fname = "".join([x if x.isalnum() else "_" for x in webargs])
       response = django.http.HttpResponse(ndwsrest.getNIFTI(webargs), content_type="product/nii" )
-      response['Content-Disposition'] = "attachment; filename={}.nii".format(fname)
+      response['Content-Disposition'] = "attachment; filename={}.nii.gz".format(fname)
       return response
     elif request.method == 'POST':
       return django.http.HttpResponse(ndwsrest.putNIFTI(webargs,request.body))

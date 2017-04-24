@@ -15,10 +15,7 @@
 import os
 import sys
 import argparse
-sys.path += [os.path.abspath('../django')]
-import ND.settings
-os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
-from ndlib.restutil import *
+import requests
 
 def main():
 
@@ -27,16 +24,32 @@ def main():
   parser.add_argument('token', action="store" )
   parser.add_argument('channel', action="store" )
   parser.add_argument('filename', action="store" )
+  parser.add_argument('--create', action="store_true")
+  parser.add_argument('--annotations', action="store_true")
   result = parser.parse_args()
 
-  url = 'http://{}/sd/{}/{}/nii/'.format(result.baseurl, result.token, result.channel)
+  url = 'https://{}/sd/{}/{}/nii/'.format(result.baseurl, result.token, result.channel)
+
+  if result.create:
+    url = '{}create/'.format(url)
+  if result.annotations:
+    url = '{}annotations/'.format(url)
+
   print url
 
-  # open the file name as a tiff file and post
-  response = postURL(url, open(result.filename).read())
-  if response.status_code != 200:
-    print "Failed {}. Exception {}".format(url, response.content())
-    sys.exit(1)
+  try:
+
+    requests.packages.urllib3.disable_warnings()
+    response = requests.post(url, open(result.filename).read(), verify=False)
+    if response.status_code == 200:
+      print "Success for url {}".format(url)
+    else:
+      print "Error for url {}. Status {}. Message {}".format(url,response.status_code,response.text)
+      response.raise_for_status()
+
+  except Exception, e:
+
+    raise
 
 if __name__ == "__main__":
   main()

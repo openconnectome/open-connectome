@@ -21,7 +21,7 @@ if [ $1 == "-h" ]; then
 fi
 
 if [ $1 == "all" ]; then
-  declare -a service_arr=("nginx" "uwsgi" "celery" "supervisor" "rabbitmq-server")
+  declare -a service_arr=("nginx" "uwsgi" "celery" "supervisor" "rabbitmq-server" "redis")
 elif [ $1 == "nginx" ]; then
   declare -a service_arr=("nginx" "uwsgi")
 else

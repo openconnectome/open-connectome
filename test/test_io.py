@@ -364,6 +364,7 @@ def countCuboidVoxels ( annid, h5 ):
   return voxsum
 
 
+@pytest.mark.skipif(KV_ENGINE == REDIS, reason='Annotation not supported in Redis')
 class TestRW:
 
 # Per method setup/teardown
@@ -400,14 +401,13 @@ class TestRW:
 
     # Create an annotation
     wp.numobjects = 1
-    retval = writeAnno(wp)
-    assert int(retval) >= 1
+    returnval = writeAnno(wp)
+    assert int(returnval) >= 1
 
-    wp.annid = int(retval)
+    wp.annid = int(returnval)
     wp.resolution = 0
 
     # upload an npz dense
-#    annodata = np.random.random_integers ( 0, 65535, [ 2, 50, 50 ] )
     annodata = np.ones ( [1, 2, 50, 50], dtype=np.uint32 ) * random.randint(0,65535)
 
     url = 'https://{}/sd/{}/{}/npz/{}/{},{}/{},{}/{},{}/'.format( wp.baseurl, wp.token, wp.channel, wp.resolution, 200, 250, 200, 250, 200, 202 )
@@ -460,7 +460,7 @@ class TestRW:
     # check that the return matches the post
     assert ( np.array_equal(np.array(h5f[wp.channel]['CUTOUT'].value), annodata))
 
-  def test_batch(self):
+  def ftest_batch(self):
     """Batch interface"""
 
     # Upload a batch of objects
@@ -479,13 +479,13 @@ class TestRW:
 
     # Create an annotation
     wp.numobjects = 3
-    retval = writeAnno(wp)
-    assert retval
+    returnval = writeAnno(wp)
+    assert returnval
 
     # read the batch back
-    ids = retval.split(",")
+    ids = returnval.split(",")
 
-    rp.annids = retval
+    rp.annids = returnval
     rp.resolution = 0
     h5r = readAnno(rp)
 
@@ -499,9 +499,9 @@ class TestRW:
     wp.voxels = True
     wp.exception = True
     wp.cutout = '0/100,200/100,200/100,102'
-    retval = writeAnno(wp)
+    returnval = writeAnno(wp)
 
-    ids = retval.split(",")
+    ids = returnval.split(",")
 
     assert int(ids[0])==100000 and int(ids[1])==100001
 
@@ -512,9 +512,9 @@ class TestRW:
     wp.voxels = False
     wp.exception = True
     wp.cutout = '0/100,200/100,200/101,103'
-    retval = writeAnno(wp)
+    returnval = writeAnno(wp)
 
-    ids = retval.split(",")
+    ids = returnval.split(",")
 
     assert int(ids[0])==100002 and int(ids[1])==100003
 
@@ -551,38 +551,38 @@ class TestRW:
     wp.cutout = "0/100,200/100,200/1,2"
 
     # Write one object as voxels
-    retval = writeAnno(wp)
-    assert retval >= 1
+    returnval = writeAnno(wp)
+    assert returnval >= 1
 
     # Read it as voxels and as a cutout
     rp.resolution = 0
-    rp.annids = retval
+    rp.annids = returnval
     rp.voxels = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 100*100*1
+    assert countVoxels ( returnval, h5r ) == 100*100*1
 
-    rp.annids = retval
+    rp.annids = returnval
     rp.voxels = False
     rp.tightcutout = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 100*100*1
+    assert countVoxels ( returnval, h5r ) == 100*100*1
 
     # Write one object as a cutout
     wp.voxels=False
-    retval = writeAnno ( wp )
-    assert retval >= 1
+    returnval = writeAnno ( wp )
+    assert returnval >= 1
 
     # Read it as voxels and as a cutout
-    rp.annids = retval
+    rp.annids = returnval
     rp.voxels = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 100*100*1
+    assert countVoxels ( returnval, h5r ) == 100*100*1
 
-    rp.annids = retval
+    rp.annids = returnval
     rp.voxels = False
     rp.tightcutout = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 100*100*1
+    assert countVoxels ( returnval, h5r ) == 100*100*1
 
 
   def test_cuboids(self):
@@ -603,46 +603,6 @@ class TestRW:
     wp.resolution = 1
 
 
-
-#RBTODO need to remove this stuff and actual add the cuboids to writeAnno
-#
-#    # now try the cuboids interface
-#    # WRite two small regions
-#    wp.cutout = "1/200,210/200,210/101,102"
-#    retval = writeAnno ( wp )
-#    assert int(retval) >= 1
-#
-#    wp.cutout = "1/300,310/300,310/301,302"
-#    wp.update = True
-#    wp.annid = int(retval)
-#    retval = writeAnno ( wp )
-#    assert int(retval) == wp.annid
-#
-#    # Read them as an HDF5 file
-#    rp.cuboids = True
-#    rp.annids = int(retval)
-#    rp.voxels = False
-#    h5r = readAnno(rp)
-#    assert ( countCuboidVoxels(rp.annids,h5r) == 200 )
-#
-#    # write the file --- have to do this here. not part of wp
-#    # change the annotation identifier
-#    # RBTODO
-#    # post the HDF5 file
-#    url = "https://%s/sd/%s/" % (wp.baseurl,wp.token )
-#    h5r.tmpfile.seek(0)
-#    # return and file object to be posted
-#    try:
-#      req = urllib2.Request ( url, h5r.tmpfile.content)
-#      response = urllib2.urlopen(req)
-#    except urllib2.URLError, e:
-#      assert 0
-#    assert response >= 1
-#
-#    # Read it back to make sure that it's correct
-#    rp.voxels = True
-#    h5r2 = readAnno(rp)
-#    assert ( countCuboidVoxels(rp.annids,h5r) == 200 )
 
 
   def test_update(self):
@@ -668,21 +628,21 @@ class TestRW:
     wp.cutout = "0/500,550/500,550/1849,1850"
 
     # Write one object as voxels
-    retval = writeAnno(wp)
-    assert int(retval) >= 1
+    returnval = writeAnno(wp)
+    assert int(returnval) >= 1
 
     # update the object
-    wp.annid = int(retval)
+    wp.annid = int(returnval)
     wp.update = True
     wp.cutout = "0/550,600/550,600/1849,1850"
-    retval = writeAnno(wp)
+    returnval = writeAnno(wp)
 
     # Check that the combination of write + update sums
     rp.resolution = 0
-    rp.annids = int(retval)
+    rp.annids = int(returnval)
     rp.voxels = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 2*50*50*1
+    assert countVoxels ( returnval, h5r ) == 2*50*50*1
 
     # update the object as dense
     wp.voxels = False
@@ -692,7 +652,7 @@ class TestRW:
     # Check that the combination of write + update sums
     rp.voxels = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 3*50*50*1
+    assert countVoxels ( returnval, h5r ) == 3*50*50*1
 
     # shave the annotation
     wp.cutout = "0/500,550/500,550/1849,1850"
@@ -704,7 +664,7 @@ class TestRW:
     # Check that the shave worked
     rp.voxels = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 2*50*50*1
+    assert countVoxels ( returnval, h5r ) == 2*50*50*1
 
     # shave half of the remaining annotation as dense
     wp.cutout = "0/550,600/550,600/1849,1850"
@@ -715,7 +675,7 @@ class TestRW:
     # Check that the shave worked
     rp.voxels = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 50*50*1
+    assert countVoxels ( returnval, h5r ) == 50*50*1
 
     try:
       (base,suffix) = rp.baseurl.split("/",1)
@@ -753,25 +713,25 @@ class TestRW:
 
     # Create an annotation
     wp.numobjects = 1
-    retval = writeAnno(wp)
-    assert int(retval) >= 1
+    returnval = writeAnno(wp)
+    assert int(returnval) >= 1
 
     # Add data to it
-    wp.annid=int(retval)
+    wp.annid=int(returnval)
     wp.voxels = True
     wp.cutout = "0/500,550/500,550/1000,1002"
     wp.dataonly = True
     writeAnno(wp)
 
     # Add data to it
-    wp.annid=int(retval)
+    wp.annid=int(returnval)
     wp.voxels = False
     wp.cutout = "0/600,650/600,650/1000,1002"
     wp.dataonly = True
     writeAnno(wp)
 
     # Check that the combination of write + update sums
-    rp.annids=int(retval)
+    rp.annids=int(returnval)
     rp.voxels = True
     h5r = readAnno(rp)
-    assert countVoxels ( retval, h5r ) == 2*50*50*2
+    assert countVoxels ( returnval, h5r ) == 2*50*50*2

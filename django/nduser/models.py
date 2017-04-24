@@ -72,9 +72,6 @@ class Project ( models.Model):
   host =  models.CharField(max_length=255, choices=HOST_CHOICES, default='localhost')
   KVENGINE_CHOICES = (
     (MYSQL, 'MySQL'),
-    (CASSANDRA, 'Cassandra'),
-    (RIAK, 'Riak'),
-    (DYNAMODB, 'DynamoDB'),
     (REDIS, 'Redis'),
   )
   kvengine =  models.CharField(max_length=255, choices=KVENGINE_CHOICES, default=MYSQL)
@@ -152,6 +149,10 @@ class Channel ( models.Model):
     (UINT16, 'uint16'),
     (UINT32, 'uint32'),
     (UINT64, 'uint64'),
+    (INT8, 'int8'),
+    (INT16, 'int16'),
+    (INT32, 'int32'),
+    (INT64, 'int64'),
     (FLOAT32, 'float32'),
   )
   channel_datatype = models.CharField(max_length=255, choices=DATATYPE_CHOICES)
@@ -168,7 +169,7 @@ class Channel ( models.Model):
   )
   exceptions =  models.IntegerField(choices=EXCEPTION_CHOICES, default=EXCEPTION_FALSE)
   starttime = models.IntegerField(default=0)
-  endtime = models.IntegerField(default=0)
+  endtime = models.IntegerField(default=1)
   startwindow = models.IntegerField(default=0)
   endwindow = models.IntegerField(default=0)
   default = models.BooleanField(default=False)

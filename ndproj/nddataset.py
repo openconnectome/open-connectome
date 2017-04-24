@@ -86,22 +86,17 @@ class NDDataset(NDObject):
       self._scale[i] = { 'xy':xvoxelresi/yvoxelresi , 'yz':zvoxelresi/xvoxelresi, 'xz':zvoxelresi/yvoxelresi }
       
       # choose the cubedim as a function of the zscale
-      #self._cubedim[i] = [128, 128, 16]
-      # this may need to be changed.  
       if self._ds.scalingoption == ZSLICES:
-        #self._cubedim[i] = [512, 512, 16]
-        self._cubedim[i] = [128, 128, 16]
         if float(self._ds.zvoxelres/self._ds.xvoxelres)/(2**i) >  0.5:
-          self._cubedim[i] = [128, 128, 16]
+          self._cubedim[i] = [512, 512, 64]
         else: 
           self._cubedim[i] = [64, 64, 64]
 
         # Make an exception for bock11 data -- just an inconsistency in original ingest
         if self._ds.ximagesize == 135424 and i == 5:
-          self._cubedim[i] = [128, 128, 16]
+          self._cubedim[i] = [512, 512, 64]
       else:
-        # RB what should we use as a cubedim?
-        self._cubedim[i] = [512, 512, 16]
+        self._cubedim[i] = [64, 64, 64]
       
       self._supercubedim[i] = map(mul, self._cubedim[i], SUPERCUBESIZE)
 
@@ -201,6 +196,10 @@ class NDDataset(NDObject):
   @property
   def cubedim(self):
     return self._cubedim
+  
+  @property
+  def supercubedim(self):
+    return self._supercubedim
 
   def dataset_dim(self, res):
     return self._image_size[res]
@@ -251,16 +250,22 @@ class NDDataset(NDObject):
   def supercube_size(self):
     return SUPERCUBESIZE
   
-  def checkCube (self, resolution, corner, dim):
+  def checkCube (self, resolution, corner, dim, neariso=False):
     """Return true if the specified range of values is inside the cube"""
 
     [xstart, ystart, zstart ] = corner
 
     [xend, yend, zend] = map(add, corner, dim) 
-
-    if ( ( xstart >= 0 ) and ( xstart < xend) and ( xend <= self._image_size[resolution][0]) and\
-        ( ystart >= 0 ) and ( ystart < yend) and ( yend <= self._image_size[resolution][1]) and\
-        ( zstart >= 0 ) and ( zstart < zend) and ( zend <= self._image_size[resolution][2])): 
-      return True
+    
+    if neariso:
+      if ( ( xstart >= 0 ) and ( xstart < xend) and ( xend <= self.neariso_imagesz[resolution][0]) and\
+          ( ystart >= 0 ) and ( ystart < yend) and ( yend <= self.neariso_imagesz[resolution][1]) and\
+          ( zstart >= 0 ) and ( zstart < zend) and ( zend <= self.neariso_imagesz[resolution][2])):
+        return True
     else:
-      return False
+      if ( ( xstart >= 0 ) and ( xstart < xend) and ( xend <= self._image_size[resolution][0]) and\
+          ( ystart >= 0 ) and ( ystart < yend) and ( yend <= self._image_size[resolution][1]) and\
+          ( zstart >= 0 ) and ( zstart < zend) and ( zend <= self._image_size[resolution][2])): 
+        return True
+      else:
+        return False

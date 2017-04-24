@@ -30,7 +30,7 @@ p.token = 'unittest'
 p.channels = ['testchannel']
 p.args = (0,1024,0,1024,1,11)
 
-@pytest.mark.skipif(DEV_MODE, reason='Test not necessary for dev mode')
+@pytest.mark.skipif(True, reason='Test not necessary for dev mode')
 class Test_Histogram8:
 
   def setup_class(self):
@@ -99,7 +99,7 @@ class Test_Histogram8:
     # check to see that the counts are equal
     assert( np.array_equal( jsonresponse['hist'], testhist[0] ) )
 
-@pytest.mark.skipif(DEV_MODE, reason='Test not necessary for dev mode')
+@pytest.mark.skipif(True, reason='Test not necessary for dev mode')
 class Test_Histogram16:
 
   def setup_class(self):
@@ -168,7 +168,7 @@ class Test_Histogram16:
     # check to see that the counts are equal
     assert( np.array_equal( jsonresponse['hist'], testhist[0] ) )
 
-@pytest.mark.skipif(DEV_MODE, reason='Test not necessary for dev mode')
+@pytest.mark.skipif(True, reason='Test not necessary for dev mode')
 class TestHistogramROI:
 
   def setup_class(self):
@@ -434,7 +434,7 @@ class TestHistogramROI:
       print e
       assert(e.code == 400)
 
-@pytest.mark.skipif(DEV_MODE, reason='Test not necessary for dev mode')
+@pytest.mark.skipif(True, reason='Test not necessary for dev mode')
 class TestHistogramROIMultiple:
 
   def setup_class(self):

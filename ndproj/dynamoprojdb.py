@@ -144,7 +144,6 @@ class DynamoProjDB:
   def deleteNDChannel(self, channel_name):
     """Delete the tables for a channel"""
     
-    # KL TODO check for RB pdb's
     ch = NDChannel(self.pr, channel_name)
     table_list = []
 

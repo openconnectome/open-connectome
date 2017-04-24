@@ -22,8 +22,14 @@ import tempfile
 import h5py
 import random 
 import csv
+import os
 
-from pprint import pprint
+sys.path += [os.path.abspath('../django')]
+import ND.settings
+os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
+
+from ndlib.restutil import *
+
 
 
 class H5Anno:
@@ -280,11 +286,11 @@ def main():
 
   # Build the put URL
   if result.update:
-    url = "http://%s/ca/%s/%s/update/" % ( result.baseurl, result.token, result.channel)
+    url = "https://%s/sd/%s/%s/update/" % ( result.baseurl, result.token, result.channel)
   elif result.dataonly:
-    url = "http://%s/ca/%s/%s/dataonly/" % ( result.baseurl, result.token, result.channel)
+    url = "https://%s/sd/%s/%s/dataonly/" % ( result.baseurl, result.token, result.channel)
   else:
-    url = "http://%s/ca/%s/%s/" % ( result.baseurl, result.token, result.channel)
+    url = "https://%s/sd/%s/%s/" % ( result.baseurl, result.token, result.channel)
 
   if result.preserve:  
     url += 'preserve/'
@@ -297,15 +303,13 @@ def main():
 
   print url
 
-  try:
-    req = urllib2.Request ( url, fileobj.read()) 
-    response = urllib2.urlopen(req)
-  except urllib2.URLError, e:
-    print "Failed URL", url
-    print "Error %s" % (e) 
-    sys.exit(0)
+  # open the file name as a tiff file and post
+  response = postURL(url, fileobj.read())
+  if response.status_code != 200:
+    print "Failed {}. Exception {}".format(url, response._content)
+    sys.exit(1)
 
-  the_page = response.read()
+  the_page = response.text
   print "Success with id %s" % the_page
 
 if __name__ == "__main__":

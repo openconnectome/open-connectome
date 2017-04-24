@@ -12,24 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#RBTODO -- do under a txn
+
 import blosc
 import numpy as np
 from contextlib import closing
 import MySQLdb
 from PIL import Image
-from ndcube.cube import Cube
-import spatialdb
-from spdb.s3io import S3IO
-from ndingest.nddynamo.cuboidindexdb import CuboidIndexDB
+from spdb.ndcube.cube import Cube
+from spdb import spatialdb
+from spdb.ndkvio.s3io import S3IO
 from ndproj.ndproject import NDProject
-from ndctypelib import XYZMorton, MortonXYZ, isotropicBuild_ctype, addDataToZSliceStack_ctype, addDataToIsotropicStack_ctype
+from ndctypelib import *
 from ndlib.ndtype import *
 from ndwserror import NDWSError
-from ndingest.settings.settings import Settings
-ndsettings = Settings.load()
 import logging
 logger=logging.getLogger("neurodata")
-
 
 """Construct a hierarchy off of a completed database."""
 
@@ -40,33 +38,37 @@ def buildStack(token, channel_name, resolution=None):
   ch = pr.getChannelObj(channel_name)
 
   try:
-    if ch.channel_type in ANNOTATION_CHANNELS:
-      if pr.kvengine == MYSQL:
-        clearStack(pr, ch, resolution)
-      buildAnnoStack(pr, ch, resolution)
-    elif ch.channel_type in IMAGE_CHANNELS:
-      buildImageStack(pr, ch, resolution)
-    elif ch.channel_type in TIMESERIES_CHANNELS:
-      buildImageStack(pr, ch, resolution)
-    else:
-      logger.error("Not Supported")
-      raise NDWSError("Not Supported")
+
+    # if ch.channel_type in ANNOTATION_CHANNELS and pr.kvengine == MYSQL:
+      # clearStack(pr, ch, resolution)
     
+    # build zslice and isotropic stack
+    buildImageStack(pr, ch, resolution)
+    # if zsclice stack then build neariso as well
+    if pr.datasetcfg.scalingoption == ZSLICES:
+      buildImageStack(pr, ch, resolution, neariso=True)
+  
+    # mark channel as propagated after it is done 
     ch.propagate = PROPAGATED
   
   except Exception as e:
-    clearStack(pr, ch, resolution)
+    # import pdb; pdb.set_trace()
+    # clearStack(pr, ch, resolution)
+    # RB This is a a thorny issue.  anno propagate doesn't work when not PROPAGATED
+    # mark it as not propagated if there is an error
     ch.propagate = NOT_PROPAGATED
   except MySQLdb.Error as e:
-    clearStack(pr, ch, resolution)
+    # import pdb; pdb.set_trace()
+    # clearStack(pr, ch, resolution)
     ch.propagate = NOT_PROPAGATED
-    # projdb.updatePropagate(proj)
     logger.error("Error in building image stack {}".format(token))
     raise NDWSError("Error in the building image stack {}".format(token))
 
 
 def clearStack (proj, ch, res=None):
   """ Clear a ND stack for a given project """
+   
+  assert(0)
 
   with closing(spatialdb.SpatialDB(proj)) as db:
     
@@ -88,9 +90,6 @@ def clearStack (proj, ch, res=None):
         list_of_tables.append(ch.getIdxTable(cur_res))
         list_of_tables.append(ch.getExceptionsTable(cur_res))
 
-    # for anno_type in annotation.anno_dbtables.keys():
-      # list_of_tables.append(ch.getAnnoTable(anno_type))
-
     # Creating the sql query to execute
     for table_name in list_of_tables:
       sql += "TRUNCATE table {};".format(table_name)
@@ -106,112 +105,25 @@ def clearStack (proj, ch, res=None):
       db.kvio.conn.cursor().close()
 
 
-def buildAnnoStack ( proj, ch, res=None ):
-  """Build the hierarchy for annotations"""
-  
-  with closing(spatialdb.SpatialDB (proj)) as db:
-
-    # pick a resolution
-    if res is None:
-      res = 1
-    
-    high_res = proj.datasetcfg.scalinglevels
-    scaling = proj.datasetcfg.scalingoption
-  
-    for cur_res in range(res, high_res+1):
-
-      # Get the source database sizes
-      [ximagesz, yimagesz, zimagesz] = proj.datasetcfg.dataset_dim(cur_res-1)
-      timerange = ch.time_range
-      [xcubedim, ycubedim, zcubedim] = cubedim = proj.datasetcfg.get_cubedim(cur_res-1)
-
-      # Set the limits for iteration on the number of cubes in each dimension
-      xlimit = (ximagesz-1) / xcubedim + 1
-      ylimit = (yimagesz-1) / ycubedim + 1
-      zlimit = (zimagesz-1) / zcubedim + 1
-
-      # choose constants that work for all resolutions. 
-      # recall that cube size changes from 128x128x16 to 64*64*64 with res
-      if scaling == ZSLICES:
-        outdata = np.zeros([zcubedim*4, ycubedim*2, xcubedim*2], dtype=ND_dtypetonp.get(ch.channel_datatype))
-      elif scaling == ISOTROPIC:
-        outdata = np.zeros([zcubedim*2, ycubedim*2, xcubedim*2], dtype=ND_dtypetonp.get(ch.channel_datatype))
-      else:
-        logger.error("Invalid scaling option in project = {}".format(scaling) )
-        raise NDWSError("Invalid scaling option in project = {}".format(scaling)) 
-
-      # Round up to the top of the range
-      lastzindex = (XYZMorton([xlimit,ylimit,zlimit])/64+1)*64
-
-      # Iterate over the cubes in morton order
-      for mortonidx in range(0, lastzindex, 64): 
-
-        # call the range query
-        cuboids = db.getCubes(ch, range(mortonidx,mortonidx+64), cur_res-1)
-        cube = Cube.CubeFactory(cubedim, ch.channel_type, ch.channel_datatype)
-
-        # get the first cube
-        for idx, datastring in cuboids:
-
-          xyz = MortonXYZ(idx)
-          if db.NPZ:
-            cube.fromNPZ(datastring)
-          else:
-            cube.fromBlosc(datastring)
-
-          if scaling == ZSLICES:
-
-            # Compute the offset in the output data cube 
-            #  we are placing 4x4x4 input blocks into a 2x2x4 cube 
-            offset = [(xyz[0]%4)*(xcubedim/2), (xyz[1]%4)*(ycubedim/2), (xyz[2]%4)*zcubedim]
-            # add the contribution of the cube in the hierarchy
-            addDataToZSliceStack_ctype(cube, outdata, offset)
-
-          elif scaling == ISOTROPIC:
-
-            # Compute the offset in the output data cube 
-            #  we are placing 4x4x4 input blocks into a 2x2x2 cube 
-            offset = [(xyz[0]%4)*(xcubedim/2), (xyz[1]%4)*(ycubedim/2), (xyz[2]%4)*(zcubedim/2)]
-
-            # use python version for debugging
-            addDataToIsotropicStack_ctype(cube, outdata, offset)
-
-        #  Get the base location of this batch
-        xyzout = MortonXYZ (mortonidx)
-
-        # adjust to output corner for scale.
-        if scaling == ZSLICES:
-          outcorner = [xyzout[0]*xcubedim/2, xyzout[1]*ycubedim/2, xyzout[2]*zcubedim]
-        elif scaling == ISOTROPIC:
-          outcorner = [xyzout[0]*xcubedim/2, xyzout[1]*ycubedim/2, xyzout[2]*zcubedim/2]
-
-        #  Data stored in z,y,x order dims in x,y,z
-        outdim = outdata.shape[::-1]
-
-        # Preserve annotations made at the specified level
-        # KL check that the P option preserves annotations?  RB changed from O
-        db.annotateDense(ch, outcorner, cur_res, outdata, 'O')
-        db.kvio.conn.commit()
-          
-        # zero the output buffer
-        outdata = np.zeros ([zcubedim*4, ycubedim*2, xcubedim*2], dtype=ND_dtypetonp.get(ch.channel_datatype))
-
-
-def buildImageStack(proj, ch, res=None):
+def buildImageStack(proj, ch, res=None, neariso=False, direct=False):
   """Build the hierarchy of images"""
-  
+
   with closing(spatialdb.SpatialDB(proj)) as db:
     
     s3_io = S3IO(db)
-    cuboidindex_db = CuboidIndexDB(proj.project_name, endpoint_url=ndsettings.DYNAMO_ENDPOINT)
     # pick a resolution
     if res is None:
-      res = 1
+      # resolution is absent then pick channel base resolution + 1
+      res = ch.resolution + 1
 
     high_res = proj.datasetcfg.scalinglevels
     scaling = proj.datasetcfg.scalingoption
 
     for cur_res in range (res, high_res+1):
+      
+      # only run neariso for the tables beyond isotropic
+      if neariso and proj.datasetcfg.nearisoscaledown[cur_res] == 1:
+        continue
 
       # Get the source database sizes
       [ximagesz, yimagesz, zimagesz] = proj.datasetcfg.dataset_dim(cur_res)
@@ -221,9 +133,9 @@ def buildImageStack(proj, ch, res=None):
       else:
         [xsupercubedim, ysupercubedim, zsupercubedim] = supercubedim = proj.datasetcfg.get_cubedim(cur_res)
 
-      if scaling == ZSLICES:
+      if scaling == ZSLICES and neariso==False:
         (xscale, yscale, zscale) = (2, 2, 1)
-      elif scaling == ISOTROPIC:
+      elif scaling == ISOTROPIC or neariso==True:
         (xscale, yscale, zscale) = (2, 2, 2)
       else:
         logger.error("Invalid scaling option in project = {}".format(scaling))
@@ -234,10 +146,13 @@ def buildImageStack(proj, ch, res=None):
       # Set the limits for iteration on the number of cubes in each dimension
       xlimit = (ximagesz-1) / xsupercubedim + 1
       ylimit = (yimagesz-1) / ysupercubedim + 1
-      zlimit = (zimagesz-1) / zsupercubedim + 1
+      if not neariso:
+        zlimit = (zimagesz-1) / zsupercubedim + 1
+      else:
+        zlimit = (zimagesz/(2**(cur_res))-1) / zsupercubedim + 1
 
       # Iterating over time
-      for ts in range(timerange[0], timerange[1]+1, 1):
+      for ts in range(timerange[0], timerange[1], 1):
         # Iterating over zslice
         for z in range(zlimit):
           # Iterating over y
@@ -245,56 +160,71 @@ def buildImageStack(proj, ch, res=None):
             # Iterating over x
             for x in range(xlimit):
 
-              # cutout the data at the resolution
-              if ch.channel_type not in TIMESERIES_CHANNELS:
-                olddata = db.cutout(ch, [x*xscale*xsupercubedim, y*yscale*ysupercubedim, z*zscale*zsupercubedim ], biggercubedim, cur_res-1).data
-              else:
-                olddata = db.timecutout(ch, [x*xscale*xsupercubedim, y*yscale*ysupercubedim, z*zscale*zsupercubedim ], biggercubedim, cur_res-1, [ts,ts+1]).data
-                olddata = olddata[0,:,:,:]
-
-              #olddata target array for the new data (z,y,x) order
+              # olddata target array for the new data (z,y,x) order
+              olddata = db.cutout(ch, [x*xscale*xsupercubedim, y*yscale*ysupercubedim, z*zscale*zsupercubedim ], biggercubedim, cur_res-1, [ts,ts+1], direct=direct).data
+              olddata = olddata[0,:,:,:]
+ 
               newdata = np.zeros([zsupercubedim, ysupercubedim, xsupercubedim], dtype=ND_dtypetonp.get(ch.channel_datatype))
+              
+              if ch.channel_type not in ANNOTATION_CHANNELS:
+              
+                for sl in range(zsupercubedim):
 
-              for sl in range(zsupercubedim):
+                  if scaling == ZSLICES and neariso is False:
+                    data = olddata[sl,:,:]
+                  elif scaling == ISOTROPIC or neariso is True:
+                    data = isotropicBuild_ctype(olddata[sl*2,:,:], olddata[sl*2+1,:,:])
 
-                if scaling == ZSLICES:
-                  data = olddata[sl,:,:]
-                elif scaling == ISOTROPIC:
-                  data = isotropicBuild_ctype(olddata[sl*2,:,:], olddata[sl*2+1,:,:])
+                  # Convert each slice to an image
+                  # 8-bit int option
+                  if olddata.dtype in [np.uint8, np.int8]:
+                    slimage = Image.frombuffer('L', (xsupercubedim*2, ysupercubedim*2), data.flatten(), 'raw', 'L', 0, 1)
+                  # 16-bit int option
+                  elif olddata.dtype in [np.uint16, np.int16]:
+                    slimage = Image.frombuffer('I;16', (xsupercubedim*2,ysupercubedim*2), data.flatten(), 'raw', 'I;16', 0, 1)
+                  # 32-bit float option
+                  elif olddata.dtype == np.float32:
+                    slimage = Image.frombuffer('F', (xsupercubedim * 2, ysupercubedim * 2), data.flatten(), 'raw', 'F', 0, 1)
+                  # 32 bit RGBA data
+                  elif olddata.dtype == np.uint32:
+                    slimage = Image.fromarray( data, "RGBA" )
 
-                # Convert each slice to an image
-                # 8-bit int option
-                if olddata.dtype == np.uint8:
-                  slimage = Image.frombuffer('L', (xsupercubedim*2, ysupercubedim*2), data.flatten(), 'raw', 'L', 0, 1)
-                # 16-bit int option
-                elif olddata.dtype == np.uint16:
-                  slimage = Image.frombuffer('I;16', (xsupercubedim*2,ysupercubedim*2), data.flatten(), 'raw', 'I;16', 0, 1)
-                # 32-bit float option
-                elif olddata.dtype == np.float32:
-                  slimage = Image.frombuffer('F', (xsupercubedim * 2, ysupercubedim * 2), data.flatten(), 'raw', 'F', 0, 1)
-                # 32 bit RGBA data
-                elif olddata.dtype == np.uint32:
-                  slimage = Image.fromarray( data, "RGBA" )
-                # KL TODO Add support for 32bit and 64bit RGBA data
+                  # Resize the image and put in the new cube array
+                  if olddata.dtype != np.uint32:
+                    newdata[sl, :, :] = np.asarray(slimage.resize([xsupercubedim, ysupercubedim]))
+                  else:
+                    tempdata = np.asarray(slimage.resize([xsupercubedim, ysupercubedim]))
+                    newdata[sl,:,:] = np.left_shift(tempdata[:,:,3], 24, dtype=np.uint32) | np.left_shift(tempdata[:,:,2], 16, dtype=np.uint32) | np.left_shift(tempdata[:,:,1], 8, dtype=np.uint32) | np.uint32(tempdata[:,:,0])
 
-                # Resize the image and put in the new cube array
-                if olddata.dtype != np.uint32:
-                  newdata[sl, :, :] = np.asarray(slimage.resize([xsupercubedim, ysupercubedim]))
-                else:
-                  tempdata = np.asarray(slimage.resize([xsupercubedim, ysupercubedim]))
-                  newdata[sl,:,:] = np.left_shift(tempdata[:,:,3], 24, dtype=np.uint32) | np.left_shift(tempdata[:,:,2], 16, dtype=np.uint32) | np.left_shift(tempdata[:,:,1], 8, dtype=np.uint32) | np.uint32(tempdata[:,:,0])
-
-              zidx = XYZMorton ([x,y,z])
-              cube = Cube.CubeFactory(supercubedim, ch.channel_type, ch.channel_datatype)
-              cube.zeros()
-
-              cube.data = newdata
-              # KL TODO test this
-              if proj.s3backend == S3_TRUE:
-                s3_io.putCube(ch, cur_res, zidx, blosc.pack_array(cube.data))
+                zidx = XYZMorton ([x,y,z])
+                cube = Cube.CubeFactory(supercubedim, ch.channel_type, ch.channel_datatype, time_range=[ts, ts+1])
+                cube.zeros()
+                # copying array into cube.data
+                # we have to ensure that we always insert 4D data into the database
+                # we convert 4D data to 3D data since we cannot process 4D data in ctypes
+                # removing this breaks caching since caching expects there to be 4D cuboids
+                cube.data[0,:] = newdata
+                
+                # checking if the cube is empty or not
+                if cube.isNotZeros():
+                  if proj.s3backend == S3_TRUE:
+                    s3_io.putCube(ch, ts, zidx, cur_res, blosc.pack_array(cube.data), neariso=neariso)
+                  else:
+                    db.putCube(ch, ts, zidx, cur_res, cube, update=True, neariso=neariso)
+              
+              # annotation channel
               else:
-                db.putCube(ch, zidx, cur_res, cube, timestamp=None, update=True)
-              # if ch.channel_type in TIMESERIES_CHANNELS:
-                # db.putCube(ch, zidx, cur_res, cube, timestamp=ts, update=True)
-              # else:
-                # db.putCube(ch, zidx, cur_res, cube, timestamp=None, update=True)
+    
+                try:
+                  if scaling == ZSLICES and neariso==False:
+                    ZSliceStackCube_ctype(olddata, newdata)
+                  else:
+                    IsotropicStackCube_ctype(olddata, newdata)
+
+                  corner = [x*xsupercubedim, y*ysupercubedim, z*zsupercubedim] 
+                  # add resized data to cube
+                  if np.any(newdata):
+                    db.annotateDense(ch, ts, corner, cur_res, newdata, 'O', neariso=neariso)
+
+                except Exception as e:
+                  print("Exception {}".format(e))

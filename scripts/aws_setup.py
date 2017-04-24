@@ -17,11 +17,9 @@ import sys
 sys.path += [os.path.abspath('../django')]
 import ND.settings
 os.environ['DJANGO_SETTINGS_MODULE'] = 'ND.settings'
-from ndingest.settings.settings import Settings
-ndingest_settings = Settings.load()
 from ndingest.nddynamo.cuboidindexdb import CuboidIndexDB
 from ndingest.ndbucket.cuboidbucket import CuboidBucket
 
 # setup cuboid indext table and bucket locally
-CuboidIndexDB.createTable(endpoint_url=ndingest_settings.DYNAMO_ENDPOINT)
-CuboidBucket.createBucket(endpoint_url=ndingest_settings.S3_ENDPOINT)
+CuboidIndexDB.createTable()
+CuboidBucket.createBucket()

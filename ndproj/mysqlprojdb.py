@@ -41,7 +41,7 @@ class MySQLProjectDB:
 
   def newNDProject(self):
     """Create the database for a project"""
-    
+
     with closing(MySQLdb.connect (host = self.pr.host, user = settings.DATABASES['default']['USER'], passwd = settings.DATABASES['default']['PASSWORD'], db = settings.DATABASES['default']['NAME'], connect_timeout=1)) as conn:
       with closing(conn.cursor()) as cursor:
 
@@ -56,6 +56,28 @@ class MySQLProjectDB:
           logger.error("Failed to create database for new project {}: {}.".format(e.args[0], e.args[1]))
           raise NDWSError("Failed to create database for new project {}: {}.".format(e.args[0], e.args[1]))
   
+  def updateNDChannel(self, channel_name):
+    """Create the tables for a channel"""
+
+    ch = NDChannel.fromName(self.pr, channel_name)
+
+    # connect to the database
+    with closing(MySQLdb.connect(host = self.pr.host, user = settings.DATABASES['default']['USER'], passwd = settings.DATABASES['default']['PASSWORD'], db = self.pr.dbname, connect_timeout=1)) as conn:
+      with closing(conn.cursor()) as cursor:
+        
+        try:
+          # tables specific to all other non time data
+          for res in self.pr.datasetcfg.resolutions:
+            cursor.execute("CREATE TABLE {} ( zindex BIGINT, timestamp INT, cube LONGBLOB, PRIMARY KEY(zindex,timestamp))".format(ch.getNearIsoTable(res)))
+            cursor.execute("ALTER TABLE {} ADD timestamp INT AFTER zindex".format(ch.getTable(res)))
+            cursor.execute("UPDATE {} set timestamp={}".format(ch.getTable(res), 0))
+            cursor.execute("ALTER TABLE {} DROP PRIMARY KEY, ADD PRIMARY KEY(zindex, timestamp)".format(ch.getTable(res)))
+        
+          # Commiting at the end
+          conn.commit()
+        except MySQLdb.Error, e:
+          logging.error ("Failed to create neariso tables for existing project {}: {}.".format(e.args[0], e.args[1]))
+          raise NDWSError ("Failed to create neariso tables for existing project {}: {}.".format(e.args[0], e.args[1]))
 
   def newNDChannel(self, channel_name):
     """Create the tables for a channel"""
@@ -70,7 +92,8 @@ class MySQLProjectDB:
           # tables specific to all other non time data
           for res in self.pr.datasetcfg.resolutions:
             cursor.execute("CREATE TABLE {} ( zindex BIGINT, timestamp INT, cube LONGBLOB, PRIMARY KEY(zindex,timestamp))".format(ch.getTable(res)))
-            cursor.execute ( "CREATE TABLE {} (zindex BIGINT NOT NULL, timestamp INT NOT NULL, PRIMARY KEY(zindex,timestamp))".format(ch.getS3IndexTable(res)))
+            if self.pr.datasetcfg.scalingoption == ZSLICES:
+              cursor.execute("CREATE TABLE {} ( zindex BIGINT, timestamp INT, cube LONGBLOB, PRIMARY KEY(zindex,timestamp))".format(ch.getNearIsoTable(res)))
         
           # tables specific to annotation projects
           if ch.channel_type == ANNOTATION: 
@@ -78,8 +101,8 @@ class MySQLProjectDB:
             # And the RAMON objects
             cursor.execute("CREATE TABLE {} ( annoid BIGINT, kv_key VARCHAR(255), kv_value VARCHAR(20000), INDEX ( annoid, kv_key ) USING BTREE)".format(ch.getRamonTable()))
             for res in self.pr.datasetcfg.resolutions:
-              cursor.execute("CREATE TABLE {} ( zindex BIGINT, id BIGINT, exlist LONGBLOB, PRIMARY KEY ( zindex, id))".format(ch.getExceptionsTable(res)))
-              cursor.execute("CREATE TABLE {} ( annid BIGINT PRIMARY KEY, cube LONGBLOB )".format(ch.getIdxTable(res)))
+              cursor.execute("CREATE TABLE {} ( zindex BIGINT, timestamp INT NOT NULL, id BIGINT, exlist LONGBLOB, PRIMARY KEY ( zindex, timestamp, id))".format(ch.getExceptionsTable(res)))
+              cursor.execute("CREATE TABLE {} ( annid BIGINT, timestamp INT NOT NULL, cube LONGBLOB, PRIMARY KEY ( annid, timestamp ))".format(ch.getIdxTable(res)))
          
           # Commiting at the end
           conn.commit()
@@ -128,6 +151,8 @@ class MySQLProjectDB:
     for res in self.pr.datasetcfg.resolutions:
       # delete the res tables
       table_list.append(ch.getTable(res))
+      if self.pr.datasetcfg.scalingoption == ZSLICES:
+        table_list.append(ch.getNearIsoTable(res))
       # delete the index tables
       table_list.append(ch.getS3IndexTable(res))
       if ch.channel_type in ANNOTATION_CHANNELS:

@@ -25,7 +25,7 @@ ND_BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 # ND_SPDB_PATH = os.path.join(ND_BASE_PATH, "spdb")
 # KLTODO going to rename this to nd lib? in the future
 # ND_STATS_PATH = os.path.join(ND_BASE_PATH, "stats")
-# ND_INGEST_PATH = os.path.join(ND_BASE_PATH, "ndingest")
+#ND_INGEST_PATH = os.path.join(ND_BASE_PATH, "ndingest")
 # ND_RAMON_PATH = os.path.join(ND_BASE_PATH, "ramon")
 # ND_LIB_PATH = os.path.join(ND_BASE_PATH, "ndlib")
 # ND_PROJ_PATH = os.path.join(ND_BASE_PATH, "ndproj")

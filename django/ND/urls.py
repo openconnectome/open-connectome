@@ -19,7 +19,6 @@ from django.contrib import admin
 admin.autodiscover()
 
 base_urlpatterns = [
-    url(r'^ocpca/', include('sd.urls')), # legacy support
     url(r'^ca/', include('sd.urls')), # legacy support
     url(r'^sd/', include('sd.urls')),
     url(r'^ramon/', include('ramon.urls')),
@@ -29,7 +28,6 @@ base_urlpatterns = [
     url(r'^synaptogram/', include('synaptogram.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('registration.backends.default.urls')),
-    url(r'^ocpuser/', include('nduser.urls')), # legacy support
     url(r'^nduser/', include('nduser.urls')),
     url(r'^viz/', include('ndviz.urls')), # legacy support
     url(r'^ndgraph/', include('ndgraph.urls')),
@@ -42,5 +40,4 @@ base_urlpatterns = [
 urlpatterns = [
     url('^', include(base_urlpatterns)), # maintains unprefixed URLs
     url('^nd/', include(base_urlpatterns)),
-    url('^ocp/', include(base_urlpatterns)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

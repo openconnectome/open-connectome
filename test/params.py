@@ -12,16 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from ndlib.ndtype import *
 
 class Params:
   """Arguments Class"""
   
   def __init__ (self):
-    self.baseurl = ''
-    self.token = ''
-    self.project = ''
+    self.token = 'unittest'
+    self.project = 'unittest'
+    self.time = [0, 100]
+    self.window = [0, 500]
+    self.voxel = [4.0, 4.0, 3.0]
+    self.channel_type = TIMESERIES
+    self.datatype = UINT8
     self.resolution = 0
-    self.channels = []
+    self.channels = ['TIME1', 'TIME2']
     self.num_objects = 1
     self.args = None
     self.annoid = 0

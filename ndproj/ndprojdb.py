@@ -96,15 +96,6 @@ class NDProjectsDB(object):
     if pr.kvengine == MYSQL:
       from mysqlprojdb import MySQLProjectDB
       return MySQLProjectDB(pr)
-    # elif pr.kvengine == CASSANDRA:
-      # from cassprojdb import CassProjectDB
-      # return CassProjectDB(project_name)
-    # elif pr.kvengine == RIAK:
-      # from riakprojdb import RiakProjectDB
-      # return RiakProjectDB(project_name)
-    # elif pr.kvengine == DYNAMODB:
-      # from dynamoprojdb import DynamoProjectDB
-      # return DynamoProjectDB(project_name)
     elif pr.kvengine == REDIS:
       from redisprojdb import RedisProjectDB
       return RedisProjectDB(pr)

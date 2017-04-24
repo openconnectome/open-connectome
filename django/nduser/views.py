@@ -40,7 +40,7 @@ from contextlib import closing
 from webservices import ndwsrest
 from webservices import ndwsjson
 from ndproj.ndprojdb import NDProjectsDB
-from ndlib.ndtype import *
+from ndlib.ndtype import IMAGE, ANNOTATION, TIMESERIES, UINT8, UINT16, UINT32, UINT64, INT8, INT16, INT32, INT64, FLOAT32, ND_VERSION, SCHEMA_VERSION, MYSQL, S3_FALSE, S3_TRUE, REDIS
 from models import Project
 from models import Dataset
 from models import Token
@@ -398,9 +398,9 @@ def getChannels(request):
             }
             return render(request, 'channels.html', context)
 
-    except NDWSError, e:
+    except NDWSError as e:
         messages.error(request, "Exception in administrative interface = {}".format(e))
-        datasets = pd.getDatasets()
+        # datasets = pd.getDatasets()
         context = {
             'channels': all_channels,
             'project': proj
@@ -484,7 +484,7 @@ def getTokens(request):
             return render(request, 'tokens.html', context)
             #return render_to_response('tokens.html', { 'tokens': all_tokens, 'project': proj })
 
-    except NDWSError, e:
+    except NDWSError as e:
         messages.error(request, "Exception in administrative interface = {}".format(e))
         # datasets = pd.getDatasets()
 
@@ -515,7 +515,10 @@ def createProject(request):
                     new_project.schema_version = SCHEMA_VERSION
                     # TODO input from form
                     new_project.mdengine = MYSQL
-                    new_project.s3backend = S3_FALSE
+                    if new_project.kvengine == REDIS:
+                      new_project.s3backend = S3_TRUE
+                    else:
+                      new_project.kvegnine = S3_FALSE
                     pr = NDProject(new_project)
                     try:
                         # create a database when not linking to an existing databases
@@ -527,7 +530,7 @@ def createProject(request):
                             tk = NDToken(Token ( token_name = new_project.project_name, token_description = 'Default token for public project', project_id=new_project, user_id=request.user.id, public=new_project.public))
                             tk.create()
 
-                    except Exception, e:
+                    except Exception as e:
                         pr.delete()
                         logger.error("Failed to create project {}. Error {}".format(new_project.project_name, e))
                         messages.error(request,"Failed to create project {}. Error {}".format(new_project.project_name, e))
@@ -555,7 +558,7 @@ def createProject(request):
             }
             return render(request, 'createproject.html', context)
 
-    except Exception, e:
+    except Exception as e:
         messages.error(request, "Exception in administrative interface = {}".format(e))
         return redirect(getProjects)
 
@@ -588,7 +591,7 @@ def createDataset(request):
             }
             return render(request, 'createdataset.html', context)
 
-    except Exception, e:
+    except Exception as e:
         messages.error(request, "Exception in administrative interface = {}".format(e))
         return redirect(getDatasets)
 
@@ -706,29 +709,26 @@ def updateChannel(request):
 
                     # populate the channel type and data type from choices
                     combo = request.POST.get('channelcombo')
-                    if combo=='i:8':
-                        new_channel.channel_type = IMAGE
+                    if combo=='tu:8':
+                        new_channel.channel_type = TIMESERIES
                         new_channel.channel_datatype = UINT8
-                    elif combo=='i:16':
-                        new_channel.channel_type = IMAGE
+                    elif combo=='tu:16':
+                        new_channel.channel_type = TIMESERIES
                         new_channel.channel_datatype = UINT16
-                    elif combo=='i:32':
-                        new_channel.channel_type = IMAGE
+                    elif combo=='tu:32':
+                        new_channel.channel_type = TIMESERIES
                         new_channel.channel_datatype = UINT32
-                    elif combo=='a:32':
-                        new_channel.channel_type = ANNOTATION
-                        new_channel.channel_datatype = UINT32
-                    elif combo=='f:32':
-                        new_channel.channel_type = IMAGE
-                        new_channel.channel_datatype = FLOAT32
                     elif combo=='ti:8':
                         new_channel.channel_type = TIMESERIES
-                        new_channel.channel_datatype = UINT8
+                        new_channel.channel_datatype = INT8
                     elif combo=='ti:16':
                         new_channel.channel_type = TIMESERIES
-                        new_channel.channel_datatype = UINT16
+                        new_channel.channel_datatype = INT16
                     elif combo=='ti:32':
                         new_channel.channel_type = TIMESERIES
+                        new_channel.channel_datatype = INT32
+                    elif combo=='a:32':
+                        new_channel.channel_type = ANNOTATION
                         new_channel.channel_datatype = UINT32
                     elif combo=='tf:32':
                         new_channel.channel_type = TIMESERIES
@@ -822,7 +822,7 @@ def updateChannel(request):
                 context = {'form': form, 'project': prname }
                 return render(request, 'createchannel.html', context)
 
-    except Exception, e:
+    except Exception as e:
         messages.error(request, "Exception in administrative interface = {}".format(e))
         return redirect(getProjects)
 

@@ -1,4 +1,4 @@
-#) Copyright 2014 NeuroData (http://neurodata.io)
+# Copyright 2014 NeuroData (http://neurodata.io)
 # 
 #Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ from ndproj import  h5projinfo
 from ndproj import jsonprojinfo
 import mcfc
 from ndlib.ndctypelib import filter_ctype_OMP
+from spdb.ndcube.timecube8 import TimeCube8
 import webservices.ndwsskel
 from webservices.ndwsnifti import ingestNIFTI, queryNIFTI
 from ndlib.windowcutout import windowCutout
@@ -54,34 +55,57 @@ from webservices.ndwserror import NDWSError, IncorrectSyntaxError
 import logging
 logger = logging.getLogger("neurodata")
 
+#RBTODO check all the zoom in zoom out and write unittests.
 
-def cutout (imageargs, ch, proj, db):
+def cutout (image_args, ch, proj, db, aligned=False):
   """Build and Return a cube of data for the specified dimensions. This method is called by all of the more basic services to build the data. They then format and refine the output. """
   
   # Perform argument processing
   try:
-    args = restargs.BrainRestArgs ()
-    args.cutoutArgs(imageargs, proj.datasetcfg)
+    rest_args = restargs.BrainRestArgs ()
+    rest_args.cutoutArgs(image_args, proj.datasetcfg)
   except restargs.RESTArgsError as e:
-    logger.error("REST Arguments {} failed: {}".format(imageargs,e))
-    raise NDWSError(e.value)
+    logger.error("REST Arguments {} failed: {}".format(image_args, e))
+    raise NDWSError(str(e))
 
   # Extract the relevant values
-  corner = args.getCorner()
-  dim = args.getDim()
-  resolution = args.getResolution()
-  filterlist = args.getFilter()
-  zscaling = args.getZScaling()
-  timerange = args.getTimeRange()
- 
-  # Perform the cutout
-  if ch.channel_type in TIMESERIES_CHANNELS:
-    cube = db.cutout(ch, corner, dim, resolution, timerange=timerange)
-  else:
-    cube = db.cutout(ch, corner, dim, resolution, zscaling=zscaling)
+  corner = rest_args.getCorner()
+  dim = rest_args.getDim()
+  resolution = rest_args.getResolution()
+  filterlist = rest_args.getFilter()
+  neariso = rest_args.getZScaling()
+  direct = rest_args.getDirect()
+  timerange = rest_args.getTimeRange()
+  windowrange = rest_args.getWindowRange()
 
-  filterCube(ch, cube, filterlist)
-  return cube
+  # Perform the cutout
+  if timerange == None:
+    # support for 3-d cutouts
+    cube = db.cutout(ch, corner, dim, resolution, timerange=ch.default_time_range, neariso=neariso, direct=direct)
+  else:
+    # 4-d cutouts
+    cube = db.cutout(ch, corner, dim, resolution, timerange=timerange, neariso=neariso, direct=direct)
+  
+  if aligned:
+    return cube
+  
+  #filterCube(ch, cube, filterlist)
+
+  #if timerange==None:
+    # convert 4-d to 3-d here for now
+    #cube.data = cube.data.reshape(cube.data.shape[1:])
+  
+  # window range on cutout only when specified by argument -- no defaults for now
+  if windowrange!= None:
+    if ch.channel_datatype == 'float32':
+      windowrange = [float(x) for x in windowrange]
+    else:
+      windowrange = [int(x) for x in windowrange]
+    cbnew = TimeCube8 ( )
+    cbnew.data = window(cube.data, ch, window_range=windowrange)
+    return cbnew
+  else:
+    return cube
 
 
 def filterCube(ch, cube, filterlist=None):
@@ -94,7 +118,7 @@ def filterCube(ch, cube, filterlist=None):
     raise NDWSError("Filter only possible for Annotation Channels")
 
 
-def channelIterCutout(channels, imageargs, proj, db):
+def channelIterCutout(channels, imageargs, proj, db, aligned=False):
   """Create a numpy datacube array using data from the given channels."""
   
   try:
@@ -103,11 +127,13 @@ def channelIterCutout(channels, imageargs, proj, db):
     ch = proj.getChannelObj(channel_list[0])
     
     # call cutout for first channel
-    channel_data = cutout( imageargs, ch, proj, db ).data
-    cubedata = np.zeros ( (len(channel_list),)+channel_data.shape, dtype=channel_data.dtype )
-    cubedata[0,:] = channel_data
+    channel_data = cutout( imageargs, ch, proj, db, aligned=aligned ).data
+    if aligned:
+      return channel_data
 
-    # if one channel convert 3-d to 4-d array
+    cubedata = np.zeros ( (len(channel_list),)+channel_data.shape[:], dtype=channel_data.dtype )
+    cubedata[0,:] = cutout(imageargs, ch, proj, db).data
+
     # iterate from second to nth channel
     for idx,channel_name in enumerate(channel_list[1:]):
       if channel_name == '0':
@@ -132,7 +158,7 @@ def numpyZip ( chanargs, proj, db ):
 
   try:
     # argument of format channel/service/imageargs
-    m = re.match("([\w+,]+)/(\w+)/([\w+,/-]+)$", chanargs)
+    m = re.match("([\w+,]+)/(\w+)/([\w\.,/-]+)$", chanargs)
     [channels, service, imageargs] = [i for i in m.groups()]
   except Exception as e:
     logger.error("Arguments not in the correct format {}. {}".format(chanargs, e))
@@ -215,9 +241,9 @@ def JPEG ( chanargs, proj, db ):
     raise NDWSError("{}".format(e))
 
 
-def BLOSC ( chanargs, proj, db ):
+def BLOSC ( chanargs, proj, db, aligned=False):
   """Return a web readable blosc file"""
-
+  
   try:
     # argument of format channel/service/imageargs
     m = re.match("([\w+,]+)/(\w+)/([\w+,/-]+)$", chanargs)
@@ -227,8 +253,10 @@ def BLOSC ( chanargs, proj, db ):
     raise NDWSError("Arguments not in the correct format {}. {}".format(chanargs, e))
 
   try:
-    cubedata = channelIterCutout(channels, imageargs, proj, db)
+    cubedata = channelIterCutout(channels, imageargs, proj, db, aligned=aligned)
     # Create the compressed cube
+    if aligned:
+      return cubedata
     return blosc.pack_array(cubedata)
   except Exception as e:
     logger.error("{}".format(e))
@@ -280,9 +308,8 @@ def HDF5(chanargs, proj, db):
     for channel_name in channels.split(','):
       ch = proj.getChannelObj(channel_name)
       cube = cutout(imageargs, ch, proj, db)
-      cube.RGBAChannel()
       changrp = fh5out.create_group( "{}".format(channel_name) )
-      changrp.create_dataset("CUTOUT", tuple(cube.data.shape), cube.data.dtype, compression='gzip', data=cube.data)
+      changrp.create_dataset("CUTOUT", tuple(cube.data.shape), cube.data.dtype, compression='gzip', data=cube.data.reshape(cube.data.shape))
       changrp.create_dataset("CHANNELTYPE", (1,), dtype=h5py.special_dtype(vlen=str), data=ch.channel_type)
       changrp.create_dataset("DATATYPE", (1,), dtype=h5py.special_dtype(vlen=str), data=ch.channel_datatype)
   
@@ -456,19 +483,23 @@ def FilterCube ( imageargs, cb ):
 
 
 def window(data, ch, window_range=None ):
-  """Performs a window transformation on the cutout area"""
+  """Performs a window transformation on the cutout area
+        window always returns 8-bit data.
+     Careful how you use it.  load target data into timeseriescube8.
+  """
 
   if window_range is None:
     window_range = ch.window_range
 
   [startwindow, endwindow] = window_range
 
-  if ch.channel_datatype in DTYPE_uint16:
-    if (startwindow == endwindow == 0):
-      return data
-    elif endwindow!=0:
-      data = windowCutout (data, window_range)
-      return np.uint8(data)
+  # KL TODO window with signed channels -a to +b
+
+  if (startwindow == endwindow == 0):
+    return np.uint8(data)
+  elif endwindow!=0:
+    data = windowCutout (data, window_range)
+    return np.uint8(data)
 
   return data
 
@@ -479,19 +510,10 @@ def imgSlice(webargs, proj, db):
   try:
     # argument of format channel/service/resolution/cutoutargs
     # cutoutargs can be window|filter/value,value/
-    m = re.match("(\w+)/(xy|yz|xz)/(\d+)/([\d+,/]+)?(window/\d+,\d+/|filter/[\d+,]+/)?$", webargs)
+    m = re.match("(\w+)/(xy|yz|xz)/(\d+)/([\d+,/]+)?(.*)?$", webargs)
     [channel, service, resolution, imageargs] = [i for i in m.groups()[:-1]]
     imageargs = resolution + '/' + imageargs
     extra_args = m.groups()[-1]
-    filter_args = None
-    window_args = None
-    if extra_args is not None:
-      if re.match("window/\d+,\d+/$", extra_args):
-        window_args = extra_args
-      elif re.match("filter/[\d+,]+/$", extra_args):
-        filter_args = extra_args
-      else:
-        raise
   except Exception as e:
     logger.error("Incorrect arguments for imgSlice {}. {}".format(webargs, e))
     raise NDWSError("Incorrect arguments for imgSlice {}. {}".format(webargs, e))
@@ -524,37 +546,41 @@ def imgSlice(webargs, proj, db):
     logger.error ("Illegal image arguments={}.  Error={}".format(imageargs,e))
     raise NDWSError ("Illegal image arguments={}.  Error={}".format(imageargs,e))
 
+  cutoutargs = cutoutargs + extra_args
   # Perform the cutout
   ch = proj.getChannelObj(channel)
-  cb = cutout(cutoutargs + (filter_args if filter_args else ""), ch, proj, db)
-
-  if window_args is not None:
-    try:
-      window_range = [int(i) for i in re.match("window/(\d+),(\d+)/", window_args).groups()]
-    except Exception as e:
-      logger.error ("Illegal window arguments={}. Error={}".format(imageargs,e))
-      raise NDWSError ("Illegal window arguments={}. Error={}".format(imageargs,e))
+  cb = cutout(cutoutargs, ch, proj, db)
+ 
+  # perform default window if not specified
+  if not re.search("window", extra_args) and (cb.data.dtype == np.uint16 or cb.data.dtype == np.float32):
+    cbnew = TimeCube8 ( )
+    cbnew.data = window ( cb.data, ch )
+    return cbnew
   else:
-    window_range = None
-  
-  cb.data = window(cb.data, ch, window_range=window_range)
-  return cb
+    return cb
 
 
 def imgPNG (proj, webargs, cb):
   """Return a png object for any plane"""
-  
+
   try:
     # argument of format channel/service/resolution/cutoutargs
     # cutoutargs can be window|filter/value,value/
-    m = re.match("(\w+)/(xy|yz|xz)/(\d+)/([\d+,/]+)(window/\d+,\d+/|filter/[\d+,]+/)?$", webargs)
+    m = re.match("(\w+)/(xy|yz|xz)/(\d+)/([\d+,/]+)(.*)?$", webargs)
     [channel, service, resolution, imageargs] = [i for i in m.groups()[:-1]]
   except Exception as e:
     logger.error("Incorrect arguments for imgSlice {}. {}".format(webargs, e))
     raise NDWSError("Incorrect arguments for imgSlice {}. {}".format(webargs, e))
 
+  # window argument
+  result = re.search (r"/window/([\d\.]+),([\d\.]+)/", webargs)
+  if result != None:
+    window = [str(i) for i in result.groups()]
+  else:
+    window = None
+
   if service == 'xy':
-    img = cb.xyImage()
+    img = cb.xyImage(window=window)
   elif service == 'yz':
     img = cb.yzImage(proj.datasetcfg.scale[int(resolution)][service])
   elif service == 'xz':
@@ -624,11 +650,11 @@ def imgAnno ( service, chanargs, proj, db, rdb ):
   if iscompound:
     # remap the ids for a neuron
     dataids = rdb.getSegments ( ch, annoids[0] ) 
-    cb = db.annoCutout ( ch, dataids, resolution, corner, dim, annoids[0] )
+    cb = db.annoCutout ( ch, dataids, timestamp, resolution, corner, dim, annoids[0] )
   else:
     # no remap when not a neuron
     dataids = annoids
-    cb = db.annoCutout ( ch, dataids, resolution, corner, dim, None )
+    cb = db.annoCutout ( ch, dataids, timestamp, resolution, corner, dim, None)
 
   # reshape to 2-d
   if service == 'xy':
@@ -646,12 +672,15 @@ def imgAnno ( service, chanargs, proj, db, rdb ):
 def annId ( chanargs, proj, db ):
   """Return the annotation identifier of a voxel"""
 
+  # RBTODO timestamp should be in args 0 for now.
+  timestamp = 0
+
   [channel, service, imageargs] = chanargs.split('/',2)
   ch = NDChannel.fromName(proj, channel)
   # Perform argument processing
   (resolution, voxel) = restargs.voxel(imageargs, proj.datasetcfg)
   # Get the identifier
-  return db.getVoxel(ch, resolution, voxel)
+  return db.getVoxel(ch, timestamp, resolution, voxel)
 
 def listIds ( chanargs, proj, db ):
   """Return the list of annotation identifiers in a region"""
@@ -714,7 +743,7 @@ def selectService ( service, webargs, proj, db ):
 
 def selectPost ( webargs, proj, db, postdata ):
   """Identify the service and pass on the arguments to the appropiate service."""
-
+    
   [channel, service, postargs] = webargs.split('/', 2)
 
   # Create a list of channels from the comma separated argument
@@ -726,16 +755,18 @@ def selectPost ( webargs, proj, db, postdata ):
 
   # Process the arguments
   try:
-    args = restargs.BrainRestArgs ();
-    args.cutoutArgs ( postargs, proj.datasetcfg )
+    rest_args = restargs.BrainRestArgs ();
+    rest_args.cutoutArgs ( postargs, proj.datasetcfg )
   except restargs.RESTArgsError as e:
     logger.error( "REST Arguments {} failed: {}".format(postargs,e) )
     raise NDWSError(e)
-    
-  corner = args.getCorner()
-  dimension = args.getDim()
-  resolution = args.getResolution()
-  timerange = args.getTimeRange()
+   
+  corner = rest_args.getCorner()
+  dimension = rest_args.getDim()
+  resolution = rest_args.getResolution()
+  timerange = rest_args.getTimeRange()
+  neariso = rest_args.getZScaling()
+  direct = rest_args.getDirect()
   conflictopt = restargs.conflictOption ( "" )
   
   while not done and tries < 5:
@@ -752,7 +783,7 @@ def selectPost ( webargs, proj, db, postdata ):
           db.writeBlazeCuboid(ch, corner, resolution, postdata, timerange=timerange) 
       
       elif service == 'hdf5':
-        
+ 
         # Get the HDF5 file.
         with closing (tempfile.NamedTemporaryFile ( )) as tmpfile:
 
@@ -781,24 +812,30 @@ def selectPost ( webargs, proj, db, postdata ):
               logger.error("Attempt to write to read only channel {} in project. Web Args:{}".format(ch.channel_name, proj.project_name, webargs))
               raise NDWSError("Attempt to write to read only channel {} in project. Web Args: {}".format(ch.channel_name, proj.project_name, webargs))
            
+            # reshape the data to 4d if no timerange
+            if timerange == None:
+              voxarray = voxarray.reshape((1,voxarray.shape[0],voxarray.shape[1],voxarray.shape[2]))
+              efftimerange = ch.default_time_range
+            else:
+              efftimerange = timerange
+
             # checking if the dimension for x,y,z,t(optional) are correct
             # this is different then the one for blosc/numpy because channels are packed separately
-            if voxarray.shape[::-1] != tuple(dimension + [timerange[1]-timerange[0]] if timerange[1]-timerange[0] is not 0 else dimension):
+            if voxarray.shape[::-1] != tuple(dimension + [efftimerange[1]-efftimerange[0]]): 
               logger.error("The data has mismatched dimensions {} compared to the arguments {}".format(voxarray.shape[1:], dimension))
               raise NDWSError("The data has mismatched dimensions {} compared to the arguments {}".format(voxarray.shape[1:], dimension))
             
-            if ch.channel_type in IMAGE_CHANNELS + TIMESERIES_CHANNELS : 
-              db.writeCuboid (ch, corner, resolution, voxarray, timerange=timerange) 
-            
-            elif ch.channel_type in ANNOTATION_CHANNELS:
-              db.annotateDense ( ch, corner, resolution, voxarray, conflictopt )
+            if ch.channel_type in ANNOTATION_CHANNELS: 
+              db.annotateDense ( ch, efftimerange[0], corner, resolution, voxarray, conflictopt)
+            else:
+              db.writeCuboid (ch, corner, resolution, voxarray, timerange=efftimerange, neariso=neariso, direct=direct) 
 
           h5f.flush()
           h5f.close()
 
       # other services take cutout args
       elif service in ['npz', 'blosc']:
-
+  
         # get the data out of the compressed blob
         if service == 'npz':
           rawdata = zlib.decompress ( postdata )
@@ -811,14 +848,24 @@ def selectPost ( webargs, proj, db, postdata ):
           logger.error("The data has some missing channels")
           raise NDWSError("The data has some missing channels")
         
+        # reshape the data to 4d if no timerange
+        if timerange is None:
+          voxarray = voxarray.reshape((voxarray.shape[0],1,voxarray.shape[1],voxarray.shape[2],voxarray.shape[3]))
+          # need to create a temporary channel here for fetching timerange
+          ch = proj.getChannelObj(channel_list[0])
+          efftimerange = ch.default_time_range
+        else:
+          efftimerange = timerange
+
         # checking if the dimension for x,y,z,t(optional) are correct
-        if voxarray.shape[1:][::-1] != tuple(dimension + [timerange[1]-timerange[0]] if timerange[1]-timerange[0] is not 0 else dimension):
+        if voxarray.shape[1:][::-1] != tuple(dimension + [efftimerange[1]-efftimerange[0]]):
           logger.error("The data has mismatched dimensions {} compared to the arguments {}".format(voxarray.shape[1:], dimension))
           raise NDWSError("The data has mismatched dimensions {} compared to the arguments {}".format(voxarray.shape[1:], dimension))
+    
 
         for idx, channel_name in enumerate(channel_list):
           ch = proj.getChannelObj(channel_name)
-  
+        
           # Don't write to readonly channels
           if ch.readonly == READONLY_TRUE:
             logger.error("Attempt to write to read only channel {} in project. Web Args:{}".format(ch.channel_name, proj.project_name, webargs))
@@ -828,11 +875,10 @@ def selectPost ( webargs, proj, db, postdata ):
             logger.error("Wrong datatype in POST")
             raise NDWSError("Wrong datatype in POST")
             
-          if ch.channel_type in IMAGE_CHANNELS + TIMESERIES_CHANNELS:
-            db.writeCuboid(ch, corner, resolution, voxarray[idx,:], timerange)
-
-          elif ch.channel_type in ANNOTATION_CHANNELS:
-            db.annotateDense(ch, corner, resolution, voxarray[idx,:], conflictopt)
+          if ch.channel_type in ANNOTATION_CHANNELS:
+            db.annotateDense(ch, efftimerange[0], corner, resolution, voxarray[idx,:], conflictopt )
+          else:
+            db.writeCuboid(ch, corner, resolution, voxarray[idx,:], efftimerange, neariso=neariso, direct=direct)
       
       else:
         logger.error("An illegal Web POST service was requested: {}. Args {}".format(service, webargs))
@@ -868,9 +914,9 @@ def getCutout ( webargs ):
     return selectService ( service, webargs, proj, db )
 
 
-def putCutout ( webargs, postdata ):
+def postCutout ( webargs, postdata ):
   """Interface to the write cutout data. Load the annotation project and invoke the appropriate dataset"""
-
+  
   [ token, rangeargs ] = webargs.split('/',1)
   # get the project 
   proj = NDProject.fromTokenName(token)
@@ -908,7 +954,7 @@ def getAnnoDictById ( ch, annoid, proj, rdb ):
   # return dictionary
   return tmpdict 
 
-def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution=None, corner=None, dim=None ): 
+def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, timestamp, resolution=None, corner=None, dim=None ): 
   """Retrieve the annotation and put it in the HDF5 file."""
 
   # retrieve the annotation 
@@ -941,7 +987,7 @@ def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution=None, c
     # add voxels for all of the ids
     for dataid in dataids:
   
-      voxlist = db.getLocations(ch, dataid, resolution) 
+      voxlist = db.getLocations(ch, dataid, timestamp, resolution ) 
       if len(voxlist) != 0:
         allvoxels =  allvoxels + voxlist 
 
@@ -953,18 +999,18 @@ def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution=None, c
 
     # cutout the data with the and remap for neurons.
     if anno.__class__ in [AnnNeuron] and dataoption != AR_NODATA:
-      cb = db.annoCutout(ch, dataids, resolution, corner, dim, annoid)
+      cb = db.annoCutout(ch, dataids, timestamp, resolution, corner, dim, annoid )
     else:
       # don't need to remap single annotations
-      cb = db.annoCutout(ch, dataids, resolution, corner, dim, None)
+      cb = db.annoCutout(ch, dataids, timestamp, resolution, corner, dim, None )
 
     # again an abstraction problem with corner. return the corner to cutout arguments space
     offset = proj.datasetcfg.get_offset(resolution)
     retcorner = [corner[0]+offset[0], corner[1]+offset[1], corner[2]+offset[2]]
-    h5anno.addCutout ( resolution, retcorner, cb.data )
+    h5anno.addCutout ( resolution, retcorner, cb.data.reshape(cb.data.shape[1:]))
 
   elif dataoption == AR_TIGHTCUTOUT:
- 
+
     # determine if it is a compound type (NEURON) and get the list of relevant segments
     if anno.__class__ in [AnnNeuron] and dataoption != AR_NODATA:
       dataids = rdb.getSegments(ch, annoid) 
@@ -972,7 +1018,7 @@ def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution=None, c
       dataids = [anno.annid]
 
     # get the bounding box from the index
-    bbcorner, bbdim = db.getBoundingCube(ch, dataids, resolution)
+    bbcorner, bbdim = db.getBoundingCube(ch, dataids, timestamp, resolution )
 
     # figure out which ids are in object
     if bbcorner != None:
@@ -982,9 +1028,9 @@ def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution=None, c
 
     # Call the cuboids interface to get the minimum amount of data
     if anno.__class__ == AnnNeuron:
-      offsets = db.annoCubeOffsets(ch, dataids, resolution, annoid)
+      offsets = db.annoCubeOffsets(ch, dataids, timestamp, resolution, annoid )
     else:
-      offsets = db.annoCubeOffsets(ch, [annoid], resolution)
+      offsets = db.annoCubeOffsets(ch, [annoid], timestamp, resolution)
 
     datacuboid = None
 
@@ -994,7 +1040,7 @@ def getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution=None, c
       if datacuboid == None:
         datacuboid = np.zeros ( (bbdim[2],bbdim[1],bbdim[0]), dtype=cbdata.dtype )
 
-      datacuboid [ offset[2]-bbcorner[2]:offset[2]-bbcorner[2]+cbdata.shape[0], offset[1]-bbcorner[1]:offset[1]-bbcorner[1]+cbdata.shape[1], offset[0]-bbcorner[0]:offset[0]-bbcorner[0]+cbdata.shape[2] ]  = cbdata
+      datacuboid [ offset[2]-bbcorner[2]:offset[2]-bbcorner[2]+cbdata.shape[1], offset[1]-bbcorner[1]:offset[1]-bbcorner[1]+cbdata.shape[2], offset[0]-bbcorner[0]:offset[0]-bbcorner[0]+cbdata.shape[3] ]  = cbdata [0,:,:,:]
    
     offset = proj.datasetcfg.get_offset(resolution)
     bbcorner = map(add, bbcorner, offset)
@@ -1047,6 +1093,7 @@ def getAnnotation ( webargs ):
 
     # AB Added 20151011 
     # Check to see if this is a JSON request, and if so return the JSON objects otherwise, continue with returning the HDF5 data
+    # RBTODO add timestamp to json?
     if option_args[1] == 'json':
       annobjs = {}
       try:
@@ -1069,6 +1116,9 @@ def getAnnotation ( webargs ):
     # Create an in-memory HDF5 file
     tmpfile = tempfile.NamedTemporaryFile()
     h5f = h5py.File ( tmpfile.name,"w" )
+
+    # RBTODO get the timestamp or timerange from the HDF5 file
+    timestamp = 0
  
     try: 
  
@@ -1083,7 +1133,7 @@ def getAnnotation ( webargs ):
           # default is no data
           if option_args[1] == '' or option_args[1] == 'nodata':
             dataoption = AR_NODATA
-            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption )
+            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, timestamp )
     
           # if you want voxels you either requested the resolution id/voxels/resolution
           #  or you get data from the default resolution
@@ -1097,7 +1147,7 @@ def getAnnotation ( webargs ):
               logger.error("Improperly formatted voxel arguments {}".format(option_args[2]))
               raise NDWSError("Improperly formatted voxel arguments {}".format(option_args[2]))
 
-            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution )
+            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, timestamp, resolution )
 
           #  or you get data from the default resolution
           elif option_args[1] == 'cuboids':
@@ -1109,7 +1159,7 @@ def getAnnotation ( webargs ):
               logger.error("Improperly formatted cuboids arguments {}".format(option_args[2]))
               raise NDWSError("Improperly formatted cuboids arguments {}".format(option_args[2]))
     
-            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution )
+            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, timestamp, resolution )
     
           elif option_args[1] =='cutout':
     
@@ -1123,7 +1173,7 @@ def getAnnotation ( webargs ):
                 logger.error ( "Improperly formatted cutout arguments {}".format(option_args[2]))
                 raise NDWSError("Improperly formatted cutout arguments {}".format(option_args[2]))
 
-              getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution )
+              getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, timestamp, resolution )
     
             else:
 
@@ -1138,7 +1188,7 @@ def getAnnotation ( webargs ):
               dim = brargs.getDim()
               resolution = brargs.getResolution()
     
-              getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution, corner, dim )
+              getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, timestamp, resolution, corner, dim )
     
           elif option_args[1] == 'boundingbox':
     
@@ -1150,7 +1200,7 @@ def getAnnotation ( webargs ):
               logger.error("Improperly formatted bounding box arguments {}".format(option_args[2]))
               raise NDWSError("Improperly formatted bounding box arguments {}".format(option_args[2]))
         
-            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, resolution )
+            getAnnoById ( ch, annoid, h5f, proj, rdb, db, dataoption, timestamp, resolution )
     
           else:
             logger.error ("Fetch identifier {}. Error: no such data option {}".format( annoid, option_args[1] ))
@@ -1202,7 +1252,7 @@ def getCSV ( webargs ):
           logger.error ( "Improperly formatted cutout arguments {}".format(reststr))
           raise NDWSError("Improperly formatted cutout arguments {}".format(reststr))
   
-        getAnnoById ( annoid, h5f, proj, rdb, db, dataoption, resolution )
+        getAnnoById ( annoid, h5f, proj, rdb, db, dataoption, timestamp, resolution )
 
         # convert the HDF5 file to csv
         csvstr = h5ann.h5toCSV ( h5f )
@@ -1311,7 +1361,7 @@ def getAnnotations ( webargs, postdata ):
         # get annotations for each identifier
         for annoid in annoids:
           # the int here is to prevent using a numpy value in an inner loop.  This is a 10x performance gain.
-          getAnnoById ( int(annoid), h5fout, proj, rdb, db, dataoption, resolution, corner, dim )
+          getAnnoById ( int(annoid), h5fout, proj, rdb, db, dataoption, timestamp, resolution, corner, dim )
 
       except:
         h5fout.close()
@@ -1406,6 +1456,7 @@ def putAnnotation ( webargs, postdata ):
       return retstr
 
     else:
+
       # Make a named temporary file for the HDF5
       with closing (tempfile.NamedTemporaryFile()) as tmpfile:
         tmpfile.write ( postdata )
@@ -1438,9 +1489,6 @@ def putAnnotation ( webargs, postdata ):
             if not ('update' in options or 'dataonly' in options or 'reduce' in options):
               anno.setField('annid',(rdb.assignID(ch,anno.annid)))
     
-            # start a transaction: get mysql out of line at a time mode
-            #db.startTxn()
-    
             tries = 0 
             done = False
             while not done and tries < 5:
@@ -1458,6 +1506,11 @@ def putAnnotation ( webargs, postdata ):
                 elif not 'dataonly' in options and not 'reduce' in options:
                   # Put into the database
                   rdb.putAnnotation(ch, anno, options)
+
+                
+                # data portion of the put
+                #RBTODO get timestamp from HDF5
+                timestamp=0
     
                 #  Get the resolution if it's specified
                 if 'RESOLUTION' in idgrp:
@@ -1472,7 +1525,7 @@ def putAnnotation ( webargs, postdata ):
                   voxels = None
     
                 if voxels!=None and 'reduce' not in options:
-    
+
                   if 'preserve' in options:
                     conflictopt = 'P'
                   elif 'exception' in options:
@@ -1485,7 +1538,7 @@ def putAnnotation ( webargs, postdata ):
                     logger.warning ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
                     raise NDWSError ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
     
-                  exceptions = db.annotate ( ch, anno.annid, resolution, voxels, conflictopt )
+                  exceptions = db.annotate ( ch, anno.annid, timestamp, resolution, voxels, conflictopt )
     
                 # Otherwise this is a shave operation
                 elif voxels != None and 'reduce' in options:
@@ -1494,7 +1547,7 @@ def putAnnotation ( webargs, postdata ):
                   if voxels.shape[1] != 3:
                     logger.warning ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
                     raise NDWSError ("Voxels data not the right shape.  Must be (:,3).  Shape is %s" % str(voxels.shape))
-                  db.shave ( ch, anno.annid, resolution, voxels )
+                  db.shave ( ch, anno.annid, timestamp, resolution, voxels )
     
                 # Is it dense data?
                 if 'CUTOUT' in idgrp:
@@ -1514,14 +1567,14 @@ def putAnnotation ( webargs, postdata ):
                   offset = proj.datasetcfg.offset[resolution]
                   corner = map(sub, h5xyzoffset, offset)
                   
-                  db.annotateEntityDense ( ch, anno.annid, corner, resolution, np.array(cutout), conflictopt )
+                  db.annotateEntityDense ( ch, anno.annid, timestamp, corner, resolution, np.array(cutout), conflictopt )
     
                 elif cutout != None and h5xyzoffset != None and 'reduce' in options:
 
                   offset = proj.datasetcfg.offset[resolution]
                   corner = map(sub, h5xyzoffset,offset)
     
-                  db.shaveEntityDense ( ch, anno.annid, corner, resolution, np.array(cutout))
+                  db.shaveEntityDense ( ch, anno.annid, timestamp, corner, resolution, np.array(cutout))
     
                 elif cutout != None or h5xyzoffset != None:
                   #TODO this is a loggable error
@@ -1531,7 +1584,7 @@ def putAnnotation ( webargs, postdata ):
                 if 'CUBOIDS' in idgrp:
                   cuboids = h5ann.H5getCuboids(idgrp)
                   for (corner, cuboiddata) in cuboids:
-                    db.annotateEntityDense ( anno.annid, corner, resolution, cuboiddata, conflictopt ) 
+                    db.annotateEntityDense ( anno.annid, timestamp, corner, resolution, cuboiddata, conflictopt ) 
     
                 # only add the identifier if you commit
                 if not 'dataonly' in options and not 'reduce' in options:
@@ -1551,8 +1604,6 @@ def putAnnotation ( webargs, postdata ):
               except Exception, e:
                 logger.exception("Put Annotation:Put transaction rollback. {}".format(e))
                 raise NDWSError("Put Annotation:Put transaction rollback. {}".format(e))
-    
-              # Commit if there is no error
     
         finally:
           h5f.close()
@@ -1574,7 +1625,7 @@ def getNIFTI ( webargs ):
     ch = NDChannel.fromName(proj, channel)
 
     # Make a named temporary file for the nii file
-    with closing(tempfile.NamedTemporaryFile(suffix='.nii')) as tmpfile:
+    with closing(tempfile.NamedTemporaryFile(suffix='.nii.gz')) as tmpfile:
       queryNIFTI ( tmpfile, ch, db, proj )
       tmpfile.seek(0)
       return tmpfile.read()
@@ -1587,13 +1638,25 @@ def putNIFTI ( webargs, postdata ):
   proj = NDProject.fromTokenName(token)
   with closing (SpatialDB(proj)) as db:
 
-    ch = NDChannel.fromName(proj, channel)
-    
-    # Don't write to readonly channels
-    if ch.readonly == READONLY_TRUE:
-      logger.error("Attempt to write to read only channel {} in project. Web Args:{}".format(ch.getChannelName(), proj.project_name, webargs))
-      raise NDWSError("Attempt to write to read only channel {} in project. Web Args: {}".format(ch.getChannelName(), proj.project_name, webargs))
+    # get ready to create a channel 
+    if "create" in optionsargs:
+      ch = None
+      createflag = True
+    else:
+      createflag = False
+      ch = NDChannel.fromName(proj, channel)
 
+      # Don't write to readonly channels
+      if ch.readonly == READONLY_TRUE:
+        logger.error("Attempt to write to read only channel {} in project. Web Args:{}".format(ch.getChannelName(), proj.project_name, webargs))
+        raise NDWSError("Attempt to write to read only channel {} in project. Web Args: {}".format(ch.getChannelName(), proj.project_name, webargs))
+
+
+    if "annotations" in optionsargs:
+      annotationsflag=True
+    else:
+      annotationsflag=False
+    
     # check the magic number -- is it a gz file?
     if postdata[0] == '\x1f' and postdata[1] ==  '\x8b':
 
@@ -1602,7 +1665,7 @@ def putNIFTI ( webargs, postdata ):
         tmpfile.write ( postdata )
         tmpfile.seek(0)
         # ingest the nifti file
-        ingestNIFTI ( tmpfile.name, ch, db, proj )
+        ingestNIFTI ( tmpfile.name, ch, db, proj, channel_name = channel, create=createflag, annotations=annotationsflag )
     
     else:
 
@@ -1611,7 +1674,7 @@ def putNIFTI ( webargs, postdata ):
         tmpfile.write ( postdata )
         tmpfile.seek(0)
         # ingest the nifti file
-        ingestNIFTI ( tmpfile.name, ch, db, proj )
+        ingestNIFTI ( tmpfile.name, ch, db, proj, channel_name = channel, create=createflag, annotations=annotationsflag )
 
 # def getSWC ( webargs ):
   # """Return an SWC object generated from Skeletons/Nodes"""

@@ -33,20 +33,38 @@ def main():
 
   #Divide the database into regions and  get the exceptions for each region
   # To belgine with I am hacking this 
+<<<<<<< HEAD:onetime/newMerge.py
+
   cury = 2048 * 26
   count = 0
 
+#Hardcoded for LP4's range ( to change)
+  #for y in range(5120,59903,5120/2):
+  #failed URL http://localhost/ocp/ocpca/bock11_octSynLP4/exceptions/1/20000,23000/7680,10240/3238,3253/
+=======
+  cury = 2048 * 26
+  count = 0
+
+>>>>>>> microns:onetime/deprecated/newMerge.py
   for y in range(cury+2048,cury+4096,2048):
     curz = 2917
     for z in range(2933,4156,16):         
   
+<<<<<<< HEAD:onetime/newMerge.py
+#      url = "http://%s/ocp/ocpca/%s/exceptions/%s/20000,23000/%s,%s/%s,%s/" % (result.baseurl,result.token, result.resolution, cury,y,curz,z)
+=======
+>>>>>>> microns:onetime/deprecated/newMerge.py
       url = "http://%s/ocpca/%s/exceptions/%s/20000,23000/%s,%s/%s,%s/" % (result.baseurl,result.token, result.resolution, cury,y,curz,z)
       print "Fetching " + url
       curz = z+1
       count = count+1
       listOfSets= []
+<<<<<<< HEAD:onetime/newMerge.py
+  # Get exceptions for the region
+=======
       
       # Get exceptions for the region
+>>>>>>> microns:onetime/deprecated/newMerge.py
       try:
         f = urllib2.urlopen ( url )
       except urllib2.URLError, e:
@@ -56,17 +74,34 @@ def main():
 
       print "Processing " + url
 
+<<<<<<< HEAD:onetime/newMerge.py
+  # Read into a temporary file
+=======
       # Read into a temporary file
+>>>>>>> microns:onetime/deprecated/newMerge.py
       tmpfile = tempfile.NamedTemporaryFile ( )
       tmpfile.write ( f.read() )
       tmpfile.seek(0)
       h5f = h5py.File ( tmpfile.name, driver='core', backing_store=False )
 
+<<<<<<< HEAD
+<<<<<<< HEAD:onetime/newMerge.py
+# The exceptions are of the form x,y,x, id1, id2....
+      if  h5f.get('exceptions'):
+        listOfSets = list(h5f['exceptions'][:])
+    # At this point we have a list of numpy arrays
+        
+# one time conversion for the first element
+=======
+      # The exceptions are of the form x,y,x, id1, id2....
+=======
+>>>>>>> rbdev
       if  h5f.get('exceptions'):
         listOfSets = list(h5f['exceptions'][:])
         
         # At this point we have a list of numpy arrays
         # one time conversion for the first element
+>>>>>>> microns:onetime/deprecated/newMerge.py
         if len(listOfSets) <= 3:
           continue;
       first_set = listOfSets[0]
@@ -75,8 +110,12 @@ def main():
 
       first = True
 
+<<<<<<< HEAD:onetime/newMerge.py
+# Combine the exceptions to get one disjoint set of exceptions.Each element in the set represents ids that have tp be merged
+=======
       # Combine the exceptions to get one disjoint set of exceptions.
       # Each element in the set represents ids that have tp be merged
+>>>>>>> microns:onetime/deprecated/newMerge.py
       while True:
         merged_one = False
         supersets = [listOfSets[0]]
@@ -98,7 +137,11 @@ def main():
           
           if not in_super_set:
             supersets.append(s)
+<<<<<<< HEAD:onetime/newMerge.py
+        #     print supersets
+=======
         # print supersets
+>>>>>>> microns:onetime/deprecated/newMerge.py
         if not merged_one:
           break
         
@@ -116,6 +159,10 @@ def main():
         if len(elm) == 1:
           continue
         mergeids = ','.join([str(n) for n in elm]) 
+<<<<<<< HEAD:onetime/newMerge.py
+        #url="http://%s/ocp/ocpca/%s/merge/%s/global/%s/"%(result.baseurl,result.token, mergeids, result.resolution)
+=======
+>>>>>>> microns:onetime/deprecated/newMerge.py
         url="http://%s/ocpca/%s/merge/%s/global/%s/"%(result.baseurl,result.token, mergeids, result.resolution)
         print url
         try:
@@ -124,10 +171,18 @@ def main():
           print "Failed URL", url
           print "Error %s" % (e)
           sys.exit(0)
+<<<<<<< HEAD:onetime/newMerge.py
+    # Increment the Y region    
+=======
     # Increment the Y region
+>>>>>>> microns:onetime/deprecated/newMerge.py
     cury=y
 
   print count
 
 if __name__ == "__main__":
   main()
+<<<<<<< HEAD:onetime/newMerge.py
+
+=======
+>>>>>>> microns:onetime/deprecated/newMerge.py

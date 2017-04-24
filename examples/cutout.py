@@ -29,7 +29,7 @@ def main():
 
   result = parser.parse_args()
 
-  url = 'http://{}/ca/{}/npz/{}/'.format( result.baseurl, result.token, result.cutout )
+  url = 'http://{}/sd/{}/npz/{}/'.format( result.baseurl, result.token, result.cutout )
 
   # Get cube in question
   try:

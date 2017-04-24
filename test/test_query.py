@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import cStringIO
 import tempfile
 import h5py
@@ -26,6 +27,7 @@ p = Params()
 p.token = 'unittest'
 p.channels = ['unit_anno']
 
+@pytest.mark.skipif(KV_ENGINE == REDIS, reason='Annotation not supported in Redis')
 class Test_Ramon:
 
   def setup_class(self):

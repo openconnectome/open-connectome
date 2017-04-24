@@ -7,26 +7,25 @@ Scalable database cluster for the spatial analysis and annotation of high-throug
 [![Build Status](https://travis-ci.org/neurodata/ndstore.svg?branch=microns)](https://travis-ci.org/neurodata/ndstore.svg?branch=master)
 [![Service Status](https://img.shields.io/badge/service-status-lightgrey.svg)](http://neurodata.statuspage.io/)
 
-Root directory of the cutout and annotation services.
-Major directories include:
+
+#### Major directories include:
 
   * spdb -- [Spatial Database submodule](https://github.com/neurodata/spdb)
+  * ndingest -- [AWS Wrappers for Parallel Ingest submodule](https://github.com/neurodata/ndingest)
+  * ndlib -- [Common library and Ctype accelerations submodule](https://github.com/neurodata/ndlib)
+  * ingest-client -- [Ingest client and related services submodule](https://github.com/neurodata/ingest-client)
   * webservices -- Webservices module
   * ndproj -- Project Module
   * ramon -- RAMON and Annotation metadata module
   * django -- Django module
-  * setup -- Setup instructions
+  * setup -- Install script, setup instructions and configurations
   * test -- Test module
   * examples -- How to use the service
-  * util -- Useful common files across the modules
-  * ingest -- Scripts to insert datasets into the databases
   * admin -- Scripts to manage the databases
-  * ndlib -- [Common library and Ctype accelerations submodule](https://github.com/neurodata/ndlib)
   * docs -- Sphinx documentation for the project
-  * cython -- Cython acclerations for the service (Deprecated)
   * scripts -- Useful general purpose scripts
-  * onetime -- Misc scripts for the service
-  * NOTE: git submodule init and git submodule update for all submodules
+
+NOTE: git submodule init and git submodule update for all submodules
 
 #### Architecture
 

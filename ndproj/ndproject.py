@@ -34,8 +34,7 @@ class NDProject(NDObject):
     
     self.pr = pr
     self.datasetcfg = NDDataset.fromName(self.dataset_name)
-    with closing (NDProjectsDB.getProjDB(self)) as db:
-      self.db = db
+    self.loadDB()
 
     # if isinstance(token_name, str) or isinstance(token_name, unicode):
       # try:
@@ -85,8 +84,13 @@ class NDProject(NDObject):
     pr = Project(**cls.deserialize(project))
     pr.dataset_id = dataset_name
     return cls(pr)
+  
+  def loadDB(self):
+    with closing (NDProjectsDB.getProjDB(self)) as db:
+      self.db = db
 
   def create(self, create_table=True):
+
     try:
       self.pr.save()
       if create_table:
@@ -165,6 +169,7 @@ class NDProject(NDObject):
   @kvengine.setter
   def kvengine(self, value):
     self.pr.kvengine = value
+    self.loadDB()
 
   @property
   def mdengine(self):
@@ -234,36 +239,6 @@ class NDProject(NDObject):
   def getToken ( self ):
     return self.tk.token_name
   
-  # def getDBHost ( self ):
-      # return self.pr.host
-  
-  # def getKVEngine ( self ):
-    # return self.pr.kvengine
-  
-  # def getKVServer ( self ):
-    # return self.pr.kvserver
-  
-  # def getMDEngine ( self ):
-    # return self.pr.mdengine
-  
-  # def getDBName ( self ):
-    # return self.pr.project_name
-  
-  # def getProjectName ( self ):
-    # return self.pr.project_name
-  
-  # def getProjectDescription ( self ):
-    # return self.pr.project_description
-  
-  # def getS3Backend(self):
-    # return self.pr.s3backend
-  
-  # def getNDVersion ( self ):
-    # return self.pr.nd_version
-  
-  # def getSchemaVersion ( self ):
-    # return self.pr.schema_version
-
   def projectChannels ( self, channel_list=None ):
     """Return a generator of Channel Objects"""
     if channel_list is None:
@@ -280,12 +255,6 @@ class NDProject(NDObject):
       channel_name = Channel.objects.get(project_id=self.pr, default=True)
     return NDChannel.fromName(self.pr, channel_name)
 
-  # def getDBUser( self ):
-    # return settings.DATABASES['default']['USER']
-  
-  # def getDBPasswd( self ):
-    # return settings.DATABASES['default']['PASSWORD']
-  
   def deleteProject(self):
     """Delete the Project"""
     self.pr.delete()

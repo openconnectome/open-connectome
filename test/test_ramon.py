@@ -36,6 +36,7 @@ p.token = 'unittest'
 p.resolution = 0
 p.channels = ['unit_anno']
 
+@pytest.mark.skipif(KV_ENGINE == REDIS, reason='Annotation not supported in Redis')
 class Test_Ramon:
 
   def setup_class(self):

@@ -50,7 +50,7 @@ urlpatterns = [
   # projection services
   url(r'(?P<webargs>^\w+/[\w,]+/(minproj|maxproj)/[\w,/-]+)$', views.minmaxProject),
   # get and put services
-  url(r'(?P<webargs>^\w+/([\w+,]*/)*(xy|xz|yz|tiff|hdf5|blosc|blaze|jpeg|npz|raw|zip|diff|id|ids|xyanno|xzanno|yzanno)/[\w,/-]*)$', views.cutout),
+  url(r'(?P<webargs>^\w+/([\w+,]*/)*(xy|xz|yz|tiff|hdf5|blosc|blaze|jpeg|npz|raw|zip|diff|id|ids|xyanno|xzanno|yzanno)/[\w\.,/-]*)$', views.cutout),
   # single field interfaces
   url(r'(?P<webargs>^\w+/\w+/getField/\d+/[\w+,/]*)$', views.getField),
   url(r'(?P<webargs>^\w+/\w+/setField/\d+/[\w+,./]*)$', views.setField),

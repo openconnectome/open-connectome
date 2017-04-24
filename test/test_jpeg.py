@@ -20,7 +20,7 @@ import numpy as np
 from PIL import Image
 import cStringIO
 import makeunitdb
-from ndlib.ndtype import IMAGE, UINT8, UINT16
+from ndlib.ndtype import *
 from params import Params
 from postmethods import postNPZ, getNPZ, getHDF5, postHDF5, getURL, postBlosc, getBlosc
 from test_settings import *
@@ -29,15 +29,8 @@ from test_settings import *
 # 1 - test_get_jpeg
 
 p = Params()
-p.token = 'unittest'
-p.resolution = 0
 p.channels = ['IMAGE1', 'IMAGE2']
-p.window = [0,500]
-p.channel_type = IMAGE
-p.datatype = UINT8
-p.voxel = [4.0,4.0,3.0]
-#p.args = (3000,3100,4000,4100,500,510)
-
+p.channel_type = TIMESERIES
 
 class Test_Jpeg:
 
@@ -61,4 +54,29 @@ class Test_Jpeg:
     posted_data = np.asarray( Image.open(cStringIO.StringIO(data.content)) )
 
     image_data = image_data[0,:,:,:].reshape(1000,100)
-    assert ( np.array_equal(image_data,posted_data) )
+    assert ( np.array_equal(image_data, posted_data) )
+
+
+class Test_Jpeg_Neariso:
+
+  def setup_class(self):
+
+    makeunitdb.createTestDB(p.token, channel_list=p.channels, channel_type=p.channel_type, channel_datatype=p.datatype, base_resolution=4)
+
+  def teardown_class(self):
+    makeunitdb.deleteTestDB(p.token)
+  
+  def test_get_neariso_jpeg(self):
+    """Test the jpeg volume cutout for neariso"""
+
+    p.resolution = 4
+    p.args = (375,400,500,575,2,7)
+    image_data = np.ones( [2,5,75,25], dtype=np.uint8 ) * random.randint(0,255)
+    response = postNPZ(p, image_data, neariso=True)
+
+    url = "https://{}/sd/{}/{}/jpeg/{}/{},{}/{},{}/{},{}/neariso/".format(SITE_HOST, p.token, p.channels[0], p.resolution, p.args[0], p.args[1], p.args[2], p.args[3], p.args[4], p.args[5])
+    data = getURL(url)
+    posted_data = np.asarray( Image.open(cStringIO.StringIO(data.content)) )
+
+    image_data = image_data[0,:,:,:].reshape(375,25)
+    assert ( np.array_equal(image_data, posted_data) )

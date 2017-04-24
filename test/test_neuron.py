@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import urllib2
 import h5py
 import tempfile
@@ -50,6 +51,7 @@ p.token = 'unittest'
 p.resolution = 0
 p.channels = ['unit_anno']
 
+@pytest.mark.skipif(KV_ENGINE == REDIS, reason='Annotation not supported in Redis')
 class Test_Neuron:
 
   def setup_class(self):

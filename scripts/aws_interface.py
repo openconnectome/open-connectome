@@ -42,246 +42,45 @@ from ndproj.nddataset import NDDataset
 from ndproj.ndchannel import NDChannel
 from ndproj.ndproject import NDProject
 from ndproj.ndtoken import NDToken
-from spdb.spatialdb import SpatialDB
-from spdb.s3io import S3IO
 from ndingest.nddynamo.cuboidindexdb import CuboidIndexDB
 from ndingest.ndbucket.cuboidbucket import CuboidBucket
-from ndlib.s3util import generateS3BucketName, generateS3Key
+from scripts_helper import *
 from ingest.core.config import Configuration
 import logging
+HOST_NAME = 'localhost:8080'
 
-
-class ResourceInterface():
-
-  def __init__(self, dataset_name, project_name, token_name, host_name, logger):
-    self.dataset_name = dataset_name
-    self.project_name = project_name
-    self.token_name = token_name
-    self.host = host_name
-    self.logger = logger
-  
-  def getChannel(self, channel_name):
-    try:
-      response = getJson('http://{}/resource/dataset/{}/project/{}/channel/{}/'.format(self.host, self.dataset_name, self.project_name, channel_name))
-      if response.status_code == 404:
-        raise ValueError('The specified channel {} does not exist on the server'.format(channel_name))
-      if response.status_code != 200:
-        raise ValueError('The server returned status code {}'.format(response.status_code))
-      channel_json = response.json()
-      del channel_json['id']
-      del channel_json['project']
-      return NDChannel.fromJson(self.project_name, json.dumps(channel_json))
-    except Exception as e:
-      self.logger.error(e)
-      sys.exit(0)
-
-  def createDataset(self):
-    dataset_obj = NDDataset.fromName(self.dataset_name)
-    dataset = model_to_dict(dataset_obj._ds)
-    del dataset['user']
-    try:
-      response = getJson('http://{}/resource/dataset/{}/'.format(self.host, self.dataset_name))
-      if response.status_code == 404:
-        response = postJson('http://{}/resource/dataset/{}/'.format(self.host, self.dataset_name), dataset)
-        if response.status_code != 201:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      elif (response.status_code == 200) and (self.dataset_name == response.json()['dataset_name']):
-        self.logger.warning("Dataset already exists. Skipping Dataset creation")
-      else:
-        raise ValueError('The server returned status code {} and content {}'.format(response.status_code, response.json()))
-    except Exception as e:
-      self.logger.error(e)
-      sys.exit(0)
-
-  def createProject(self):
-    project_obj = NDProject.fromName(self.project_name)
-    project = model_to_dict(project_obj.pr)
-    project['kvengine'] = REDIS
-    project['host'] = 'localhost'
-    project['s3backend'] = S3_TRUE
-    del project['user']
-    del project['dataset']
-    try:
-      response = getJson('http://{}/resource/dataset/{}/project/{}/'.format(self.host, self.dataset_name, self.project_name))
-      if response.status_code == 404:
-        response = postJson('http://{}/resource/dataset/{}/project/{}/'.format(self.host, self.dataset_name, self.project_name), project)
-        if response.status_code != 201:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      elif (response.status_code == 200) and (self.project_name == response.json()['project_name']):
-        self.logger.warning("Project already exists. Skipping Project creation")
-      else:
-        raise ValueError('The server returned status code {} and content {}'.format(response.status_code, response.json()))
-    except Exception as e:
-      self.logger.error(e)
-      sys.exit(0)
-  
-  def createChannel(self, channel_name):
-    project = NDProject.fromName(self.project_name)
-    channel_obj = project.getChannelObj(channel_name)
-    channel = model_to_dict(channel_obj.ch)
-    del channel['id']
-    del channel['project']
-    # del channel['user']
-    try:
-      response = getJson('http://{}/resource/dataset/{}/project/{}/channel/{}/'.format(self.host, self.dataset_name, self.project_name, channel_name))
-      if response.status_code == 404:
-        response = postJson('http://{}/resource/dataset/{}/project/{}/channel/{}/'.format(self.host, self.dataset_name, self.project_name, channel_name), channel)
-        if response.status_code != 201:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      elif (response.status_code == 200) and (channel_name == response.json()['channel_name']):
-        self.logger.warning("Channel already exists. Skipping Channel creation")
-      else:
-        raise ValueError('The server returned status code {} and content {}'.format(response.status_code, response.json()))
-    except Exception as e:
-      self.logger.error(e)
-      sys.exit(0)
-    
-  def createToken(self):
-    token_obj = NDToken.fromName(self.token_name)
-    token = model_to_dict(token_obj._tk)
-    del token['project']
-    del token['user']
-    try:
-      response = getJson('http://{}/resource/dataset/{}/project/{}/token/{}/'.format(self.host, self.dataset_name, self.project_name, self.token_name))
-      if response.status_code == 404:
-        response = postJson('http://{}/resource/dataset/{}/project/{}/token/{}/'.format(self.host, self.dataset_name, self.project_name, self.token_name), token)
-        if response.status_code != 201:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      elif (response.status_code == 200) and (self.token_name == response.json()['token_name']):
-        self.logger.warning("Token already exists. Skipping Token creation")
-      else:
-        raise ValueError('The server returned status code {} and content {}'.format(response.status_code, response.json()))
-    except Exception as e:
-      self.logger.error(e)
-      sys.exit(0)
-  
-    def deleteDataset(self):
-      try:
-        response = deleteJson('http://{}/resource/dataset/{}/'.format(self.host, self.dataset_name))
-        if response.status_code != 204:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      except Exception as e:
-        self.logger.error(e)
-        sys.exit(0)
-    
-    def deleteProject(self):
-      try:
-        response = deleteJson('http://{}/resource/dataset/{}/project/{}'.format(self.host, self.dataset_name, self.project_name))
-        if response.status_code != 204:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      except Exception as e:
-        self.logger.error(e)
-        sys.exit(0)
-    
-    def deleteChannel(self, channel_name):
-      try:
-        response = deleteJson('http://{}/resource/dataset/{}/project/{}/channel/{}'.format(self.host, self.dataset_name, self.project_name, channel_name))
-        if response.status_code != 204:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      except Exception as e:
-        self.logger.error(e)
-        sys.exit(0)
-
-    def deleteToken(self):
-      try:
-        response = deleteJson('http://{}/resource/dataset/{}/project/{}/token/{}'.format(self.host, self.dataset_name, self.project_name, self.token_name))
-        if response.status_code != 204:
-          raise ValueError('The server returned status code {}'.format(response.status_code))
-      except Exception as e:
-        self.logger.error(e)
-        sys.exit(0)
 
 
 class AwsInterface:
 
-  def __init__(self, token, host_name):
+  def __init__(self, token_name, host_name=HOST_NAME):
     """Create the bucket and intialize values"""
   
     # configuring the logger based on the dataset we are uploading
-    self.logger = logging.getLogger(token)
+    self.logger = logging.getLogger(token_name)
     self.logger.setLevel(logging.INFO)
-    fh = logging.FileHandler('{}.log'.format(token))
+    fh = logging.FileHandler('{}.log'.format(token_name))
     self.logger.addHandler(fh)
     # setting up the project metadata
-    self.token = token
-    try:
-      self.proj = NDProject.fromTokenName(self.token)
-      # raise ValueError()
-    except Exception as e:
-      response = getJson('http://{}/sd/{}/info/'.format(host_name, token))
-      if response.status_code != 200:
-        raise ValueError("The server returned status code {}".response.status_code)
-      
-      project_name = response.json()['project']['name']
-      dataset_name = response.json()['dataset']['name']
-      response = getJson('http://{}/resource/dataset/{}/project/{}/'.format(host_name, dataset_name, project_name))
-      if response.status_code != 200:
-        raise ValueError("The server returned status code {}".response.status_code)
-      project_json = response.json()
-      del project_json['user']
-      del project_json['dataset']
-      self.proj = NDProject.fromJson(dataset_name, json.dumps(project_json))
+    self.info_interface = InfoInterface(host_name, token_name)
     # creating the resource interface to the remote server
-    self.resource_interface = ResourceInterface(self.proj.dataset_name, self.proj.project_name, self.token, host_name, self.logger)
+    # self.resource_interface = ResourceInterface(self.info_interface.dataset_name, self.info_interface.project_name, host_name, logger=self.logger)
+    # self.proj = self.resource_interface.getProject()
+    # create the s3 I/O and index objects
+    self.cuboidindex_db = CuboidIndexDB(self.info_interface.project_name)
+    self.cuboid_bucket = CuboidBucket(self.info_interface.project_name)
+  
 
+  
+  # def setupNewProject(self):
+    # """Setup a new project if it does not exist"""
     
-    with closing (SpatialDB(self.proj)) as self.db:
-      # create the s3 I/O and index objects
-      self.s3_io = S3IO(self.db)
-      self.cuboid_bucket = CuboidBucket(self.proj.project_name, endpoint_url=ndingest_settings.S3_ENDPOINT)
-      self.cuboidindex_db = CuboidIndexDB(self.proj.project_name, endpoint_url=ndingest_settings.DYNAMO_ENDPOINT)
-      # self.file_type = result.file_type
-      # self.tile_size = result.tile_size
-      # self.data_location = result.data_location
-      # self.url = result.url
+    # self.resource_interface.createDataset()
+    # self.resource_interface.createProject()
+    # self.resource_interface.createToken()
   
-  def deleteToken(self):
-    """Delete the Token"""
-    
-    self.resource_interface.deleteToken()
-    print 'Delete successful for token {}'.format(self.token)
 
-  def deleteProject(self):
-    """Delete the project"""
-
-    for item in self.cuboidindex_db.queryProjectItems():
-      self.cuboid_bucket.deleteObject(item['supercuboid_key'])
-      self.cuboidindex_db.deleteItem(item['supercuboid_key'])
-    self.resource_interface.deleteToken()
-    self.resource_interface.deleteProject()
-    print 'Delete successful for project {}'.format(self.proj.project_name)
-  
-  
-  def deleteChannel(self, channel_name):
-    """Delete the channel"""
-
-    for item in self.cuboidindex_db.queryChannelItems():
-      self.cuboid_bucket.deleteObject(item['supercuboid_key'])
-      self.cuboidindex_db.deleteItem(item['supercuboid_key'])
-    self.resource_interface.deleteChannel(channel_name)
-    print 'Delete successful for channel {}'.format(channel_name)
-
-
-  def deleteResolution(self, channel_name, resolution):
-    """Delete an existing resolution"""
-    
-    for item in self.cuboidindex_db.queryResolutionItems(channel_name, resolution):
-      self.cuboid_bucket.deleteObject(item['supercuboid_key'])
-      self.cuboidindex_db.deleteItem(item['supercuboid_key'])
-    print 'Delete successful for resolution {} for channel {}'.format(resolution, channel_name)
-
-  
-  def setupNewProject(self):
-    """Setup a new project if it does not exist"""
-    
-    self.resource_interface.createDataset()
-    self.resource_interface.createProject()
-    self.resource_interface.createToken()
-  
-  # def readExistingProject():
-    # data = db.cutout(ch, [x*xsupercubedim, y*ysupercubedim, z*zsupercubedim], [xsupercubedim, ysupercubedim, zsupercubedim], cur_res).data
-
-  def uploadExistingProject(self, channel_name, resolution, start_values):
+  def uploadExistingProject(self, channel_name, resolution, start_values, neariso=False):
     """Upload an existing project to S3"""
       
     self.setupNewProject()
@@ -331,9 +130,9 @@ class AwsInterface:
 
                 self.logger.info("[{},{},{}] at res {}".format(x*xsupercubedim, y*ysupercubedim, z*zsupercubedim, cur_res))
                 # updating the index
-                self.cuboidindex_db.putItem(ch.channel_name, cur_res, x, y, z)
+                # self.cuboidindex_db.putItem(ch.channel_name, cur_res, x, y, z, ch.time_range[0])
                 # inserting the cube
-                self.s3_io.putCube(ch, cur_res, morton_index, blosc.pack_array(data))
+                self.s3_io.putCube(ch, ch.time_stamp[0], morton_index, cur_res, blosc.pack_array(data), neariso=neariso)
               
               except Exception as e:
                 # checkpoint the ingest
@@ -342,7 +141,7 @@ class AwsInterface:
                 raise e
   
   
-  def uploadNewProject(self, config_file, start_values):
+  def uploadNewProject(self, config_file, start_values, neariso=False):
     """Upload a new project"""
     
     # loading the config file and assdociated params and processors
@@ -358,7 +157,7 @@ class AwsInterface:
     
     # creating the channel object from resource service
     channel_name = config.config_data['database']['channel']
-    ch = self.resource_interface.getChannel(channel_name)
+    channel_datatype = self.info_interface.get_channel_datatype(channel_name)
     cur_res = tile_params['ingest_job']['resolution']
     
     # loading all the parameters for image-sizes, tile-sizes, and iteration limits
@@ -384,7 +183,7 @@ class AwsInterface:
         for y in range(y_start, y_limit, 1):
           for x in range(x_start, x_limit, 1):
             
-            data = np.zeros([zsupercubedim, y_tilesz, x_tilesz], dtype=ND_dtypetonp[ch.channel_datatype])
+            data = np.zeros([zsupercubedim, y_tilesz, x_tilesz], dtype=ND_dtypetonp[channel_datatype])
             for b in range(0, zsupercubedim, 1):
               if z + b > z_end - 1:
                 break
@@ -404,12 +203,13 @@ class AwsInterface:
                 # calculate the morton index 
                 insert_data = data[:, y_index*ysupercubedim:(y_index+1)*ysupercubedim, x_index*xsupercubedim:(x_index+1)*xsupercubedim]
                 if np.any(insert_data):
-                  morton_index = XYZMorton([x_index+(x*x_tilesz/xsupercubedim), y_index+(y*y_tilesz/ysupercubedim), z])
+                  morton_index = XYZMorton([x_index+(x*x_tilesz/xsupercubedim), y_index+(y*y_tilesz/ysupercubedim), z/zsupercubedim])
+                  [s3_x, s3_y, s3_z] = MortonXYZ(morton_index)
+                  print "Morton Index {}".format(morton_index)
                   self.logger.info("[{},{},{}]".format((x_index+x)*x_tilesz, (y_index+y)*y_tilesz, z))
-                  # updating the index
-                  self.cuboidindex_db.putItem(ch.channel_name, cur_res, x, y, z)
-                  # inserting the cube
-                  self.s3_io.putCube(ch, cur_res, morton_index, blosc.pack_array(insert_data))
+                  self.cuboidindex_db.putItem(channel_name, cur_res, s3_x, s3_y, s3_z, t, neariso=neariso)
+                  self.cuboid_bucket.putObject(channel_name, cur_res, morton_index, t, blosc.pack_array(insert_data), neariso=neariso)
+                  # self.s3_io.putCube(ch, t, morton_index, cur_res, blosc.pack_array(insert_data), update=False, neariso=False)
 
 
   def checkpoint_ingest(self, channel_name, resolution, x, y, z, e, time=0):
@@ -433,7 +233,7 @@ def main():
   parser.add_argument('--channel', dest='channel_name', action='store', type=str, default=None, help='Channel Name in the project')
   parser.add_argument('--res', dest='resolution', action='store', type=int, default=None, help='Resolution to upload')
   parser.add_argument('--action', dest='action', action='store', choices=['upload-existing', 'upload-new', 'delete-channel', 'delete-res', 'delete-project'], default='upload', help='Specify action for the given project')
-  parser.add_argument('--host', dest='host_name', action='store', type=str, default='cloud.neurodata.io/nd', help='Server host name')
+  parser.add_argument('--host', dest='host_name', action='store', type=str, default='localhost:8080', help='Server host name')
   parser.add_argument('--start', dest='start_values', action='store', type=int, nargs=3, metavar=('X', 'Y', 'Z'), default=[0, 0, 0], help='Resume upload from co-ordinates')
   parser.add_argument('--data', dest='data_location', action='store', type=str, default=None, help='Data Location')
   parser.add_argument('--config', dest='config_file', action='store', default=None, help='Config file name')

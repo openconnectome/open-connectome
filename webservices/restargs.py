@@ -35,27 +35,32 @@ class RESTArgsError(Exception):
 class BrainRestArgs:
 
   # Accessors to get corner and dimensions
-  def getCorner (self):
+  def getCorner(self):
     return self.corner
 
-  def getDim (self):
+  def getDim(self):
    return self.dim
    
-  def getResolution (self):
+  def getResolution(self):
    return self.resolution
 
-  def getFilter ( self ):
+  def getFilter(self):
     return self.filterlist
 
-  def getWindow ( self ):
+  def getWindowRange(self):
     return self.window
   
-  def getTimeRange ( self ):
+  def getTimeRange(self):
     return self.time
   
-  def getZScaling ( self ):
+  def getZScaling(self):
     return self.zscaling
+  
+  def getDirect(self):
+    return self.direct
 
+  def getAligned(self):
+    return self.aligned
 
   def cutoutArgs ( self, imageargs, datasetcfg, channels=None ):
     """Process REST arguments for an cutout plane request"""
@@ -63,7 +68,7 @@ class BrainRestArgs:
     try:
       # argument of format /resolution/x1,x2/y1,y2/z1,z2/rest(can include t1,t2)/
       #m = re.match("([0-9]+)/([0-9]+),([0-9]+)/([0-9]+),([0-9]+)/([0-9]+),([0-9]+)([/]*[\w+]*[/]*[\d,+]*[/]*)$", imageargs)
-      m = re.match("([0-9]+)/([0-9]+),([0-9]+)/([0-9]+),([0-9]+)/([0-9]+),([0-9]+)([/]*[\d+,]*[\w+]*[/]*[\d,+]*[/]*)?$", imageargs)
+      m = re.match("([0-9]+)/([0-9]+),([0-9]+)/([0-9]+),([0-9]+)/([0-9]+),([0-9]+)(.*)?$", imageargs)
       [self.resolution, x1, x2, y1, y2, z1, z2] = [int(i) for i in m.groups()[:-1]]
       rest = m.groups()[-1]
 
@@ -83,39 +88,52 @@ class BrainRestArgs:
     self.dim = [x2-x1, y2-y1, z2-z1]
 
     # time arguments
-    self.time = [0,0]
+    self.time = None
     result = re.match("/(\d+),(\d+)/", rest)
     if result is not None:
       self.time = [int(i) for i in result.groups()]
-    # RBTODO no way to check time now.  without channel?
 
+    # See if it is an integral cutout request
+    result = re.search ("/neariso/", rest)
+    if result is not None:
+      self.zscaling = True
+    else:
+      # self.zscaling = datasetcfg.scalingoption
+      self.zscaling = False
+    
     # Check arguments for legal values
     try:
-      if not ( datasetcfg.checkCube(self.resolution, self.corner, self.dim) ):
-        raise RESTArgsError ( "Illegal range. Image size: {} at offset {}".format(str(datasetcfg.dataset_dim(self.resolution)),str(datasetcfg.get_offset(self.resolution))))
+      if not ( datasetcfg.checkCube(self.resolution, self.corner, self.dim, neariso=self.zscaling) ):
+        if self.zscaling:
+          raise RESTArgsError ( "Illegal range. Neariso Image size: {} at offset {}".format(str(datasetcfg.neariso_imagesz[self.resolution]),str(datasetcfg.get_offset(self.resolution))))
+        else:  
+          raise RESTArgsError ( "Illegal range. Image size: {} at offset {}".format(str(datasetcfg.dataset_dim(self.resolution)),str(datasetcfg.get_offset(self.resolution))))
     except Exception, e:
-      # RBTODO make this error better.  How to print good information about e?
-      #  it only prints 3, not KeyError 3, whereas print e in the debugger gives good info
-      raise RESTArgsError ( "Illegal arguments to cutout. Check cube failed {}".format(e))
+      raise RESTArgsError ( "Illegal arguments to cutout. Check cube failed {}".format(str(e)))
 
+    # window argument
+    result = re.search ("/window/([\d\.]+),([\d\.]+)/", rest)
+    if result != None:
+      self.window = [str(i) for i in result.groups()]
+    else:
+      self.window = None
+    
     # list of identifiers to keep
-    result = re.match ("/filter/([\d/,]+)/", rest)
+    result = re.search ("/filter/([\d/,]+)/", rest)
     if result != None:
       self.filterlist = np.array(result.group(1).split(','),dtype=np.uint32)
     else:
       self.filterlist = None
-    
-    
-    # See if it is an isotropic cutout request
-    self.zscaling = None
-    result = re.match ("/iso/",rest)
-    if result is not None:
-      self.zscaling = 'isotropic'
-     
-    # See if it is an integral cutout request
-    result = re.match ("/neariso/",rest)
-    if result is not None:
-      self.zscaling = 'nearisotropic'
+
+    self.direct = search_term('/direct/', rest)
+    self.aligned = search_term('/aligned/', rest)
+
+def search_term(search_string, rest_arg):
+  """Search string and check"""
+  if re.search(search_string, rest_arg) is None:
+    return False
+  else:
+    return True
 
 
 def voxel ( imageargs, datasetcfg ):
